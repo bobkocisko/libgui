@@ -12,17 +12,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Button.cpp" />
+    <ClCompile Include="Container.cpp" />
     <ClCompile Include="Control.cpp" />
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="ElementManager.cpp" />
-    <ClCompile Include="Precompiled.cpp" />
+    <ClCompile Include="Precompiled.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Button.h" />
+    <ClInclude Include="Container.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="Element.h" />
     <ClInclude Include="ElementManager.h" />
     <ClInclude Include="Precompiled.h" />
+    <ClInclude Include="Structs.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{584D7FBE-54F0-4B81-9867-742559ED9BAC}</ProjectGuid>

@@ -17,6 +17,7 @@
 #include <wincodec.h>
 
 #include <vector>
+#include <memory>
 
 // Linker
 #pragma comment (lib, "d2d1")
