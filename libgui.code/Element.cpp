@@ -3,7 +3,7 @@
 
 namespace libgui
 {
-	bool Element::HitTest(Location point)
+	shared_ptr<Element> Element::ElementAtPoint(Location point)
 	{
 		auto arrangedLocation = GetArrangedLocation();
 		auto arrangedSize = GetArrangedSize();
@@ -13,8 +13,13 @@ namespace libgui
 		double right = arrangedLocation.x + arrangedSize.width;
 		double bottom = arrangedLocation.y + arrangedSize.height;
 
-		return point.x >= left && point.x <= right &&
-			point.y >= top && point.y <= bottom;
+		if (point.x >= left && point.x <= right &&
+			point.y >= top && point.y <= bottom)
+		{
+			return shared_from_this();
+		}
+
+		return nullptr;
 	}
 
 	void Element::SetWidth(double width)
@@ -54,4 +59,23 @@ namespace libgui
 		return m_arrangedSize;
 	}
 
+	void Element::SetArrangeCallback(function<void(shared_ptr<Element>)> f_arrange)
+	{
+		m_f_arrange = f_arrange;
+	}
+
+	function<void(shared_ptr<Element>)> Element::GetArrangeCallback()
+	{
+		return m_f_arrange;
+	}
+
+	void Element::Arrange()
+	{
+		// Call the arrange function if it has
+		// been specified
+		if (m_f_arrange)
+		{
+			m_f_arrange(shared_from_this());
+		}
+	}
 }

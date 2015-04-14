@@ -3,7 +3,7 @@
 
 namespace libgui
 {
-	class Button : public Control, public std::enable_shared_from_this<Button>
+	class Button : public Control
 	{
 	public:
 		// Input events

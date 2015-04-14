@@ -10,7 +10,9 @@ namespace libgui
 		// Singleton stuff
 		static ElementManager* Get();
 
-		void AddElement(shared_ptr<Element>);
+		void SetRoot(shared_ptr<Element>);
+
+		shared_ptr<Element> GetRoot();
 
 		bool NotifyMouseMove(int x, int y);
 		bool NotifyMouseDown(int x, int y);
@@ -32,9 +34,6 @@ namespace libgui
 		// recently sent a NotifyEnter nofication.
 		shared_ptr<Control> m_activeControl = nullptr;
 
-		// The elements list contains all elements that
-		// this element manager is reponsible for,
-		// ordered in Z-order ascending (top-most elements last)
-		vector<shared_ptr<Element>> m_elements;
+		shared_ptr<Element> m_root = nullptr;
 	};
 }

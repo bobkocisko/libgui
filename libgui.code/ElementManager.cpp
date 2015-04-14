@@ -9,9 +9,14 @@ namespace libgui
 		return &instance;
 	};
 
-	void ElementManager::AddElement(shared_ptr<Element> element)
+	void ElementManager::SetRoot(shared_ptr<Element> element)
 	{
-		m_elements.push_back(element);
+		m_root = element;
+	}
+
+	shared_ptr<Element> ElementManager::GetRoot()
+	{
+		return m_root;
 	}
 
 	void ElementManager::RequestCapture(shared_ptr<Control> control)
@@ -30,9 +35,11 @@ namespace libgui
 	{
 		bool needsUpdate = false;
 
+		auto elementAtPoint = m_root->ElementAtPoint(Location{ x, y });
+
 		if (m_activeControl)
 		{
-			if (!m_activeControl->HitTest( Location { x, y }))
+			if (elementAtPoint != m_activeControl)
 			{
 				m_activeControl->NotifyLeave();
 				m_activeControl = NULL;
@@ -40,25 +47,17 @@ namespace libgui
 			}
 		}
 
-		for (auto &element : m_elements)
+		auto control = dynamic_pointer_cast<Control> (elementAtPoint);
+		if (control && m_activeControl != control)
 		{
-			if (element->HitTest(Location{ x, y }))
+			if (m_activeControl)
 			{
-				auto control = dynamic_pointer_cast<Control> (element);
-				if (m_activeControl != control)
-				{
-					if (m_activeControl)
-					{
-						m_activeControl->NotifyLeave();
-					}
-
-					control->NotifyEnter();
-					m_activeControl = control;
-					needsUpdate = true;
-				}
-
-				break;
+				m_activeControl->NotifyLeave();
 			}
+
+			control->NotifyEnter();
+			m_activeControl = control;
+			needsUpdate = true;
 		}
 
 		return needsUpdate;

@@ -7,7 +7,8 @@ namespace libgui
 	{
 	public:
 		void AddChild(shared_ptr<Element>);
-		void Arrange();
+		virtual void Arrange();
+		virtual shared_ptr<Element> ElementAtPoint(Location);
 	private:
 		vector<shared_ptr<Element>> m_children;
 	};
