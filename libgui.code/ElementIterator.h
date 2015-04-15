@@ -10,7 +10,7 @@ namespace libgui
 		static void BackToFront(shared_ptr<Element> root, function<bool(shared_ptr<Element>)> action);
 
 	private:
-		static bool FrontToBackHelper(shared_ptr<Element> root, function<bool(shared_ptr<Element>)> action);
-		static bool BackToFrontHelper(shared_ptr<Element> root, function<bool(shared_ptr<Element>)> action);
+		static bool FrontToBackHelper(shared_ptr<Element> element, function<bool(shared_ptr<Element>)>& action);
+		static bool BackToFrontHelper(shared_ptr<Element> element, function<bool(shared_ptr<Element>)>& action);
 	};
 }

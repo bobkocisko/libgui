@@ -8,16 +8,16 @@ namespace libgui
 		FrontToBackHelper(root, action);
 	}
 
-	bool ElementIterator::FrontToBackHelper(shared_ptr<Element> root, function<bool(shared_ptr<Element>)> action)
+	bool ElementIterator::FrontToBackHelper(shared_ptr<Element> element, function<bool(shared_ptr<Element>)>& action)
 	{
-		for (auto & child : root->GetChildren())
+		for (auto & child : element->GetChildren())
 		{
 			if (!FrontToBackHelper(child, action))
 			{
-				break;
+				return false;
 			}
 		}
-		return action(root);
+		return action(element);
 	}
 
 	void ElementIterator::BackToFront(shared_ptr<Element> root, function<bool(shared_ptr<Element>)> action)
@@ -25,14 +25,14 @@ namespace libgui
 		BackToFrontHelper(root, action);
 	}
 
-	bool ElementIterator::BackToFrontHelper(shared_ptr<Element> root, function<bool(shared_ptr<Element>)> action)
+	bool ElementIterator::BackToFrontHelper(shared_ptr<Element> element, function<bool(shared_ptr<Element>)>& action)
 	{
-		return action(root);
-		for (auto & child : root->GetChildren())
+		return action(element);
+		for (auto & child : element->GetChildren())
 		{
 			if (!FrontToBackHelper(child, action))
 			{
-				break;
+				return false;
 			}
 		}
 	}
