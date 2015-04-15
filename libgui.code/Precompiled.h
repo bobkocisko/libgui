@@ -19,6 +19,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <list>
 
 // Linker
 #pragma comment (lib, "d2d1")
