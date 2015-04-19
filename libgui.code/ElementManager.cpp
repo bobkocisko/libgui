@@ -1,6 +1,5 @@
 #include "Precompiled.h"
 #include "ElementManager.h"
-#include "ElementIterator.h"
 
 namespace libgui
 {
@@ -38,16 +37,7 @@ namespace libgui
 
 		Location point{ x, y };
 
-		shared_ptr<Element> elementAtPoint;
-		ElementIterator::FrontToBack(m_root, [&](shared_ptr<Element> e) 
-		{
-			if (e->HitTest(point))
-			{
-				elementAtPoint = e;
-				return false; // Stop iterating
-			}
-			return true; // Continue
-		});
+		auto elementAtPoint = m_root->GetElementAtPoint(point);
 
 		if (m_activeControl)
 		{

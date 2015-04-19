@@ -20,9 +20,6 @@
     <Filter Include="Containers">
       <UniqueIdentifier>{df3d007e-a80e-430f-922a-82829baf7884}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Iterators">
-      <UniqueIdentifier>{863a9f1d-ea91-4ca2-8e53-67ffe4ea0a75}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Precompiled.h">
@@ -46,8 +43,8 @@
     <ClInclude Include="Container.h">
       <Filter>Containers</Filter>
     </ClInclude>
-    <ClInclude Include="ElementIterator.h">
-      <Filter>Iterators</Filter>
+    <ClInclude Include="CallbackElement.h">
+      <Filter>Elements</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -69,8 +66,11 @@
     <ClCompile Include="Container.cpp">
       <Filter>Containers</Filter>
     </ClCompile>
-    <ClCompile Include="ElementIterator.cpp">
-      <Filter>Iterators</Filter>
+    <ClCompile Include="Structs.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="CallbackElement.cpp">
+      <Filter>Elements</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

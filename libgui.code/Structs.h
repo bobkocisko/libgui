@@ -16,7 +16,15 @@ namespace libgui
 
 	struct Rect
 	{
+		Rect(Location, Size);
+		Rect(double, double, double, double);
+
 		Location location;
 		Size size;
+
+		double GetLeft();
+		double GetTop();
+		double GetRight();
+		double GetBottom();
 	};
 }
