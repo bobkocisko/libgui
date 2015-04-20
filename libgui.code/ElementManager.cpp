@@ -44,7 +44,7 @@ namespace libgui
 			if (elementAtPoint != m_activeControl)
 			{
 				m_activeControl->NotifyLeave();
-				m_activeControl = NULL;
+				m_activeControl = nullptr;
 				needsUpdate = true;
 			}
 		}
@@ -57,8 +57,11 @@ namespace libgui
 				m_activeControl->NotifyLeave();
 			}
 
-			control->NotifyEnter();
-			m_activeControl = control;
+			if (!m_capturedControl || control == m_capturedControl)
+			{
+				control->NotifyEnter();
+				m_activeControl = control;
+			}
 			needsUpdate = true;
 		}
 

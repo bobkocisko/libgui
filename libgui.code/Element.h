@@ -12,8 +12,8 @@ namespace libgui
 		void AddChild(shared_ptr<Element>);
 
 		// Arrangement
-		virtual void ResetArrangement();
 		virtual void Arrange();
+		virtual void ResetArrangement();
 		virtual void ArrangeAndDraw(bool draw);
 
 		void SetLeft(double left);
