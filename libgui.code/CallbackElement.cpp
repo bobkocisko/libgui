@@ -3,6 +3,9 @@
 
 namespace libgui
 {
+	CallbackElement::CallbackElement()
+	{ }
+
 	CallbackElement::CallbackElement(function<void(shared_ptr<Element>)> arrangeCallback)
 		:CallbackElement(arrangeCallback, nullptr)
 	{ }
@@ -10,6 +13,11 @@ namespace libgui
 	CallbackElement::CallbackElement(function<void(shared_ptr<Element>)> arrangeCallback, function<void(shared_ptr<Element>)> drawCallback)
 		: m_arrangeCallback(arrangeCallback), m_drawCallback(drawCallback)
 	{ }
+
+	void CallbackElement::SetArrangeCallback(function<void(shared_ptr<Element>)> arrangeCallback)
+	{
+		m_arrangeCallback = arrangeCallback;
+	}
 
 	void CallbackElement::Arrange()
 	{
@@ -25,6 +33,11 @@ namespace libgui
 		{
 			m_drawCallback(shared_from_this());
 		}
+	}
+
+	void CallbackElement::SetDrawCallback(function<void(shared_ptr<Element>)> drawCallback)
+	{
+		m_drawCallback = drawCallback;
 	}
 
 }

@@ -33,7 +33,7 @@ namespace libgui
 		_isHot = true;
 		_isPressed = true;
 
-		ElementManager::Get()->RequestCapture(dynamic_pointer_cast<Button>(shared_from_this()));
+		GetElementManager()->RequestCapture(dynamic_pointer_cast<Button>(shared_from_this()));
 	}
 
 	void Button::NotifyUp()
@@ -42,7 +42,7 @@ namespace libgui
 		if (IsCapturing())
 		{
 			_isHot = false;
-			ElementManager::Get()->ReleaseCapture();
+			GetElementManager()->ReleaseCapture();
 		}
 	}
 

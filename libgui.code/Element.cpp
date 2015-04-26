@@ -1,9 +1,45 @@
 #include "Precompiled.h"
 #include "Element.h"
+#include "ElementManager.h"
 
 namespace libgui
 {
+	// Element Manager
+	void Element::SetElementManager(shared_ptr<ElementManager> elementManager)
+	{
+		m_elementManager = elementManager;
+	}
+
+	shared_ptr<ElementManager> Element::GetElementManager()
+	{
+		return m_elementManager;
+	}
+
 	// Visual tree
+	shared_ptr<Element> Element::GetParent()
+	{
+		return m_parent;
+	}
+
+	shared_ptr<Element> Element::GetFirstChild()
+	{
+		return m_firstChild;
+	}
+
+	shared_ptr<Element> Element::GetLastChild()
+	{
+		return m_lastChild;
+	}
+
+	shared_ptr<Element> Element::GetPrevSibling()
+	{
+		return m_prevsibling;
+	}
+	shared_ptr<Element> Element::GetNextSibling()
+	{
+		return m_nextsibling;
+	}
+
 	void Element::AddChild(shared_ptr<Element> element)
 	{
 		if (m_firstChild == nullptr)
@@ -18,6 +54,10 @@ namespace libgui
 
 		element->m_parent = shared_from_this();
 		m_lastChild = element;
+
+		// Default the child's element manager to be the same
+		// as this element's manager
+		element->SetElementManager(m_elementManager);
 	}
 
 	// Arrangement

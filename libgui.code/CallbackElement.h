@@ -12,9 +12,11 @@ namespace libgui
 
 		// Arrangement
 		void Arrange();
+		void SetArrangeCallback(function<void(shared_ptr<Element>)>);
 
 		// Drawing
 		void Draw();
+		void SetDrawCallback(function<void(shared_ptr<Element>)>);
 
 	private:
 		function<void(shared_ptr<Element>)> m_arrangeCallback;

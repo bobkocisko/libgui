@@ -5,13 +5,28 @@ using namespace std;
 
 namespace libgui
 {
+#undef GetFirstChild
+#undef GetPrevSibling
+#undef GetNextSibling
+
+	class ElementManager;
+
 	class Element : public enable_shared_from_this<Element>
 	{
 	public:
+		// Element Manager
+		void SetElementManager(shared_ptr<ElementManager>);
+		shared_ptr<ElementManager> GetElementManager();
+
 		// Visual tree
 		void AddChild(shared_ptr<Element>);
 
 		// Arrangement
+		shared_ptr<Element> GetParent();
+		shared_ptr<Element> GetFirstChild();
+		shared_ptr<Element> GetLastChild();
+		shared_ptr<Element> GetPrevSibling();
+		shared_ptr<Element> GetNextSibling();
 		virtual void Arrange();
 		virtual void ResetArrangement();
 		virtual void ArrangeAndDraw(bool draw);
@@ -41,6 +56,9 @@ namespace libgui
 		shared_ptr<Element> GetElementAtPoint(Location);
 
 	private:
+		// Element manager
+		shared_ptr<ElementManager> m_elementManager;
+
 		// Visual tree
 		shared_ptr<Element> m_parent;
 		shared_ptr<Element> m_firstChild;

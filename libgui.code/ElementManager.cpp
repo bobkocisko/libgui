@@ -3,12 +3,6 @@
 
 namespace libgui
 {
-	ElementManager* ElementManager::Get()
-	{
-		static ElementManager instance;
-		return &instance;
-	};
-
 	void ElementManager::SetRoot(shared_ptr<Element> element)
 	{
 		m_root = element;
