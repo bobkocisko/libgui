@@ -15,6 +15,17 @@ namespace libgui
 		return m_elementManager;
 	}
 
+	// View Model
+	void Element::SetViewModel(shared_ptr<ViewModelBase> viewModel)
+	{
+		m_viewModel = viewModel;
+	}
+
+	shared_ptr<ViewModelBase> Element::GetViewModel()
+	{
+		return m_viewModel;
+	}
+
 	// Visual tree
 	shared_ptr<Element> Element::GetParent()
 	{
@@ -55,10 +66,6 @@ namespace libgui
 		element->m_parent = shared_from_this();
 		m_lastChild = element;
 
-		// Default the child's element manager to be the same
-		// as this element's manager
-		element->SetElementManager(m_elementManager);
-
 		m_childrenCount++;
 	}
 
@@ -70,6 +77,15 @@ namespace libgui
 	// Arrangement
 	void Element::ResetArrangement()
 	{
+		if (m_parent)
+		{
+			// Copy the element manager from the parent
+			m_elementManager = m_parent->m_elementManager;
+
+			// Copy the ViewModel from the parent
+			m_viewModel = m_parent->m_viewModel;
+		}
+
 		m_left = 0;
 		m_top = 0;
 		m_right = 0;

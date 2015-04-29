@@ -2,7 +2,9 @@
 #include "App.h"
 #include "SharedResources.h"
 #include "libgui.code\Element.h"
+#include "libgui.code\VerticalRepeaterElement.h"
 #include "enums.h"
+#include "AppViewModel.h"
 
 namespace libgui_sample_windows
 {
@@ -13,10 +15,14 @@ namespace libgui_sample_windows
 	{
 		m_resources.push_back(SharedResources::Get());
 
+		// Main view model
+		auto appVm = make_shared<AppViewModel>();
+
 		// Set up the root element to match the window size
 		auto root = make_shared<Element>();
 		m_elementManager->SetRoot(root);
 		root->SetElementManager(m_elementManager);
+		root->SetViewModel(appVm);
 		root->SetArrangeCallback([&](shared_ptr<Element> e)
 		{
 			D2D1_SIZE_F rtSize = m_pRenderTarget->GetSize();
@@ -26,6 +32,7 @@ namespace libgui_sample_windows
 
 
 		// Build the screen elements
+
 
 		auto header = make_shared<Element>();
 		{
@@ -49,6 +56,8 @@ namespace libgui_sample_windows
 			{
 				auto p = e->GetParent();
 				auto s = e->GetPrevSibling();
+				e->SetViewModel(dynamic_pointer_cast<AppViewModel>(p->GetViewModel())
+					->GetCurrentPage());
 				e->SetLeft(p->GetLeft()); e->SetRight(p->GetRight());
 				e->SetTop(s->GetBottom()); e->SetBottom(p->GetBottom());
 			});
@@ -90,13 +99,34 @@ namespace libgui_sample_windows
 			});
 
 			auto pageContentContainer = make_shared<Element>();
-			page->AddChild(pageContentContainer);
-			pageContentContainer->SetArrangeCallback([=](shared_ptr<Element> e)
 			{
-				auto p = e->GetParent();
-				e->SetLeft(p->GetLeft() + 1.0); e->SetRight(p->GetRight() - 1.0);
-				e->SetTop(pageHeader->GetBottom()); e->SetBottom(pageFooter->GetTop());
-			});
+				page->AddChild(pageContentContainer);
+				pageContentContainer->SetArrangeCallback([=](shared_ptr<Element> e)
+				{
+					auto p = e->GetParent();
+					e->SetLeft(p->GetLeft() + 1.0); e->SetRight(p->GetRight() - 1.0);
+					e->SetTop(pageHeader->GetBottom()); e->SetBottom(pageFooter->GetTop());
+				});
+
+				auto rowsRepeater = make_shared<VerticalRepeaterElement>();
+				pageContentContainer->AddChild(rowsRepeater);
+				rowsRepeater->SetRowHeight(30);
+				rowsRepeater->SetTotalCountCallback([](shared_ptr<Element> e)
+				{
+				 	return dynamic_pointer_cast<PageViewModel>(e->GetViewModel())
+						->GetTotalRows();
+				});
+				rowsRepeater->SetRowCreateCallback([&]()
+				{
+					auto rowBackground = make_shared<Element>();
+					rowBackground->SetDrawCallback([&](shared_ptr<Element> e)
+					{
+						DrawBorder(TOP, 1.0, SharedResources::Get()->LightGrayBrush, e);
+					});
+
+					return rowBackground;
+				});
+			}
 		}
 	}
 

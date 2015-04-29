@@ -1,5 +1,6 @@
 #pragma once 
 #include "Structs.h"
+#include "ViewModelBase.h"
 
 using namespace std;
 
@@ -11,12 +12,16 @@ namespace libgui
 
 	class ElementManager;
 
-	class Element : public enable_shared_from_this<Element>
+	class Element : public enable_shared_from_this < Element >
 	{
 	public:
 		// Element Manager
 		void SetElementManager(shared_ptr<ElementManager>);
 		shared_ptr<ElementManager> GetElementManager();
+
+		// View Model
+		void SetViewModel(shared_ptr<ViewModelBase>);
+		shared_ptr<ViewModelBase> GetViewModel();
 
 		// Visual tree
 		void AddChild(shared_ptr<Element>);
@@ -61,6 +66,8 @@ namespace libgui
 	private:
 		// Element manager
 		shared_ptr<ElementManager> m_elementManager;
+
+		shared_ptr<ViewModelBase> m_viewModel;
 
 		// Visual tree
 		shared_ptr<Element> m_parent;

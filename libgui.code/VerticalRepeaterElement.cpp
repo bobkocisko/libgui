@@ -16,14 +16,14 @@ namespace libgui
 			return;
 		}
 
-		auto totalCount = m_totalCountCallback();
+		auto totalCount = m_totalCountCallback(shared_from_this());
 		auto missingChildren = totalCount - GetChildrenCount();
 
 		for (int i = 0; i < missingChildren; i++)
 		{
 			auto rowContainer = make_shared<RowElement>(dynamic_pointer_cast<VerticalRepeaterElement>(shared_from_this()));
-			rowContainer->AddChild(m_rowCreateCallback());
 			AddChild(rowContainer);
+			rowContainer->AddChild(m_rowCreateCallback());
 		}
 	}
 
@@ -62,7 +62,7 @@ namespace libgui
 	{
 		m_rowCreateCallback = rowCreateCallback;
 	}
-	void VerticalRepeaterElement::SetTotalCountCallback(function<int()> totalCountCallback)
+	void VerticalRepeaterElement::SetTotalCountCallback(function<int(shared_ptr<Element>)> totalCountCallback)
 	{
 		m_totalCountCallback = totalCountCallback;
 	}

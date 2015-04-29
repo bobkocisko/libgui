@@ -21,6 +21,7 @@
     </ClCompile>
     <ClCompile Include="VerticalRepeaterElement.cpp" />
     <ClCompile Include="Structs.cpp" />
+    <ClCompile Include="ViewModelBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Button.h" />
@@ -30,6 +31,7 @@
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="VerticalRepeaterElement.h" />
     <ClInclude Include="Structs.h" />
+    <ClInclude Include="ViewModelBase.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{584D7FBE-54F0-4B81-9867-742559ED9BAC}</ProjectGuid>
