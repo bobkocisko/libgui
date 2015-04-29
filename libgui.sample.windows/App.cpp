@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "App.h"
 #include "SharedResources.h"
-#include "libgui.code\CallbackElement.h"
+#include "libgui.code\Element.h"
 #include "enums.h"
 
 namespace libgui_sample_windows
@@ -14,7 +14,7 @@ namespace libgui_sample_windows
 		m_resources.push_back(SharedResources::Get());
 
 		// Set up the root element to match the window size
-		auto root = make_shared<CallbackElement>();
+		auto root = make_shared<Element>();
 		m_elementManager->SetRoot(root);
 		root->SetElementManager(m_elementManager);
 		root->SetArrangeCallback([&](shared_ptr<Element> e)
@@ -27,7 +27,7 @@ namespace libgui_sample_windows
 
 		// Build the screen elements
 
-		auto header = make_shared<CallbackElement>();
+		auto header = make_shared<Element>();
 		{
 			root->AddChild(header);
 			header->SetArrangeCallback([&](shared_ptr<Element> e)
@@ -42,7 +42,7 @@ namespace libgui_sample_windows
 			});
 		}
 
-		auto page = make_shared<CallbackElement>();
+		auto page = make_shared<Element>();
 		{
 			root->AddChild(page);
 			page->SetArrangeCallback([&](shared_ptr<Element> e)
@@ -67,7 +67,7 @@ namespace libgui_sample_windows
 					sr->LightRedBrush, 1.0);
 			});
 
-			auto pageHeader = make_shared<CallbackElement>();
+			auto pageHeader = make_shared<Element>();
 			page->AddChild(pageHeader);
 			pageHeader->SetArrangeCallback([&](shared_ptr<Element> e)
 			{
@@ -76,7 +76,7 @@ namespace libgui_sample_windows
 				e->SetTop(p->GetTop()); e->SetHeight(40.0);
 			});
 
-			auto pageFooter = make_shared<CallbackElement>();
+			auto pageFooter = make_shared<Element>();
 			page->AddChild(pageFooter);
 			pageFooter->SetArrangeCallback([&](shared_ptr<Element> e)
 			{
@@ -89,7 +89,7 @@ namespace libgui_sample_windows
 				DrawBorder(TOP, 1.0, SharedResources::Get()->LightGrayBrush, e);
 			});
 
-			auto pageContentContainer = make_shared<CallbackElement>();
+			auto pageContentContainer = make_shared<Element>();
 			page->AddChild(pageContentContainer);
 			pageContentContainer->SetArrangeCallback([=](shared_ptr<Element> e)
 			{

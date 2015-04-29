@@ -17,8 +17,8 @@
     <Filter Include="Util">
       <UniqueIdentifier>{9278ca78-dc16-460b-b2a4-aaf50697f342}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Containers">
-      <UniqueIdentifier>{df3d007e-a80e-430f-922a-82829baf7884}</UniqueIdentifier>
+    <Filter Include="Controls">
+      <UniqueIdentifier>{f301aa11-11bf-4abf-baa8-4412cbcd384a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -31,19 +31,16 @@
     <ClInclude Include="Element.h">
       <Filter>Elements</Filter>
     </ClInclude>
-    <ClInclude Include="Button.h">
-      <Filter>Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="Control.h">
-      <Filter>Elements</Filter>
-    </ClInclude>
     <ClInclude Include="Structs.h">
       <Filter>Util</Filter>
     </ClInclude>
-    <ClInclude Include="Container.h">
-      <Filter>Containers</Filter>
+    <ClInclude Include="Control.h">
+      <Filter>Controls</Filter>
     </ClInclude>
-    <ClInclude Include="CallbackElement.h">
+    <ClInclude Include="Button.h">
+      <Filter>Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="VerticalRepeaterElement.h">
       <Filter>Elements</Filter>
     </ClInclude>
   </ItemGroup>
@@ -57,19 +54,16 @@
     <ClCompile Include="Element.cpp">
       <Filter>Elements</Filter>
     </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="Control.cpp">
-      <Filter>Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="Container.cpp">
-      <Filter>Containers</Filter>
-    </ClCompile>
     <ClCompile Include="Structs.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="CallbackElement.cpp">
+    <ClCompile Include="Control.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="VerticalRepeaterElement.cpp">
       <Filter>Elements</Filter>
     </ClCompile>
   </ItemGroup>

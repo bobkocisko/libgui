@@ -58,6 +58,13 @@ namespace libgui
 		// Default the child's element manager to be the same
 		// as this element's manager
 		element->SetElementManager(m_elementManager);
+
+		m_childrenCount++;
+	}
+
+	int Element::GetChildrenCount()
+	{
+		return m_childrenCount;
 	}
 
 	// Arrangement
@@ -82,14 +89,26 @@ namespace libgui
 		m_isHeightSet = false;
 	}
 
+	void Element::SetArrangeCallback(function<void(shared_ptr<Element>)> arrangeCallback)
+	{
+		m_arrangeCallback = arrangeCallback;
+	}
+
 	void Element::Arrange()
 	{
-		// By default each element stretches
-		// to fill its parent
-		SetLeft(m_parent->GetLeft());
-		SetTop(m_parent->GetTop());
-		SetRight(m_parent->GetRight());
-		SetBottom(m_parent->GetBottom());
+		if (m_arrangeCallback)
+		{
+			m_arrangeCallback(shared_from_this());
+		}
+		else
+		{
+			// By default each element stretches
+			// to fill its parent
+			SetLeft(m_parent->GetLeft());
+			SetTop(m_parent->GetTop());
+			SetRight(m_parent->GetRight());
+			SetBottom(m_parent->GetBottom());
+		}
 	}
 
 	void Element::ArrangeAndDraw(bool draw)
@@ -309,9 +328,20 @@ namespace libgui
 	// Drawing
 	void Element::Draw()
 	{
-		// By default no drawing takes place
+		if (m_drawCallback)
+		{
+			m_drawCallback(shared_from_this());
+		}
+		else 
+		{
+			// By default no drawing takes place
+		}
 	}
 
+	void Element::SetDrawCallback(function<void(shared_ptr<Element>)> drawCallback)
+	{
+		m_drawCallback = drawCallback;
+	}
 
 	// Hit testing
 	shared_ptr<Element> Element::GetElementAtPoint(Location point)

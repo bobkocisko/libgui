@@ -20,6 +20,7 @@ namespace libgui
 
 		// Visual tree
 		void AddChild(shared_ptr<Element>);
+		int GetChildrenCount();
 
 		// Arrangement
 		shared_ptr<Element> GetParent();
@@ -30,6 +31,7 @@ namespace libgui
 		virtual void Arrange();
 		virtual void ResetArrangement();
 		virtual void ArrangeAndDraw(bool draw);
+		void SetArrangeCallback(function<void(shared_ptr<Element>)>);
 
 		void SetLeft(double left);
 		void SetTop(double top);
@@ -51,6 +53,7 @@ namespace libgui
 
 		// Drawing
 		virtual void Draw();
+		void SetDrawCallback(function<void(shared_ptr<Element>)>);
 
 		// Hit testing
 		shared_ptr<Element> GetElementAtPoint(Location);
@@ -65,8 +68,11 @@ namespace libgui
 		shared_ptr<Element> m_lastChild;
 		shared_ptr<Element> m_prevsibling;
 		shared_ptr<Element> m_nextsibling;
+		int m_childrenCount = 0;
 
 		// Arrangement
+		function<void(shared_ptr<Element>)> m_arrangeCallback;
+
 		double m_left = 0;
 		double m_top = 0;
 		double m_right = 0;
@@ -84,5 +90,8 @@ namespace libgui
 		bool m_isCenterYSet = false;
 		bool m_isWidthSet = false;
 		bool m_isHeightSet = false;
+
+		// Drawing
+		function<void(shared_ptr<Element>)> m_drawCallback;
 	};
 }
