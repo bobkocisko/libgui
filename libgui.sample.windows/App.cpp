@@ -3,6 +3,7 @@
 #include "SharedResources.h"
 #include "libgui.code\Element.h"
 #include "libgui.code\VerticalRepeaterElement.h"
+#include "libgui.code\Button.h"
 #include "enums.h"
 #include "AppViewModel.h"
 
@@ -48,7 +49,7 @@ namespace libgui_sample_windows
 				DrawBorder(1.0, SharedResources::Get()->GrayBrush, e);
 			});
 		}
-
+		auto checkboxColumnWidth = 38.0;
 		auto page = make_shared<Element>();
 		{
 			root->AddChild(page);
@@ -61,14 +62,14 @@ namespace libgui_sample_windows
 				e->SetLeft(p->GetLeft()); e->SetRight(p->GetRight());
 				e->SetTop(s->GetBottom()); e->SetBottom(p->GetBottom());
 			});
-			page->SetDrawCallback([&](shared_ptr<Element> e)
+			page->SetDrawCallback([&, checkboxColumnWidth](shared_ptr<Element> e)
 			{
 				auto sr = SharedResources::Get();
 				DrawBorder(LEFT | RIGHT | BOTTOM, 1.0, sr->LightGrayBrush, e);
 
 				m_pRenderTarget->DrawLine(
-					D2D1::Point2F(e->GetLeft() + 38.5, e->GetTop()),
-					D2D1::Point2F(e->GetLeft() + 38.5, e->GetBottom() - 1.0),
+					D2D1::Point2F(e->GetLeft() + checkboxColumnWidth + 0.5, e->GetTop()),
+					D2D1::Point2F(e->GetLeft() + checkboxColumnWidth + 0.5, e->GetBottom() - 1.0),
 					sr->LightRedBrush, 1.0);
 				m_pRenderTarget->DrawLine(
 					D2D1::Point2F(e->GetLeft() + 42.5, e->GetTop()),
@@ -116,12 +117,61 @@ namespace libgui_sample_windows
 				 	return dynamic_pointer_cast<PageViewModel>(e->GetViewModel())
 						->GetTotalRows();
 				});
-				rowsRepeater->SetRowCreateCallback([&]()
+				rowsRepeater->SetRowViewModelCallback([](shared_ptr<ViewModelBase> viewModel, int index)
+				{
+					auto pageViewModel = dynamic_pointer_cast<PageViewModel>(viewModel);
+					return pageViewModel->GetRow(index);
+				});
+				rowsRepeater->SetRowCreateCallback([&, checkboxColumnWidth]()
 				{
 					auto rowBackground = make_shared<Element>();
 					rowBackground->SetDrawCallback([&](shared_ptr<Element> e)
 					{
 						DrawBorder(TOP, 1.0, SharedResources::Get()->LightGrayBrush, e);
+					});
+
+					auto checkBox = make_shared<Button>();
+					rowBackground->AddChild(checkBox);
+					checkBox->SetArrangeCallback([=](shared_ptr<Element> e)
+					{
+						auto trvm = dynamic_pointer_cast<TodoRowViewModel>(e->GetViewModel());
+						if (trvm)
+						{
+							e->SetCenterX(e->GetParent()->GetLeft() + checkboxColumnWidth / 2);
+							e->SetCenterY(e->GetParent()->GetCenterY());
+							e->SetWidth(17); e->SetHeight(17);
+						}
+						else
+						{
+							e->SetIsVisible(false);
+						}
+					});
+					checkBox->SetDrawCallback([&](shared_ptr<Element> e)
+					{
+						auto trvm = dynamic_pointer_cast<TodoRowViewModel>(e->GetViewModel());
+
+						auto sr = SharedResources::Get();
+						D2D1_ROUNDED_RECT roundedRect = {};
+						roundedRect.rect.left = round(e->GetLeft()) + 0.5;
+						roundedRect.rect.right = round(e->GetRight()) - 0.5;
+						roundedRect.rect.top = round(e->GetTop()) + 0.5;
+						roundedRect.rect.bottom = round(e->GetBottom()) - 0.5;
+						roundedRect.radiusX = 3;
+						roundedRect.radiusY = 3;
+						m_pRenderTarget->DrawRoundedRectangle(roundedRect, sr->GrayBrush, 1.0);
+
+						if (trvm->GetIsChecked())
+						{
+							m_pRenderTarget->DrawLine(D2D1::Point2F(e->GetLeft(), e->GetTop()),
+								D2D1::Point2F(e->GetRight(), e->GetBottom()), sr->GrayBrush, 2.0);
+							m_pRenderTarget->DrawLine(D2D1::Point2F(e->GetRight(), e->GetTop()), 
+								D2D1::Point2F(e->GetLeft(), e->GetBottom()), sr->GrayBrush, 2.0);
+						}
+					});
+					checkBox->SetClickCallback([](shared_ptr<Button> button)
+					{
+						auto trvm = dynamic_pointer_cast<TodoRowViewModel>(button->GetViewModel());
+						trvm->ToggleIsChecked();
 					});
 
 					return rowBackground;

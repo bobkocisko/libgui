@@ -15,9 +15,15 @@ namespace libgui
 		// Output states
 		bool IsHot();
 		bool IsPressed();
+		
+		// Output events
+		void SetClickCallback(function<void(shared_ptr<Button>)>);
+
 	private:
 		bool _isHot = false;
 		bool _isPressed = false;
+
+		function<void(shared_ptr<Button>)> m_clickCallback;
 	};
 
 }

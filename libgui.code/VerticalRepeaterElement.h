@@ -11,8 +11,7 @@ namespace libgui
 		void SetRowHeight(double);
 		void SetRowCreateCallback(function<shared_ptr<Element>()>);
 		void SetTotalCountCallback(function<int(shared_ptr<Element>)>);
-		//void SetRowArrangeCallback(function<void(shared_ptr<Element>)>);
-		//void SetRowDrawCallback(function<void(shared_ptr<Element>)>);
+		void SetRowViewModelCallback(function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>);
 
 		double GetRowHeight();
 		
@@ -20,16 +19,16 @@ namespace libgui
 		double m_rowHeight;
 		function<shared_ptr<Element>()> m_rowCreateCallback;
 		function<int(shared_ptr<Element>)> m_totalCountCallback;
-		//function<void(shared_ptr<Element>)> m_rowArrangeCallback;
-		//function<void(shared_ptr<Element>)> m_rowDrawCallback;
+		function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)> m_rowViewModelCallback;
 
 		class RowElement : public Element
 		{
 		public:
-			RowElement(shared_ptr<VerticalRepeaterElement>);
+			RowElement(shared_ptr<VerticalRepeaterElement>, int);
 			void Arrange();
 		private:
 			shared_ptr<VerticalRepeaterElement> m_parent;
+			int m_index;
 		};
 	};
 }

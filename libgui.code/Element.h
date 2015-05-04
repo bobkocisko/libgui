@@ -38,6 +38,9 @@ namespace libgui
 		virtual void ArrangeAndDraw(bool draw);
 		void SetArrangeCallback(function<void(shared_ptr<Element>)>);
 
+		void SetIsVisible(bool isVisible);
+		bool GetIsVisible();
+
 		void SetLeft(double left);
 		void SetTop(double top);
 		void SetRight(double right);
@@ -79,6 +82,8 @@ namespace libgui
 
 		// Arrangement
 		function<void(shared_ptr<Element>)> m_arrangeCallback;
+
+		bool m_isVisible = true;
 
 		double m_left = 0;
 		double m_top = 0;

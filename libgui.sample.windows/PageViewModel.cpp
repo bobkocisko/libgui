@@ -22,4 +22,9 @@ namespace libgui_sample_windows
 	{
 		return m_rows.size();
 	}
+
+	shared_ptr<RowViewModel> PageViewModel::GetRow(int index)
+	{
+		return m_rows[index];
+	}
 }

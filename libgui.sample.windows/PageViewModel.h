@@ -12,6 +12,7 @@ namespace libgui_sample_windows
 		PageViewModel();
 
 		vector<shared_ptr<RowViewModel>> GetRows();
+		shared_ptr<RowViewModel> GetRow(int);
 
 		int GetTotalRows();
 

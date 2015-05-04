@@ -16,4 +16,14 @@ namespace libgui_sample_windows
 	{
 		return m_text;
 	}
+
+	bool TodoRowViewModel::GetIsChecked()
+	{
+		return m_isChecked;
+	}
+
+	void TodoRowViewModel::ToggleIsChecked()
+	{
+		m_isChecked = !m_isChecked;
+	}
 }

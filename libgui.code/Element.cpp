@@ -86,6 +86,8 @@ namespace libgui
 			m_viewModel = m_parent->m_viewModel;
 		}
 
+		m_isVisible = true;
+
 		m_left = 0;
 		m_top = 0;
 		m_right = 0;
@@ -131,7 +133,7 @@ namespace libgui
 	{
 		ResetArrangement();
 		Arrange();
-		if (draw)
+		if (draw && m_isVisible)
 		{
 			Draw();
 			if (m_firstChild)
@@ -143,6 +145,17 @@ namespace libgui
 			}
 		}
 	}
+
+	void Element::SetIsVisible(bool isVisible)
+	{
+		m_isVisible = isVisible;
+	}
+
+	bool Element::GetIsVisible()
+	{
+		return m_isVisible;
+	}
+
 
 	void Element::SetLeft(double left)
 	{

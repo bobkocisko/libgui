@@ -22,8 +22,13 @@ namespace libgui_sample_windows
 
 		wstring GetText();
 
+		bool GetIsChecked();
+
+		void ToggleIsChecked();
+
 	private:
 		std::wstring m_text;
+		bool m_isChecked = false;
 	};
 
 	class AddHintRowViewModel : public RowViewModel
