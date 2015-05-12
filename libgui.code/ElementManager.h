@@ -4,7 +4,7 @@
 
 namespace libgui
 {
-	class ElementManager
+	class ElementManager : public std::enable_shared_from_this<ElementManager>
 	{
 	public:
 		void SetRoot(shared_ptr<Element>);

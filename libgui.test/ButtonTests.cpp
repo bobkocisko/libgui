@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "CppUnitTest.h"
 #include "Button.h"
+#include "ElementManager.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace libgui;
@@ -30,7 +31,9 @@ namespace libguitest
 
 		TEST_METHOD(WhenDowning_StateIsHotAndPressed)
 		{
+			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
+			em->SetRoot(btn);
 			btn->NotifyDown();
 			Assert::AreEqual(true, btn->IsHot());
 			Assert::AreEqual(true, btn->IsPressed());
@@ -45,7 +48,9 @@ namespace libguitest
 
 		TEST_METHOD(WhenDownAndLeaving_StateIsHotAndNotPressed)
 		{
+			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
+			em->SetRoot(btn);
 			btn->NotifyDown();
 			btn->NotifyLeave();
 			Assert::AreEqual(true, btn->IsHot());
@@ -54,7 +59,9 @@ namespace libguitest
 
 		TEST_METHOD(WhenDownAndReturning_StateIsHotAndPressed)
 		{
+			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
+			em->SetRoot(btn);
 			btn->NotifyDown();
 			btn->NotifyLeave();
 			btn->NotifyEnter();
@@ -64,7 +71,9 @@ namespace libguitest
 
 		TEST_METHOD(WhenLeftAndUpping_StateIsNothing)
 		{
+			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
+			em->SetRoot(btn);
 			btn->NotifyDown();
 			btn->NotifyLeave();
 			btn->NotifyUp();
