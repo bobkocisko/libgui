@@ -21,14 +21,14 @@ namespace libgui_sample_windows
 		{
 			HRESULT hr;
 			hr = target->CreateSolidColorBrush(
-				D2D1::ColorF(0xCDCDCD),
+				D2D1::ColorF(0xABABAB),
 				&GrayBrush
 				);
 
 			if (SUCCEEDED(hr))
 			{
 				hr = target->CreateSolidColorBrush(
-					D2D1::ColorF(0xEBEBEB),
+					D2D1::ColorF(0xCDCDCD),
 					&LightGrayBrush
 					);
 			}

@@ -313,7 +313,7 @@ namespace libgui_sample_windows
 				CW_USEDEFAULT,
 				CW_USEDEFAULT,
 				static_cast<UINT>(ceil(252.f * dpiX / 96.f)),
-				static_cast<UINT>(ceil(280.f * dpiY / 96.f)),
+				static_cast<UINT>(ceil(272.f * dpiY / 96.f)),
 				NULL,
 				NULL,
 				HINST_THISCOMPONENT,
