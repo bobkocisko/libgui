@@ -16,6 +16,8 @@ namespace libgui_sample_windows
 		ID2D1SolidColorBrush* LightGrayBrush;
 		ID2D1SolidColorBrush* GrayBrush;
 		ID2D1SolidColorBrush* LightRedBrush;
+		ID2D1SolidColorBrush* DarkGrayBrush;
+		ID2D1SolidColorBrush* MediumGrayBrush;
 
 		virtual HRESULT Create(ID2D1Factory* factory, ID2D1HwndRenderTarget* target)
 		{
@@ -36,6 +38,22 @@ namespace libgui_sample_windows
 			if (SUCCEEDED(hr))
 			{
 				hr = target->CreateSolidColorBrush(
+					D2D1::ColorF(0x444444),
+					&DarkGrayBrush
+					);
+			}
+
+			if (SUCCEEDED(hr))
+			{
+				hr = target->CreateSolidColorBrush(
+					D2D1::ColorF(0x777777),
+					&MediumGrayBrush
+					);
+			}
+
+			if (SUCCEEDED(hr))
+			{
+				hr = target->CreateSolidColorBrush(
 					D2D1::ColorF(0xFFD2D4),
 					&LightRedBrush
 					);
@@ -49,6 +67,8 @@ namespace libgui_sample_windows
 			SafeRelease(&GrayBrush);
 			SafeRelease(&LightGrayBrush);
 			SafeRelease(&LightRedBrush);
+			SafeRelease(&DarkGrayBrush);
+			SafeRelease(&MediumGrayBrush);
 		}
 
 	private:
