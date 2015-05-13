@@ -52,6 +52,8 @@ namespace libgui_sample_windows
 		HWND m_hwnd;
 		ID2D1Factory* m_pDirect2dFactory;
 		ID2D1HwndRenderTarget* m_pRenderTarget;
+		IDWriteFactory * m_pDWriteFactory;
+		IDWriteTextFormat * m_pTextFormat;
 
 		shared_ptr<ElementManager> m_elementManager = make_shared<ElementManager>();
 		std::vector<Resources*> m_resources;

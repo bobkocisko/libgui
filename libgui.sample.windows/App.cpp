@@ -72,8 +72,8 @@ namespace libgui_sample_windows
 					D2D1::Point2F(e->GetLeft() + checkboxColumnWidth + 0.5, e->GetBottom() - 1.0),
 					sr->LightRedBrush, 1.0);
 				m_pRenderTarget->DrawLine(
-					D2D1::Point2F(e->GetLeft() + 42.5, e->GetTop()),
-					D2D1::Point2F(e->GetLeft() + 42.5, e->GetBottom() - 1.0),
+					D2D1::Point2F(e->GetLeft() + checkboxColumnWidth + 4.5, e->GetTop()),
+					D2D1::Point2F(e->GetLeft() + checkboxColumnWidth + 4.5, e->GetBottom() - 1.0),
 					sr->LightRedBrush, 1.0);
 			});
 
@@ -92,7 +92,7 @@ namespace libgui_sample_windows
 			{
 				auto p = e->GetParent();
 				e->SetLeft(p->GetLeft() + 1.0); e->SetRight(p->GetRight() - 1.0);
-				e->SetBottom(p->GetBottom()); e->SetHeight(40.0);
+				e->SetBottom(p->GetBottom()); e->SetHeight(42.0);
 			});
 			pageFooter->SetDrawCallback([&](shared_ptr<Element> e)
 			{
@@ -129,51 +129,79 @@ namespace libgui_sample_windows
 					{
 						DrawBorder(TOP, 1.0, SharedResources::Get()->LightGrayBrush, e);
 					});
-
-					auto checkBox = make_shared<Button>();
-					rowBackground->AddChild(checkBox);
-					checkBox->SetArrangeCallback([=](shared_ptr<Element> e)
 					{
-						auto trvm = dynamic_pointer_cast<TodoRowViewModel>(e->GetViewModel());
-						if (trvm)
+						auto checkBox = make_shared<Button>();
+						rowBackground->AddChild(checkBox);
+						checkBox->SetArrangeCallback([=](shared_ptr<Element> e)
 						{
-							e->SetCenterX(e->GetParent()->GetLeft() + checkboxColumnWidth / 2);
-							e->SetCenterY(e->GetParent()->GetCenterY());
-							e->SetWidth(17); e->SetHeight(17);
-						}
-						else
+							auto trvm = dynamic_pointer_cast<TodoRowViewModel>(e->GetViewModel());
+							if (trvm)
+							{
+								e->SetCenterX(e->GetParent()->GetLeft() + checkboxColumnWidth / 2);
+								e->SetCenterY(e->GetParent()->GetCenterY());
+								e->SetWidth(17); e->SetHeight(17);
+							}
+							else
+							{
+								e->SetIsVisible(false);
+							}
+						});
+						checkBox->SetDrawCallback([&](shared_ptr<Element> e)
 						{
-							e->SetIsVisible(false);
-						}
-					});
-					checkBox->SetDrawCallback([&](shared_ptr<Element> e)
-					{
-						auto trvm = dynamic_pointer_cast<TodoRowViewModel>(e->GetViewModel());
+							auto trvm = dynamic_pointer_cast<TodoRowViewModel>(e->GetViewModel());
 
-						auto sr = SharedResources::Get();
-						D2D1_ROUNDED_RECT roundedRect = {};
-						roundedRect.rect.left = round(e->GetLeft()) + 0.5;
-						roundedRect.rect.right = round(e->GetRight()) - 0.5;
-						roundedRect.rect.top = round(e->GetTop()) + 0.5;
-						roundedRect.rect.bottom = round(e->GetBottom()) - 0.5;
-						roundedRect.radiusX = 3;
-						roundedRect.radiusY = 3;
-						m_pRenderTarget->DrawRoundedRectangle(roundedRect, sr->GrayBrush, 1.0);
+							auto sr = SharedResources::Get();
+							D2D1_ROUNDED_RECT roundedRect = {};
+							roundedRect.rect.left = round(e->GetLeft()) + 0.5;
+							roundedRect.rect.right = round(e->GetRight()) - 0.5;
+							roundedRect.rect.top = round(e->GetTop()) + 0.5;
+							roundedRect.rect.bottom = round(e->GetBottom()) - 0.5;
+							roundedRect.radiusX = 3;
+							roundedRect.radiusY = 3;
+							m_pRenderTarget->DrawRoundedRectangle(roundedRect, sr->MediumGrayBrush, 1.0);
 
-						if (trvm->GetIsChecked())
+							if (trvm->GetIsChecked())
+							{
+								m_pRenderTarget->DrawLine(D2D1::Point2F(e->GetLeft(), e->GetTop()),
+									D2D1::Point2F(e->GetRight(), e->GetBottom()), sr->GrayBrush, 2.0);
+								m_pRenderTarget->DrawLine(D2D1::Point2F(e->GetRight(), e->GetTop()),
+									D2D1::Point2F(e->GetLeft(), e->GetBottom()), sr->GrayBrush, 2.0);
+							}
+						});
+						checkBox->SetClickCallback([](shared_ptr<Button> button)
 						{
-							m_pRenderTarget->DrawLine(D2D1::Point2F(e->GetLeft(), e->GetTop()),
-								D2D1::Point2F(e->GetRight(), e->GetBottom()), sr->GrayBrush, 2.0);
-							m_pRenderTarget->DrawLine(D2D1::Point2F(e->GetRight(), e->GetTop()), 
-								D2D1::Point2F(e->GetLeft(), e->GetBottom()), sr->GrayBrush, 2.0);
-						}
-					});
-					checkBox->SetClickCallback([](shared_ptr<Button> button)
-					{
-						auto trvm = dynamic_pointer_cast<TodoRowViewModel>(button->GetViewModel());
-						trvm->ToggleIsChecked();
-					});
+							auto trvm = dynamic_pointer_cast<TodoRowViewModel>(button->GetViewModel());
+							trvm->ToggleIsChecked();
+						});
 
+						auto text = make_shared<Element>();
+						rowBackground->AddChild(text);
+						text->SetArrangeCallback([&](shared_ptr<Element> e)
+						{
+							auto trvm = dynamic_pointer_cast<TodoRowViewModel>(e->GetViewModel());
+							if (trvm)
+							{
+								auto p = e->GetParent();
+								e->SetLeft(p->GetLeft() + checkboxColumnWidth + 5.0 + 7.0);
+								e->SetRight(p->GetRight() - 7.0);
+								e->SetTop(p->GetTop()); e->SetBottom(p->GetBottom());
+							}
+							else
+							{
+								e->SetIsVisible(false);
+							}
+						});
+						text->SetDrawCallback([&](shared_ptr<Element> e)
+						{
+							auto trvm = dynamic_pointer_cast<TodoRowViewModel>(e->GetViewModel());
+							D2D1_RECT_F rect;
+							rect.left = e->GetLeft(); rect.right = e->GetRight();
+							rect.top = e->GetTop(); rect.bottom = e->GetBottom();
+							m_pRenderTarget->DrawTextW(
+								trvm->GetText().c_str(), trvm->GetText().length(),
+								m_pTextFormat, rect, SharedResources::Get()->DarkGrayBrush);
+						});
+					}
 					return rowBackground;
 				});
 			}
@@ -256,6 +284,9 @@ namespace libgui_sample_windows
 	{
 		SafeRelease(&m_pDirect2dFactory);
 
+		SafeRelease(&m_pTextFormat);
+		SafeRelease(&m_pTextFormat);
+
 		DiscardDeviceResources();
 	}
 
@@ -283,7 +314,7 @@ namespace libgui_sample_windows
 		{
 			// Register the window class.
 			WNDCLASSEX wcex = { sizeof(WNDCLASSEX) };
-			wcex.style = CS_HREDRAW | CS_VREDRAW;
+			wcex.style = CS_HREDRAW | CS_VREDRAW | CS_DROPSHADOW;
 			wcex.lpfnWndProc = App::WndProc;
 			wcex.cbClsExtra = 0;
 			wcex.cbWndExtra = sizeof(LONG_PTR);
@@ -313,7 +344,7 @@ namespace libgui_sample_windows
 				CW_USEDEFAULT,
 				CW_USEDEFAULT,
 				static_cast<UINT>(ceil(252.f * dpiX / 96.f)),
-				static_cast<UINT>(ceil(280.f * dpiY / 96.f)),
+				static_cast<UINT>(ceil(274.f * dpiY / 96.f)),
 				NULL,
 				NULL,
 				HINST_THISCOMPONENT,
@@ -343,6 +374,36 @@ namespace libgui_sample_windows
 
 		// Create a Direct2D factory.
 		hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_pDirect2dFactory);
+
+		if (SUCCEEDED(hr))
+		{
+			hr = DWriteCreateFactory(
+				DWRITE_FACTORY_TYPE_SHARED,
+				__uuidof(m_pDWriteFactory),
+				reinterpret_cast<IUnknown **>(&m_pDWriteFactory)
+				);
+		}
+		if (SUCCEEDED(hr))
+		{
+			// Create a DirectWrite text format object.
+			hr = m_pDWriteFactory->CreateTextFormat(
+				L"Segoe Script",
+				NULL,
+				DWRITE_FONT_WEIGHT_NORMAL,
+				DWRITE_FONT_STYLE_NORMAL,
+				DWRITE_FONT_STRETCH_NORMAL,
+				14.0,
+				L"", //locale
+				&m_pTextFormat
+				);
+		}
+		if (SUCCEEDED(hr))
+		{
+			// Center the text horizontally and vertically.
+			m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+
+			m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+		}
 
 		return hr;
 	}

@@ -20,6 +20,7 @@
 #include <functional>
 
 #pragma comment (lib, "d2d1")
+#pragma comment (lib, "dwrite")
 
 
 template<class Interface>
