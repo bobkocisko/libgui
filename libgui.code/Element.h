@@ -24,11 +24,14 @@ namespace libgui
 		shared_ptr<ViewModelBase> GetViewModel();
 
 		// Visual tree
+		void RemoveChildren();
 		void AddChild(shared_ptr<Element>);
+		void SetSingleChild(shared_ptr<Element> child);
 		int GetChildrenCount();
 
 		// Arrangement
 		shared_ptr<Element> GetParent();
+		shared_ptr<Element> GetSingleChild();
 		shared_ptr<Element> GetFirstChild();
 		shared_ptr<Element> GetLastChild();
 		shared_ptr<Element> GetPrevSibling();

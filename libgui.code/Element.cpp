@@ -51,6 +51,13 @@ namespace libgui
 		return m_nextsibling;
 	}
 
+	void Element::RemoveChildren()
+	{
+		m_firstChild = nullptr;
+		m_lastChild = nullptr;
+		m_childrenCount = 0;
+	}
+
 	void Element::AddChild(shared_ptr<Element> element)
 	{
 		if (m_firstChild == nullptr)
@@ -72,6 +79,28 @@ namespace libgui
 	int Element::GetChildrenCount()
 	{
 		return m_childrenCount;
+	}
+
+	void Element::SetSingleChild(shared_ptr<Element> child)
+	{
+		// Could be optimized to improve performance
+		RemoveChildren();
+		AddChild(child);
+	}
+
+	shared_ptr<Element> Element::GetSingleChild()
+	{
+		if (m_childrenCount == 1)
+		{
+			return m_firstChild;
+		}
+
+		if (m_childrenCount == 0)
+		{
+			return nullptr;
+		}
+
+		throw std::runtime_error("There is more than one child in this element");
 	}
 
 	// Arrangement
