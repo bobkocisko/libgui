@@ -138,7 +138,7 @@ namespace libgui
 		m_setViewModelCallback = setViewModelCallback;
 	}
 
-	void Element::SetViewModel()
+	void Element::PrepareViewModel()
 	{
 		if (m_setViewModelCallback)
 		{
@@ -147,7 +147,10 @@ namespace libgui
 		else
 		{
 			// By default the ViewModel is copied from the parent
-			m_viewModel = m_parent->m_viewModel;
+			if (m_parent)
+			{
+				m_viewModel = m_parent->m_viewModel;
+			}
 		}
 	}
 
@@ -176,7 +179,7 @@ namespace libgui
 	void Element::ArrangeAndDraw(bool draw)
 	{
 		ResetArrangement();
-		SetViewModel();
+		PrepareViewModel();
 		Arrange();
 		if (draw && m_isVisible)
 		{

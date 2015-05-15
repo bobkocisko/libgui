@@ -36,7 +36,7 @@ namespace libgui
 		shared_ptr<Element> GetLastChild();
 		shared_ptr<Element> GetPrevSibling();
 		shared_ptr<Element> GetNextSibling();
-		virtual void SetViewModel();
+		virtual void PrepareViewModel();
 		virtual void Arrange();
 		virtual void ResetArrangement();
 		virtual void ArrangeAndDraw(bool draw);
