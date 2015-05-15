@@ -110,9 +110,6 @@ namespace libgui
 		{
 			// Copy the element manager from the parent
 			m_elementManager = m_parent->m_elementManager;
-
-			// Copy the ViewModel from the parent
-			m_viewModel = m_parent->m_viewModel;
 		}
 
 		m_isVisible = true;
@@ -134,6 +131,24 @@ namespace libgui
 		m_isCenterYSet = false;
 		m_isWidthSet = false;
 		m_isHeightSet = false;
+	}
+
+	void Element::SetSetViewModelCallback(function<void(shared_ptr<Element>)> setViewModelCallback)
+	{
+		m_setViewModelCallback = setViewModelCallback;
+	}
+
+	void Element::SetViewModel()
+	{
+		if (m_setViewModelCallback)
+		{
+			m_setViewModelCallback(shared_from_this());
+		}
+		else
+		{
+			// By default the ViewModel is copied from the parent
+			m_viewModel = m_parent->m_viewModel;
+		}
 	}
 
 	void Element::SetArrangeCallback(function<void(shared_ptr<Element>)> arrangeCallback)
@@ -161,6 +176,7 @@ namespace libgui
 	void Element::ArrangeAndDraw(bool draw)
 	{
 		ResetArrangement();
+		SetViewModel();
 		Arrange();
 		if (draw && m_isVisible)
 		{

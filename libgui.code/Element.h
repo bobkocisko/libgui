@@ -36,9 +36,12 @@ namespace libgui
 		shared_ptr<Element> GetLastChild();
 		shared_ptr<Element> GetPrevSibling();
 		shared_ptr<Element> GetNextSibling();
+		virtual void SetViewModel();
 		virtual void Arrange();
 		virtual void ResetArrangement();
 		virtual void ArrangeAndDraw(bool draw);
+
+		void SetSetViewModelCallback(function<void(shared_ptr<Element>)>);
 		void SetArrangeCallback(function<void(shared_ptr<Element>)>);
 
 		void SetIsVisible(bool isVisible);
@@ -84,6 +87,7 @@ namespace libgui
 		int m_childrenCount = 0;
 
 		// Arrangement
+		function<void(shared_ptr<Element>)> m_setViewModelCallback;
 		function<void(shared_ptr<Element>)> m_arrangeCallback;
 
 		bool m_isVisible = true;
