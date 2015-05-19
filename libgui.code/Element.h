@@ -29,6 +29,10 @@ namespace libgui
 		void SetSingleChild(shared_ptr<Element> child);
 		int GetChildrenCount();
 
+		// Cache Management
+		virtual void ClearCache(int cacheLevel);
+		virtual void ClearElementCache(int cacheLevel);
+
 		// Arrangement
 		shared_ptr<Element> GetParent();
 		shared_ptr<Element> GetSingleChild();

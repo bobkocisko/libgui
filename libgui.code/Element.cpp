@@ -103,6 +103,26 @@ namespace libgui
 		throw std::runtime_error("There is more than one child in this element");
 	}
 
+	// Cache Management
+	void Element::ClearCache(int cacheLevel)
+	{
+		ClearElementCache(cacheLevel);
+
+		// Recurse to children
+		if (m_firstChild)
+		{
+			for (auto e = m_firstChild; e != nullptr; e = e->m_nextsibling)
+			{
+				e->ClearCache(cacheLevel);
+			}
+		}
+	}
+
+	void Element::ClearElementCache(int cacheLevel)
+	{
+		// This is intended to be overridden as needed for OS-specific needs.
+	}
+
 	// Arrangement
 	void Element::ResetArrangement()
 	{
