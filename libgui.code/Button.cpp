@@ -41,10 +41,7 @@ namespace libgui
 		_isPressed = false;
 		if (IsCapturing())
 		{
-			if (m_clickCallback)
-			{
-				m_clickCallback(dynamic_pointer_cast<Button>(shared_from_this()));
-			}
+			OnClick();
 
 			_isHot = false;
 			GetElementManager()->ReleaseCapture();
@@ -59,6 +56,15 @@ namespace libgui
 	bool Button::IsPressed()
 	{
 		return _isPressed;
+	}
+
+	void Button::OnClick()
+	{
+		// Default implementation: invoke the callback
+		if (m_clickCallback)
+		{
+			m_clickCallback(dynamic_pointer_cast<Button>(shared_from_this()));
+		}
 	}
 
 	void Button::SetClickCallback(function<void(shared_ptr<Button>)> clickCallback)

@@ -17,6 +17,7 @@ namespace libgui
 		bool IsPressed();
 		
 		// Output events
+		virtual void OnClick();
 		void SetClickCallback(function<void(shared_ptr<Button>)>);
 
 	private:
