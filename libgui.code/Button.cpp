@@ -45,12 +45,15 @@ namespace libgui
 		_isPressed = false;
 		if (IsCapturing())
 		{
-			OnClick();
-
-			if (!_isOver)
+			if (_isOver)
+			{
+				OnClick();
+			}
+			else
 			{
 				_isHot = false;
 			}
+
 			GetElementManager()->ReleaseCapture();
 		}
 	}
