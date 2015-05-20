@@ -29,5 +29,8 @@
     <ClCompile Include="ElementManagerTests.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="ElementTests.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

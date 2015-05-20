@@ -89,6 +89,7 @@
   <ItemGroup>
     <ClCompile Include="ButtonTests.cpp" />
     <ClCompile Include="ElementManagerTests.cpp" />
+    <ClCompile Include="ElementTests.cpp" />
     <ClCompile Include="Precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
