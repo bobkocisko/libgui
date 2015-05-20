@@ -53,6 +53,20 @@ namespace libgui
 
 	void Element::RemoveChildren()
 	{
+		// Recurse into children to thoroughly clean the element tree
+		auto e = m_firstChild;
+		while (e != nullptr)
+		{
+			e->RemoveChildren();
+
+			// Clean up pointers so that the class will be deleted
+			e->m_parent = nullptr;
+			e->m_prevsibling = nullptr;
+			auto next_e = e->m_nextsibling;
+			e->m_nextsibling = nullptr;
+			e = next_e;
+		}
+
 		m_firstChild = nullptr;
 		m_lastChild = nullptr;
 		m_childrenCount = 0;
