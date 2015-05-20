@@ -6,6 +6,8 @@ namespace libgui
 {
 	void Button::NotifyEnter()
 	{
+		_isOver = true;
+
 		if (IsCapturing())
 		{
 			_isPressed = true;
@@ -18,6 +20,8 @@ namespace libgui
 
 	void Button::NotifyLeave()
 	{
+		_isOver = false;
+
 		if (IsCapturing())
 		{
 			_isPressed = false;
@@ -43,7 +47,10 @@ namespace libgui
 		{
 			OnClick();
 
-			_isHot = false;
+			if (!_isOver)
+			{
+				_isHot = false;
+			}
 			GetElementManager()->ReleaseCapture();
 		}
 	}

@@ -21,6 +21,7 @@ namespace libgui
 		void SetClickCallback(function<void(shared_ptr<Button>)>);
 
 	private:
+		bool _isOver = false;
 		bool _isHot = false;
 		bool _isPressed = false;
 

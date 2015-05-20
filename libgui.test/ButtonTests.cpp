@@ -69,7 +69,7 @@ namespace libguitest
 			Assert::AreEqual(true, btn->IsPressed());
 		}
 
-		TEST_METHOD(WhenLeftAndUpping_StateIsNothing)
+		TEST_METHOD(WhenLeftAndUppingOutside_StateIsNothing)
 		{
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
@@ -79,7 +79,18 @@ namespace libguitest
 			btn->NotifyUp();
 			Assert::AreEqual(false, btn->IsHot());
 			Assert::AreEqual(false, btn->IsPressed());
+		}
 
+		TEST_METHOD(AfterClicked_StateIsHot)
+		{
+			auto em = make_shared<ElementManager>();
+			auto btn = make_shared<Button>();
+			em->SetRoot(btn);
+			btn->NotifyEnter();
+			btn->NotifyDown();
+			btn->NotifyUp();
+			Assert::AreEqual(true, btn->IsHot());
+			Assert::AreEqual(false, btn->IsPressed());
 		}
 	};
 }
