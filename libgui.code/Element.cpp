@@ -476,4 +476,8 @@ namespace libgui
 		}
 		return nullptr;
 	}
+
+	Element::~Element()
+	{
+	}
 }

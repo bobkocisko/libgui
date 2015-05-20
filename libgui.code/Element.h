@@ -76,6 +76,8 @@ namespace libgui
 		// Hit testing
 		shared_ptr<Element> GetElementAtPoint(Location);
 
+		virtual ~Element();
+
 	private:
 		// Element manager
 		shared_ptr<ElementManager> m_elementManager;
