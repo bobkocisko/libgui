@@ -22,8 +22,11 @@ namespace libgui
 
 	void ElementManager::ReleaseCapture()
 	{
-		m_capturedControl->NotifyReleasingCapture();
-		m_capturedControl = nullptr;
+		if (auto cc = m_capturedControl.lock())
+		{
+			cc->NotifyReleasingCapture();
+		}
+		m_capturedControl.reset();
 	}
 
 	bool ElementManager::NotifyMouseMove(int x, int y)
@@ -34,28 +37,32 @@ namespace libgui
 
 		auto elementAtPoint = m_root->GetElementAtPoint(point);
 
-		if (m_activeControl)
+		auto ac = m_activeControl.lock();
+		auto cc = m_capturedControl.lock();
+
+		if (ac)
 		{
-			if (elementAtPoint != m_activeControl)
+			if (elementAtPoint != ac)
 			{
-				m_activeControl->NotifyLeave();
-				if (!m_capturedControl)
+				ac->NotifyLeave();
+				if (!cc)
 				{
-					m_activeControl = nullptr;
+					m_activeControl.reset();
+					ac = nullptr;
 				}
 				needsUpdate = true;
 			}
 		}
 
 		auto control = dynamic_pointer_cast<Control> (elementAtPoint);
-		if (control && m_activeControl != control)
+		if (control && ac != control)
 		{
-			if (m_activeControl)
+			if (ac)
 			{
-				m_activeControl->NotifyLeave();
+				ac->NotifyLeave();
 			}
 
-			if (!m_capturedControl || control == m_capturedControl)
+			if (!cc || control == cc)
 			{
 				control->NotifyEnter();
 				m_activeControl = control;
@@ -74,9 +81,11 @@ namespace libgui
 		// for this x and y position
 		needsUpdate = NotifyMouseMove(x, y);
 
-		if (m_activeControl)
+		auto ac = m_activeControl.lock();
+
+		if (ac)
 		{
-			m_activeControl->NotifyDown();
+			ac->NotifyDown();
 			needsUpdate = true;
 		}
 
@@ -91,9 +100,11 @@ namespace libgui
 		// for this x and y position
 		needsUpdate = NotifyMouseMove(x, y);
 
-		if (m_activeControl)
+		auto ac = m_activeControl.lock();
+
+		if (ac)
 		{
-			m_activeControl->NotifyUp();
+			ac->NotifyUp();
 			needsUpdate = true;
 		}
 

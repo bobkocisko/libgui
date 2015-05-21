@@ -18,11 +18,11 @@ namespace libgui
 		void RequestCapture(shared_ptr<Control>);
 		void ReleaseCapture();
 	private:
-		shared_ptr<Control> m_capturedControl = nullptr;
+		weak_ptr<Control> m_capturedControl;
 		
 		// The active control is the control that was most
 		// recently sent a NotifyEnter nofication.
-		shared_ptr<Control> m_activeControl = nullptr;
+		weak_ptr<Control> m_activeControl;
 
 		shared_ptr<Element> m_root = nullptr;
 	};
