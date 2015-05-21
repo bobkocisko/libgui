@@ -49,6 +49,9 @@
     <ClInclude Include="ViewModelBase.h">
       <Filter>ViewModelBase</Filter>
     </ClInclude>
+    <ClInclude Include="Grid.h">
+      <Filter>Elements</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Precompiled.cpp">
@@ -74,6 +77,9 @@
     </ClCompile>
     <ClCompile Include="ViewModelBase.cpp">
       <Filter>ViewModelBase</Filter>
+    </ClCompile>
+    <ClCompile Include="Grid.cpp">
+      <Filter>Elements</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

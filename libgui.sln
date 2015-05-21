@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgui.test", "libgui.test\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgui.sample.windows", "libgui.sample.windows\libgui.sample.windows.vcxproj", "{692D0963-F973-46F0-A1FF-CD2B379F3BAB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libgui.sample.windows2", "libgui.sample.windows2\libgui.sample.windows2.vcxproj", "{939C69EE-ED1C-42B2-9071-E9E9D17344F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -27,6 +29,10 @@ Global
 		{692D0963-F973-46F0-A1FF-CD2B379F3BAB}.Debug|Win32.Build.0 = Debug|Win32
 		{692D0963-F973-46F0-A1FF-CD2B379F3BAB}.Release|Win32.ActiveCfg = Release|Win32
 		{692D0963-F973-46F0-A1FF-CD2B379F3BAB}.Release|Win32.Build.0 = Release|Win32
+		{939C69EE-ED1C-42B2-9071-E9E9D17344F6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{939C69EE-ED1C-42B2-9071-E9E9D17344F6}.Debug|Win32.Build.0 = Debug|Win32
+		{939C69EE-ED1C-42B2-9071-E9E9D17344F6}.Release|Win32.ActiveCfg = Release|Win32
+		{939C69EE-ED1C-42B2-9071-E9E9D17344F6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

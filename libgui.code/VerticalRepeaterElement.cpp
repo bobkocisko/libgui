@@ -10,14 +10,14 @@ namespace libgui
 
 		// Then create children if necessary
 
-		if (m_rowHeight == 0 || !m_totalCountCallback || !m_rowCreateCallback)
+		if (row_height_ == 0 || !total_count_callback_ || !row_create_callback_)
 		{
 			// Invalid state
 			return;
 		}
 
 		auto currentChildrenCount = GetChildrenCount();
-		auto totalCount = m_totalCountCallback(shared_from_this());
+		auto totalCount = total_count_callback_(shared_from_this());
 		auto missingChildren = totalCount - currentChildrenCount;
 
 		for (int i = 0; i < missingChildren; i++)
@@ -26,60 +26,60 @@ namespace libgui
 				dynamic_pointer_cast<VerticalRepeaterElement>(shared_from_this()),
 				currentChildrenCount + i);
 			AddChild(rowContainer);
-			rowContainer->AddChild(m_rowCreateCallback());
+			rowContainer->AddChild(row_create_callback_());
 		}
 
 		// TODO: support removing children to match viewmodel
 	}
 
 	VerticalRepeaterElement::RowElement::RowElement(shared_ptr<VerticalRepeaterElement> parent, int index)
-		:m_parent(parent), m_index(index)
+		:parent_(parent), index_(index)
 	{ }
 
 	void VerticalRepeaterElement::RowElement::Arrange()
 	{
 		// Get the view model for this particular row's index
-		if (m_parent->m_rowViewModelCallback)
+		if (parent_->row_view_model_callback_)
 		{
-			SetViewModel(m_parent->m_rowViewModelCallback(m_parent->GetViewModel(), m_index));
+			SetViewModel(parent_->row_view_model_callback_(parent_->GetViewModel(), index_));
 		}
 
 		auto ps = GetPrevSibling();
 
-		SetLeft(m_parent->GetLeft());
-		SetRight(m_parent->GetRight());
+		SetLeft(parent_->GetLeft());
+		SetRight(parent_->GetRight());
 
-		SetHeight(m_parent->m_rowHeight);
+		SetHeight(parent_->row_height_);
 		if (ps)
 		{
 			SetTop(ps->GetBottom());
 		}
 		else
 		{
-			SetTop(m_parent->GetTop());
+			SetTop(parent_->GetTop());
 		}
 	}
 
 	void VerticalRepeaterElement::SetRowHeight(double rowHeight)
 	{
-		m_rowHeight = rowHeight;
+		row_height_ = rowHeight;
 	}
 	double VerticalRepeaterElement::GetRowHeight()
 	{
-		return m_rowHeight;
+		return row_height_;
 	}
 
 	void VerticalRepeaterElement::SetRowCreateCallback(function<shared_ptr<Element>()> rowCreateCallback)
 	{
-		m_rowCreateCallback = rowCreateCallback;
+		row_create_callback_ = rowCreateCallback;
 	}
 	void VerticalRepeaterElement::SetTotalCountCallback(function<int(shared_ptr<Element>)> totalCountCallback)
 	{
-		m_totalCountCallback = totalCountCallback;
+		total_count_callback_ = totalCountCallback;
 	}
 	void VerticalRepeaterElement::SetRowViewModelCallback(function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)> rowViewModelCallback)
 	{
-		m_rowViewModelCallback = rowViewModelCallback;
+		row_view_model_callback_ = rowViewModelCallback;
 	}
 
 }
