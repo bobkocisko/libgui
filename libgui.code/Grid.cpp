@@ -20,7 +20,9 @@ namespace libgui
 
 		auto total_count = total_count_callback_(from_this);
 		auto children_count = GetChildrenCount();
-		auto missing_children = total_count - children_count;
+		int visible_rows = ceil(GetHeight() / cell_height_);
+		auto visible_items = visible_rows * columns_;
+		auto missing_children = min(total_count, visible_items) - children_count;
 
 		for (int i = 0; i < missing_children; i++)
 		{
