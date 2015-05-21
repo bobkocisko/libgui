@@ -52,6 +52,12 @@
     <ClInclude Include="Grid.h">
       <Filter>Elements</Filter>
     </ClInclude>
+    <ClInclude Include="Scrollbar.h">
+      <Filter>Controls</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollDelegate.h">
+      <Filter>Controls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Precompiled.cpp">
@@ -80,6 +86,9 @@
     </ClCompile>
     <ClCompile Include="Grid.cpp">
       <Filter>Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="Scrollbar.cpp">
+      <Filter>Controls</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

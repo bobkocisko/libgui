@@ -35,6 +35,23 @@ namespace libgui
 		cell_width_ = GetWidth() / columns_;
 	}
 
+	double Grid::GetCurrentOffsetPercent()
+	{
+		return offset_percent_;
+	}
+
+	double Grid::GetThumbSizePercent()
+	{
+		auto from_this = dynamic_pointer_cast<Grid>(shared_from_this());
+		auto total_rows = ceil(total_count_callback_(from_this) / columns_);
+		return min(1.0, (total_rows * cell_height_) / GetHeight());
+	}
+
+	void Grid::MoveToOffsetPercent(double offset_percent)
+	{
+		offset_percent_ = offset_percent;
+	}
+
 	Grid::Cell::Cell(const shared_ptr<Grid>& grid, int index) :
 		grid_(grid), index_(index)
 	{
@@ -116,4 +133,23 @@ namespace libgui
 		cell_view_model_callback_ = cell_view_model_callback;
 	}
 
+	const shared_ptr<Scrollbar>& Grid::GetScrollbar() const
+	{
+		return scrollbar_;
+	}
+
+	void Grid::SetScrollbar(const shared_ptr<Scrollbar>& scrollbar)
+	{
+		scrollbar_ = scrollbar;
+	}
+
+	const double& Grid::GetScrollbarWidth() const
+	{
+		return scrollbar_width_;
+	}
+
+	void Grid::SetScrollbarWidth(double scrollbar_width)
+	{
+		scrollbar_width_ = scrollbar_width;
+	}
 }

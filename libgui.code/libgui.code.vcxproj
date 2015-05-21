@@ -20,6 +20,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Scrollbar.cpp" />
     <ClCompile Include="VerticalRepeaterElement.cpp" />
     <ClCompile Include="Structs.cpp" />
     <ClCompile Include="ViewModelBase.cpp" />
@@ -31,6 +32,8 @@
     <ClInclude Include="ElementManager.h" />
     <ClInclude Include="Grid.h" />
     <ClInclude Include="Precompiled.h" />
+    <ClInclude Include="Scrollbar.h" />
+    <ClInclude Include="ScrollDelegate.h" />
     <ClInclude Include="VerticalRepeaterElement.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="ViewModelBase.h" />
