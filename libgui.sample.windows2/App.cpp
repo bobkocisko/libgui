@@ -18,6 +18,18 @@ namespace libgui_sample_windows2
 	{
 		m_resources.push_back(SharedResources::Get());
 
+		m_elementManager->SetSystemCaptureCallback([&](bool capture)
+		{
+			if (capture)
+			{
+				SetCapture(m_hwnd);
+			}
+			else
+			{
+				ReleaseCapture();
+			}
+		});
+
 		DrawingManager::Get()->SetStartClippingCallback([&](Rect4 r)
 		{
 			D2D1_RECT_F clipRect;

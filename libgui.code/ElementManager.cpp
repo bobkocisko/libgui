@@ -18,6 +18,11 @@ namespace libgui
 	{
 		m_capturedControl = control;
 		control->NotifyCapturing();
+
+		if (m_systemCaptureCallback)
+		{
+			m_systemCaptureCallback(true);
+		}
 	}
 
 	void ElementManager::ReleaseCapture()
@@ -27,6 +32,21 @@ namespace libgui
 			cc->NotifyReleasingCapture();
 		}
 		m_capturedControl.reset();
+		
+		if (m_systemCaptureCallback)
+		{
+			m_systemCaptureCallback(false);
+		}
+	}
+
+	const function<void(bool)>& ElementManager::GetSystemCaptureCallback() const
+	{
+		return m_systemCaptureCallback;
+	}
+
+	void ElementManager::SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback)
+	{
+		m_systemCaptureCallback = systemCaptureCallback;
 	}
 
 	bool ElementManager::NotifyMouseMove(int x, int y)

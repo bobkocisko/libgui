@@ -17,6 +17,10 @@ namespace libgui
 
 		void RequestCapture(shared_ptr<Control>);
 		void ReleaseCapture();
+
+		const function<void(bool)>& GetSystemCaptureCallback() const;
+		void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
+
 	private:
 		weak_ptr<Control> m_capturedControl;
 		
@@ -25,5 +29,7 @@ namespace libgui
 		weak_ptr<Control> m_activeControl;
 
 		shared_ptr<Element> m_root = nullptr;
+
+		function<void(bool)> m_systemCaptureCallback;
 	};
 }
