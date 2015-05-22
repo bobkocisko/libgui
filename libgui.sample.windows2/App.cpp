@@ -116,6 +116,7 @@ namespace libgui_sample_windows2
 			grid->SetBottomPadding(5);
 
 			grid->SetCellHeight(100);
+			grid->SetColumns(3);
 			grid->SetItemsProvider(itemsVm);
 
 			grid->SetCellCreateCallback([&]()
@@ -142,16 +143,6 @@ namespace libgui_sample_windows2
 				{
 					auto text = make_shared<Element>();
 					cell_background->AddChild(text);
-					text->SetArrangeCallback([&](shared_ptr<Element> e)
-					{
-						auto ivm = dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
-						if (!ivm) return;
-						auto p = e->GetParent();
-						e->SetLeft(p->GetLeft() + 7.0);
-						e->SetRight(p->GetRight() - 7.0);
-						e->SetTop(p->GetTop());
-						e->SetBottom(p->GetBottom());
-					});
 					text->SetDrawCallback([&](shared_ptr<Element> e)
 					{
 						auto ivm = dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
@@ -404,7 +395,7 @@ namespace libgui_sample_windows2
 		if (SUCCEEDED(hr))
 		{
 			// Center the text horizontally and vertically.
-			m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
+			m_pTextFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
 
 			m_pTextFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 		}

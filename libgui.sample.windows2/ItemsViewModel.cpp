@@ -65,7 +65,7 @@ namespace libgui_sample_windows2
 
 	int ItemsViewModel::GetTotalItems()
 	{
-		return 10;
+		return m_items.size();
 	}
 
 	shared_ptr<ViewModelBase> ItemsViewModel::GetItem(int index)
