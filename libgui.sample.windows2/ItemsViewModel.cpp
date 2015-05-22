@@ -68,7 +68,7 @@ namespace libgui_sample_windows2
 		return m_items.size();
 	}
 
-	shared_ptr<ItemViewModel> ItemsViewModel::GetItem(int index)
+	shared_ptr<ViewModelBase> ItemsViewModel::GetItem(int index)
 	{
 		if (index >= m_items.size())
 		{

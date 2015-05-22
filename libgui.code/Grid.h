@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Element.h"
 #include "Scrollbar.h"
+#include "ItemsProvider.h"
 
 namespace libgui
 {
@@ -29,14 +30,13 @@ namespace libgui
 		void SetTopPadding(double topPadding);
 		void SetBottomPadding(double bottomPadding);
 
+		const shared_ptr<ItemsProvider>& GetItemsProvider() const;
+
+		void SetItemsProvider(const shared_ptr<ItemsProvider>& itemsProvider);
+
 		const function<shared_ptr<Element>()>& GetCellCreateCallback() const;
 		void SetCellCreateCallback(const function<shared_ptr<Element>()>& cellCreateCallback);
 
-		const function<int(shared_ptr<Element>)>& GetTotalCountCallback() const;
-		void SetTotalCountCallback(const function<int(shared_ptr<Element>)>& totalCountCallback);
-
-		const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& GetCellViewModelCallback() const;
-		void SetCellViewModelCallback(const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& cellViewModelCallback);
 
 	private:
 		int m_columns = 3;
@@ -50,9 +50,9 @@ namespace libgui
 		double m_topPadding = 0.0;
 		double m_bottomPadding = 0.0;
 
+		shared_ptr<ItemsProvider> m_itemsProvider;
+
 		function<shared_ptr<Element>()> m_cellCreateCallback;
-		function<int(shared_ptr<Element>)> m_totalCountCallback;
-		function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)> m_cellViewModelCallback;
 
 		class Cell : public Element
 		{

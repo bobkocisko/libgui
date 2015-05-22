@@ -17,6 +17,7 @@
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="ElementManager.cpp" />
     <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="ItemsProvider.cpp" />
     <ClCompile Include="Precompiled.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -33,6 +34,7 @@
     <ClInclude Include="Element.h" />
     <ClInclude Include="ElementManager.h" />
     <ClInclude Include="Grid.h" />
+    <ClInclude Include="ItemsProvider.h" />
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="Scrollbar.h" />
     <ClInclude Include="ScrollDelegate.h" />

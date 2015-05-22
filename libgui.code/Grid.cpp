@@ -15,15 +15,13 @@ namespace libgui
 
 		// Then create children if needed
 
-		if (m_cellHeight == 0 || !m_totalCountCallback || !m_cellCreateCallback)
+		if (m_cellHeight == 0 || !m_itemsProvider || !m_cellCreateCallback)
 		{
 			// Invalid state
 			return;
 		}
 
-		auto fromThis = dynamic_pointer_cast<Grid>(shared_from_this());
-
-		auto totalCount = m_totalCountCallback(fromThis);
+		auto totalCount = m_itemsProvider->GetTotalItems();
 		auto childrenCount = GetChildrenCount();
 		int visibleRows = ceil(GetHeight() / m_cellHeight) + 1; // Need an extra for partial rows
 		auto visibleItems = visibleRows * m_columns;
@@ -31,6 +29,7 @@ namespace libgui
 
 		for (int i = 0; i < missingChildren; i++)
 		{
+			auto fromThis = dynamic_pointer_cast<Grid>(shared_from_this());
 			auto cellContainer = make_shared<Cell>(fromThis, childrenCount + i);
 			AddChild(cellContainer);
 			cellContainer->AddChild(m_cellCreateCallback());
@@ -64,7 +63,7 @@ namespace libgui
 
 	double Grid::GetThumbSizePercent()
 	{
-		auto totalRows = ceil(m_totalCountCallback(shared_from_this()) / m_columns);
+		auto totalRows = ceil(m_itemsProvider->GetTotalItems() / m_columns);
 		auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
 		return min(1.0, GetHeight() / totalContentHeight);
 	}
@@ -76,7 +75,7 @@ namespace libgui
 
 	bool Grid::CanScroll()
 	{
-		auto totalRows = ceil(m_totalCountCallback(shared_from_this()) / m_columns);
+		auto totalRows = ceil(m_itemsProvider->GetTotalItems() / m_columns);
 		auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
 		return totalContentHeight > GetHeight();
 	}
@@ -88,13 +87,12 @@ namespace libgui
 
 	void Grid::Cell::PrepareViewModel()
 	{
-		if (m_grid->m_cellViewModelCallback)
+		if (m_grid->m_itemsProvider)
 		{
 			auto index = m_grid->m_baseItemIndex + m_index;
-			if (index < m_grid->m_totalCountCallback(m_grid))
+			if (index < m_grid->m_itemsProvider->GetTotalItems())
 			{
-				SetViewModel(m_grid->m_cellViewModelCallback(m_grid->GetViewModel(),
-					index));
+				SetViewModel(m_grid->m_itemsProvider->GetItem(index));
 			}
 			else
 			{
@@ -167,6 +165,16 @@ namespace libgui
 		m_bottomPadding = bottomPadding;
 	}
 
+	const shared_ptr<ItemsProvider>& Grid::GetItemsProvider() const
+	{
+		return m_itemsProvider;
+	}
+
+	void Grid::SetItemsProvider(const shared_ptr<ItemsProvider>& itemsProvider)
+	{
+		m_itemsProvider = itemsProvider;
+	}
+
 	const function<shared_ptr<Element>()>& Grid::GetCellCreateCallback() const
 	{
 		return m_cellCreateCallback;
@@ -176,25 +184,4 @@ namespace libgui
 	{
 		m_cellCreateCallback = cellCreateCallback;
 	}
-
-	const function<int(shared_ptr<Element>)>& Grid::GetTotalCountCallback() const
-	{
-		return m_totalCountCallback;
-	}
-
-	void Grid::SetTotalCountCallback(const function<int(shared_ptr<Element>)>& totalCountCallback)
-	{
-		m_totalCountCallback = totalCountCallback;
-	}
-
-	const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& Grid::GetCellViewModelCallback() const
-	{
-		return m_cellViewModelCallback;
-	}
-
-	void Grid::SetCellViewModelCallback(const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& cellViewModelCallback)
-	{
-		m_cellViewModelCallback = cellViewModelCallback;
-	}
-
 }

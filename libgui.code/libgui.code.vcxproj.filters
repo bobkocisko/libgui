@@ -20,7 +20,7 @@
     <Filter Include="Controls">
       <UniqueIdentifier>{f301aa11-11bf-4abf-baa8-4412cbcd384a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ViewModelBase">
+    <Filter Include="ViewModel">
       <UniqueIdentifier>{e0e57b37-54d7-4a13-ad9c-f8641b738afc}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -47,7 +47,7 @@
       <Filter>Elements</Filter>
     </ClInclude>
     <ClInclude Include="ViewModelBase.h">
-      <Filter>ViewModelBase</Filter>
+      <Filter>ViewModel</Filter>
     </ClInclude>
     <ClInclude Include="Grid.h">
       <Filter>Elements</Filter>
@@ -60,6 +60,9 @@
     </ClInclude>
     <ClInclude Include="DrawingManager.h">
       <Filter>Services</Filter>
+    </ClInclude>
+    <ClInclude Include="ItemsProvider.h">
+      <Filter>ViewModel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -85,7 +88,7 @@
       <Filter>Elements</Filter>
     </ClCompile>
     <ClCompile Include="ViewModelBase.cpp">
-      <Filter>ViewModelBase</Filter>
+      <Filter>ViewModel</Filter>
     </ClCompile>
     <ClCompile Include="Grid.cpp">
       <Filter>Elements</Filter>
@@ -95,6 +98,9 @@
     </ClCompile>
     <ClCompile Include="DrawingManager.cpp">
       <Filter>Services</Filter>
+    </ClCompile>
+    <ClCompile Include="ItemsProvider.cpp">
+      <Filter>ViewModel</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

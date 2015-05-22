@@ -116,16 +116,8 @@ namespace libgui_sample_windows2
 			grid->SetBottomPadding(5);
 
 			grid->SetCellHeight(100);
-			grid->SetTotalCountCallback([](shared_ptr<Element> e)
-			{
-				return dynamic_pointer_cast<ItemsViewModel>(e->GetViewModel())
-					->GetTotalItems();
-			});
-			grid->SetCellViewModelCallback([](shared_ptr<ViewModelBase> viewModel, int index)
-			{
-				auto pageViewModel = dynamic_pointer_cast<ItemsViewModel>(viewModel);
-				return pageViewModel->GetItem(index);
-			});
+			grid->SetItemsProvider(itemsVm);
+
 			grid->SetCellCreateCallback([&]()
 			{
 				auto cell_background = make_shared<Element>();
@@ -363,7 +355,7 @@ namespace libgui_sample_windows2
 				CW_USEDEFAULT,
 				CW_USEDEFAULT,
 				static_cast<UINT>(ceil(700.f * dpiX / 96.f)),
-				static_cast<UINT>(ceil(700.f * dpiY / 96.f)),
+				static_cast<UINT>(ceil(400.f * dpiY / 96.f)),
 				NULL,
 				NULL,
 				HINST_THISCOMPONENT,

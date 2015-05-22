@@ -1,18 +1,20 @@
 ﻿#pragma once
 #include <libgui.code/ViewModelBase.h>
+#include <libgui.code/ItemsProvider.h>
 #include "ItemViewModel.h"
 
 using namespace std;
+using namespace libgui;
 
 namespace libgui_sample_windows2
 {
-	class ItemsViewModel : public libgui::ViewModelBase
+	class ItemsViewModel : public ViewModelBase, public ItemsProvider
 	{
 	public:
 		ItemsViewModel();
 
-		int GetTotalItems();
-		shared_ptr<ItemViewModel> GetItem(int index);
+		int GetTotalItems() override;
+		shared_ptr<ViewModelBase> GetItem(int index) override;
 
 	private:
 		vector<shared_ptr<ItemViewModel>> m_items;
