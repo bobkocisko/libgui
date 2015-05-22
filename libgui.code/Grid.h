@@ -14,7 +14,7 @@ namespace libgui
 
 		double GetCurrentOffsetPercent() override;
 		double GetThumbSizePercent() override;
-		void MoveToOffsetPercent(double offset_percent) override;
+		void MoveToOffsetPercent(double offsetPercent) override;
 
 		bool CanScroll();
 
@@ -25,26 +25,26 @@ namespace libgui
 		double GetCellHeight();
 
 		const function<shared_ptr<Element>()>& GetCellCreateCallback() const;
-		void SetCellCreateCallback(const function<shared_ptr<Element>()>& cell_create_callback);
+		void SetCellCreateCallback(const function<shared_ptr<Element>()>& cellCreateCallback);
 
 		const function<int(shared_ptr<Element>)>& GetTotalCountCallback() const;
-		void SetTotalCountCallback(const function<int(shared_ptr<Element>)>& total_count_callback);
+		void SetTotalCountCallback(const function<int(shared_ptr<Element>)>& totalCountCallback);
 
 		const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& GetCellViewModelCallback() const;
-		void SetCellViewModelCallback(const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& cell_view_model_callback);
+		void SetCellViewModelCallback(const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& cellViewModelCallback);
 
 		const shared_ptr<Scrollbar>& GetScrollbar() const;
 		void SetScrollbar(const shared_ptr<Scrollbar>& scrollbar);
 
 	private:
-		int columns_ = 3;
-		double cell_height_;
-		double cell_width_;
-		double offset_percent_ = 0;
-		function<shared_ptr<Element>()> cell_create_callback_;
-		function<int(shared_ptr<Element>)> total_count_callback_;
-		function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)> cell_view_model_callback_;
-		shared_ptr<Scrollbar> scrollbar_;
+		int m_columns = 3;
+		double m_cellHeight;
+		double m_cellWidth;
+		double m_offsetPercent = 0;
+		function<shared_ptr<Element>()> m_cellCreateCallback;
+		function<int(shared_ptr<Element>)> m_totalCountCallback;
+		function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)> m_cellViewModelCallback;
+		shared_ptr<Scrollbar> m_scrollbar;
 
 		class Cell : public Element
 		{
@@ -54,8 +54,8 @@ namespace libgui
 			void PrepareViewModel() override;
 			void Arrange();
 		private:
-			shared_ptr<Grid> grid_;
-			int index_;
+			shared_ptr<Grid> m_grid;
+			int m_index;
 		};
 	};
 }

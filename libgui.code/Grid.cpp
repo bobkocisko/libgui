@@ -15,77 +15,75 @@ namespace libgui
 
 		// Then create children if needed
 
-		if (cell_height_ == 0 || !total_count_callback_ || !cell_create_callback_)
+		if (m_cellHeight == 0 || !m_totalCountCallback || !m_cellCreateCallback)
 		{
 			// Invalid state
 			return;
 		}
 
-		auto from_this = dynamic_pointer_cast<Grid>(shared_from_this());
+		auto fromThis = dynamic_pointer_cast<Grid>(shared_from_this());
 
-		auto total_count = total_count_callback_(from_this);
-		auto children_count = GetChildrenCount();
-		int visible_rows = ceil(GetHeight() / cell_height_);
-		auto visible_items = visible_rows * columns_;
-		auto missing_children = min(total_count, visible_items) - children_count;
+		auto totalCount = m_totalCountCallback(fromThis);
+		auto childrenCount = GetChildrenCount();
+		int visibleRows = ceil(GetHeight() / m_cellHeight);
+		auto visibleItems = visibleRows * m_columns;
+		auto missingChildren = min(totalCount, visibleItems) - childrenCount;
 
-		for (int i = 0; i < missing_children; i++)
+		for (int i = 0; i < missingChildren; i++)
 		{
-			auto cell_container = make_shared<Cell>(from_this, children_count + i);
+			auto cell_container = make_shared<Cell>(fromThis, childrenCount + i);
 			AddChild(cell_container);
-			cell_container->AddChild(cell_create_callback_());
+			cell_container->AddChild(m_cellCreateCallback());
 		}
 
 		// Now determine the cell width based on the current parameters
-		cell_width_ = GetWidth() / columns_;
+		m_cellWidth = GetWidth() / m_columns;
 	}
 
 	double Grid::GetCurrentOffsetPercent()
 	{
-		return offset_percent_;
+		return m_offsetPercent;
 	}
 
 	double Grid::GetThumbSizePercent()
 	{
-		auto total_rows = ceil(total_count_callback_(shared_from_this()) / columns_);
-		return min(1.0, GetHeight() / (total_rows * cell_height_));
+		auto totalRows = ceil(m_totalCountCallback(shared_from_this()) / m_columns);
+		return min(1.0, GetHeight() / (totalRows * m_cellHeight));
 	}
 
-	void Grid::MoveToOffsetPercent(double offset_percent)
+	void Grid::MoveToOffsetPercent(double offsetPercent)
 	{
-		offset_percent_ = offset_percent;
+		m_offsetPercent = offsetPercent;
 	}
 
 	bool Grid::CanScroll()
 	{
-		auto total_rows = ceil(total_count_callback_(shared_from_this()) / columns_);
-		return (total_rows * cell_height_) > GetHeight();
+		auto totalRows = ceil(m_totalCountCallback(shared_from_this()) / m_columns);
+		return (totalRows * m_cellHeight) > GetHeight();
 	}
 
 	Grid::Cell::Cell(const shared_ptr<Grid>& grid, int index) :
-		grid_(grid), index_(index)
+		m_grid(grid), m_index(index)
 	{
 	}
 
 	void Grid::Cell::PrepareViewModel()
 	{
-		if (grid_->cell_view_model_callback_)
+		if (m_grid->m_cellViewModelCallback)
 		{
-			SetViewModel(grid_->cell_view_model_callback_(grid_->GetViewModel(), index_));
+			SetViewModel(m_grid->m_cellViewModelCallback(m_grid->GetViewModel(), m_index));
 		}
 	}
 
 	void Grid::Cell::Arrange()
 	{
-		auto p = GetParent();
+		auto row = m_index / m_grid->m_columns;
+		auto col = m_index % m_grid->m_columns;
 
-		auto row = index_ / grid_->columns_;
-		auto col = index_ % grid_->columns_;
-
-		auto left = (p->GetLeft() + col * grid_->cell_width_); 
-		auto right = left + grid_->cell_width_;
-		auto top = (p->GetTop() + row * grid_->cell_height_); 
-		auto bottom = top + grid_->cell_height_;
+		auto left = (m_grid->GetLeft() + col * m_grid->m_cellWidth); 
+		auto right = left + m_grid->m_cellWidth;
+		auto top = (m_grid->GetTop() + row * m_grid->m_cellHeight); 
+		auto bottom = top + m_grid->m_cellHeight;
 
 		// Snap to pixel boundaries
 		SetLeft(round(left)); SetRight(round(right));
@@ -95,62 +93,62 @@ namespace libgui
 
 	const int& Grid::GetColumns() const
 	{
-		return columns_;
+		return m_columns;
 	}
 
 	void Grid::SetColumns(int columns)
 	{
-		columns_ = columns;
+		m_columns = columns;
 	}
 
-	void Grid::SetCellHeight(double cell_height)
+	void Grid::SetCellHeight(double cellHeight)
 	{
-		cell_height_ = cell_height;
+		m_cellHeight = cellHeight;
 	}
 
 	double Grid::GetCellHeight()
 	{
-		return cell_height_;
+		return m_cellHeight;
 	}
 
 	const function<shared_ptr<Element>()>& Grid::GetCellCreateCallback() const
 	{
-		return cell_create_callback_;
+		return m_cellCreateCallback;
 	}
 
-	void Grid::SetCellCreateCallback(const function<shared_ptr<Element>()>& cell_create_callback)
+	void Grid::SetCellCreateCallback(const function<shared_ptr<Element>()>& cellCreateCallback)
 	{
-		cell_create_callback_ = cell_create_callback;
+		m_cellCreateCallback = cellCreateCallback;
 	}
 
 	const function<int(shared_ptr<Element>)>& Grid::GetTotalCountCallback() const
 	{
-		return total_count_callback_;
+		return m_totalCountCallback;
 	}
 
-	void Grid::SetTotalCountCallback(const function<int(shared_ptr<Element>)>& total_count_callback)
+	void Grid::SetTotalCountCallback(const function<int(shared_ptr<Element>)>& totalCountCallback)
 	{
-		total_count_callback_ = total_count_callback;
+		m_totalCountCallback = totalCountCallback;
 	}
 
 	const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& Grid::GetCellViewModelCallback() const
 	{
-		return cell_view_model_callback_;
+		return m_cellViewModelCallback;
 	}
 
-	void Grid::SetCellViewModelCallback(const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& cell_view_model_callback)
+	void Grid::SetCellViewModelCallback(const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& cellViewModelCallback)
 	{
-		cell_view_model_callback_ = cell_view_model_callback;
+		m_cellViewModelCallback = cellViewModelCallback;
 	}
 
 	const shared_ptr<Scrollbar>& Grid::GetScrollbar() const
 	{
-		return scrollbar_;
+		return m_scrollbar;
 	}
 
 	void Grid::SetScrollbar(const shared_ptr<Scrollbar>& scrollbar)
 	{
-		scrollbar_ = scrollbar;
+		m_scrollbar = scrollbar;
 	}
 
 }
