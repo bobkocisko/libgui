@@ -8,6 +8,8 @@ namespace libgui
 	{
 	
 	public:
+		Grid();
+
 		void Arrange() override;
 
 		double GetCurrentOffsetPercent() override;

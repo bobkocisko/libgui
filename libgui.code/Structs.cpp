@@ -28,4 +28,12 @@ namespace libgui
 	{
 		return location.y + size.height;
 	}
+
+	Rect4::Rect4(double left, double top, double right, double bottom)
+		: left(left),
+		top(top),
+		right(right),
+		bottom(bottom)
+	{
+	}
 }

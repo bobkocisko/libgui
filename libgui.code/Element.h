@@ -50,6 +50,8 @@ namespace libgui
 
 		void SetIsVisible(bool isVisible);
 		bool GetIsVisible();
+		void SetClipToBounds(bool clipToBounds);
+		bool GetClipToBounds();
 
 		void SetLeft(double left);
 		void SetTop(double top);
@@ -96,6 +98,7 @@ namespace libgui
 		function<void(shared_ptr<Element>)> m_setViewModelCallback;
 		function<void(shared_ptr<Element>)> m_arrangeCallback;
 
+		bool m_clipToBounds = false;
 		bool m_isVisible = true;
 
 		double m_left = 0;

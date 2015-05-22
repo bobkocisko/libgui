@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="Control.cpp" />
+    <ClCompile Include="DrawingManager.cpp" />
     <ClCompile Include="Element.cpp" />
     <ClCompile Include="ElementManager.cpp" />
     <ClCompile Include="Grid.cpp" />
@@ -28,6 +29,7 @@
   <ItemGroup>
     <ClInclude Include="Button.h" />
     <ClInclude Include="Control.h" />
+    <ClInclude Include="DrawingManager.h" />
     <ClInclude Include="Element.h" />
     <ClInclude Include="ElementManager.h" />
     <ClInclude Include="Grid.h" />

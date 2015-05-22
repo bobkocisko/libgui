@@ -58,6 +58,9 @@
     <ClInclude Include="ScrollDelegate.h">
       <Filter>Controls</Filter>
     </ClInclude>
+    <ClInclude Include="DrawingManager.h">
+      <Filter>Services</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Precompiled.cpp">
@@ -89,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="Scrollbar.cpp">
       <Filter>Controls</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawingManager.cpp">
+      <Filter>Services</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

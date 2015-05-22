@@ -3,6 +3,11 @@
 
 namespace libgui
 {
+	Grid::Grid()
+	{
+		SetClipToBounds(true);
+	}
+
 	void Grid::Arrange()
 	{
 		// First arrange the element itself

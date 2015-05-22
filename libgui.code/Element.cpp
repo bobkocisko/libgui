@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "Element.h"
 #include "ElementManager.h"
+#include "DrawingManager.h"
 
 namespace libgui
 {
@@ -217,12 +218,29 @@ namespace libgui
 		Arrange();
 		if (draw && m_isVisible)
 		{
+			if (m_clipToBounds)
+			{
+				if (auto startClipping = DrawingManager::Get()->GetStartClippingCallback())
+				{
+					Rect4 r(GetLeft(), GetTop(), GetRight(), GetBottom());
+					startClipping(r);
+				}
+			}
+
 			Draw();
 			if (m_firstChild)
 			{
 				for (auto e = m_firstChild; e != nullptr; e = e->m_nextsibling)
 				{
 					e->ArrangeAndDraw(draw);
+				}
+			}
+
+			if (m_clipToBounds)
+			{
+				if (auto stopClipping = DrawingManager::Get()->GetStopClippingCallback())
+				{
+					stopClipping();
 				}
 			}
 		}
@@ -238,6 +256,15 @@ namespace libgui
 		return m_isVisible;
 	}
 
+	void Element::SetClipToBounds(bool clipToBounds)
+	{
+		m_clipToBounds = clipToBounds;
+	}
+
+	bool Element::GetClipToBounds()
+	{
+		return m_clipToBounds;
+	}
 
 	void Element::SetLeft(double left)
 	{

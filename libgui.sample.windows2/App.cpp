@@ -7,6 +7,7 @@
 #include "enums.h"
 #include "ItemsViewModel.h"
 #include <libgui.code/Grid.h>
+#include <libgui.code/DrawingManager.h>
 
 namespace libgui_sample_windows2
 {
@@ -16,6 +17,18 @@ namespace libgui_sample_windows2
 		render_target_(NULL)
 	{
 		m_resources.push_back(SharedResources::Get());
+
+		DrawingManager::Get()->SetStartClippingCallback([&](Rect4 r)
+		{
+			D2D1_RECT_F clipRect;
+			clipRect.left = r.left; clipRect.right = r.right;
+			clipRect.top = r.top; clipRect.bottom = r.bottom;
+			render_target_->PushAxisAlignedClip(clipRect, D2D1_ANTIALIAS_MODE_ALIASED);
+		});
+		DrawingManager::Get()->SetStopClippingCallback([&]()
+		{
+			render_target_->PopAxisAlignedClip();
+		});
 
 		// Main view model
 		auto itemsVm = make_shared<ItemsViewModel>();

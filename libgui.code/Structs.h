@@ -17,7 +17,6 @@ namespace libgui
 	struct Rect
 	{
 		Rect(Location, Size);
-		Rect(double, double, double, double);
 
 		Location location;
 		Size size;
@@ -26,5 +25,15 @@ namespace libgui
 		double GetTop();
 		double GetRight();
 		double GetBottom();
+	};
+
+	struct Rect4
+	{
+		Rect4(double left, double top, double right, double bottom);
+
+		double left;
+		double top;
+		double right;
+		double bottom;
 	};
 }
