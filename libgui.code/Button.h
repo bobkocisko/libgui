@@ -9,8 +9,8 @@ namespace libgui
 		// Input events
 		void NotifyEnter();
 		void NotifyLeave();
-		void NotifyDown();
-		void NotifyUp();
+		void NotifyDown(Location location);
+		void NotifyUp(Location location);
 
 		// Output states
 		bool IsHot();

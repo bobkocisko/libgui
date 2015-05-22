@@ -25,7 +25,7 @@ namespace libgui
 
 		auto totalCount = m_totalCountCallback(fromThis);
 		auto childrenCount = GetChildrenCount();
-		int visibleRows = ceil(GetHeight() / m_cellHeight);
+		int visibleRows = ceil(GetHeight() / m_cellHeight) + 1; // Need an extra for partial rows
 		auto visibleItems = visibleRows * m_columns;
 		auto missingChildren = min(totalCount, visibleItems) - childrenCount;
 
@@ -45,7 +45,7 @@ namespace libgui
 
 		auto totalContentHeight = (totalRows * m_cellHeight);
 		auto totalHeightOffset = totalContentHeight * m_offsetPercent;
-		m_contentsOffset = remainder(totalHeightOffset, m_cellHeight);
+		m_contentsOffset = fmod(totalHeightOffset, m_cellHeight);
 	}
 
 	double Grid::GetCurrentOffsetPercent()

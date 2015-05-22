@@ -1,47 +1,152 @@
 ﻿#include "Precompiled.h"
 #include "Scrollbar.h"
+#include "ElementManager.h"
 
 namespace libgui
 {
-	Scrollbar::Scrollbar(const shared_ptr<ScrollDelegate>& scroll_info_provider)
-		: scroll_delegate_(scroll_info_provider)
+	Scrollbar::Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate)
+		: m_scrollDelegate(scrollDelegate)
 	{
 	}
 
 	void Scrollbar::Init()
 	{
-		thumb_ = make_shared<Thumb>(
-			dynamic_pointer_cast<Scrollbar>(shared_from_this()));
-		this->AddChild(thumb_);
+		m_track = make_shared<Track>();
+		this->AddChild(m_track);
+
+		m_thumb = make_shared<Thumb>(
+			dynamic_pointer_cast<Scrollbar>(shared_from_this()),
+			m_track);
+		m_track->AddChild(m_thumb);
 	}
 
 	const shared_ptr<Scrollbar::Thumb>& Scrollbar::GetThumb() const
 	{
-		return thumb_;
+		return m_thumb;
 	}
 
-	void Scrollbar::SetThumb(const shared_ptr<Thumb>& thumb)
+	const shared_ptr<Scrollbar::Track>& Scrollbar::GetTrack() const
 	{
-		thumb_ = thumb;
+		return m_track;
 	}
 
 	const shared_ptr<ScrollDelegate>& Scrollbar::GetScrollDelegate() const
 	{
-		return scroll_delegate_;
+		return m_scrollDelegate;
 	}
 
-	void Scrollbar::SetScrollDelegate(const shared_ptr<ScrollDelegate>& scroll_delegate)
+	void Scrollbar::SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate)
 	{
-		scroll_delegate_ = scroll_delegate;
+		m_scrollDelegate = scrollDelegate;
 	}
 
-	Scrollbar::Thumb::Thumb(weak_ptr<Scrollbar> scrollbar)
-		: scrollbar_(scrollbar)
+	Scrollbar::Thumb::Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track)
+		: m_scrollbar(scrollbar),
+		m_track(track)
 	{
+	}
+
+	void Scrollbar::Thumb::Arrange()
+	{
+		if (auto sb = m_scrollbar.lock())
+		{
+			auto scrollDelegate = sb->GetScrollDelegate();
+
+			auto p = GetParent();
+			SetLeft(p->GetLeft()); SetRight(p->GetRight());
+			auto trackHeight = p->GetHeight();
+			auto height = scrollDelegate->GetThumbSizePercent() * trackHeight;
+			auto top = p->GetTop() + (scrollDelegate->GetCurrentOffsetPercent() * trackHeight);
+			SetTop(round(top)); SetBottom(round(top + height));
+		}
+	}
+
+	void Scrollbar::Thumb::NotifyEnter()
+	{
+		m_isOver = true;
+
+		if (IsCapturing())
+		{
+			m_isPressed = true;
+		}
+		else
+		{
+			m_isHot = true;
+		}
+	}
+
+	void Scrollbar::Thumb::NotifyLeave()
+	{
+		m_isOver = false;
+
+		if (IsCapturing())
+		{
+			m_isPressed = false;
+		}
+		else
+		{
+			m_isHot = false;
+		}
+	}
+
+	void Scrollbar::Thumb::NotifyDown(Location location)
+	{
+		m_isHot = true;
+		m_isPressed = true;
+
+		m_anchorOffset = location.y - GetTop();
+
+		GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
+	}
+
+	void Scrollbar::Thumb::NotifyUp(Location location)
+	{
+		m_isPressed = false;
+		if (IsCapturing())
+		{
+			if (!m_isOver)
+			{
+				m_isHot = false;
+			}
+
+			GetElementManager()->ReleaseCapture();
+		}
+	}
+
+	bool Scrollbar::Thumb::NotifyMove(Location location)
+	{
+		if (IsCapturing())
+		{
+			auto sb = m_scrollbar.lock();
+			auto track = m_track.lock();
+			if (sb && track)
+			{
+				auto scrollDelegate = sb->GetScrollDelegate();
+				auto offsetPercent = ((location.y - m_anchorOffset) - track->GetTop()) / track->GetHeight();
+				offsetPercent = max(0.0, offsetPercent);
+				offsetPercent = min(1.0 - scrollDelegate->GetThumbSizePercent(), offsetPercent);
+				if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
+				{
+					scrollDelegate->MoveToOffsetPercent(offsetPercent);
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	const bool& Scrollbar::Thumb::GetIsPressed() const
+	{
+		return m_isPressed;
+	}
+
+	const bool& Scrollbar::Thumb::GetIsHot() const
+	{
+		return m_isHot;
 	}
 
 	const weak_ptr<Scrollbar>& Scrollbar::Thumb::GetScrollbar() const
 	{
-		return scrollbar_;
+		return m_scrollbar;
 	}
 }

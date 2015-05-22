@@ -190,14 +190,15 @@ namespace libgui_sample_windows2
 				render_target_->FillRectangle(rect, sr->LightGrayBrush);
 			});
 
-			auto thumb = grid_scroll->GetThumb();
-			thumb->SetArrangeCallback([=](shared_ptr<Element> e)
+			auto track = grid_scroll->GetTrack();
+			track->SetArrangeCallback([=](shared_ptr<Element> e)
 			{
-				e->SetLeft(grid_scroll->GetLeft() + 5); e->SetRight(grid_scroll->GetRight() - 5);
-				auto scroll_height = grid_scroll->GetHeight() - 10;
-				e->SetHeight(grid->GetThumbSizePercent() * scroll_height);
-				e->SetTop(grid_scroll->GetTop() + 5 + (grid->GetCurrentOffsetPercent() * scroll_height));
+				auto p = e->GetParent();
+				e->SetLeft(p->GetLeft() + 5); e->SetRight(p->GetRight() - 5);
+				e->SetTop(p->GetTop() + 5); e->SetBottom(p->GetBottom() - 5);
 			});
+
+			auto thumb = grid_scroll->GetThumb();
 			thumb->SetDrawCallback([&](shared_ptr<Element> e)
 			{
 				auto sr = SharedResources::Get();

@@ -70,6 +70,21 @@ namespace libgui
 			needsUpdate = true;
 		}
 
+		if (ac)
+		{
+			if (ac->NotifyMove(point))
+			{
+				needsUpdate = true;
+			}
+		}
+		else if (cc)
+		{
+			if (cc->NotifyMove(point))
+			{
+				needsUpdate = true;
+			}
+		}
+
 		return needsUpdate;
 	}
 
@@ -85,7 +100,8 @@ namespace libgui
 
 		if (ac)
 		{
-			ac->NotifyDown();
+			Location point{ x, y };
+			ac->NotifyDown(point);
 			needsUpdate = true;
 		}
 
@@ -104,7 +120,8 @@ namespace libgui
 
 		if (ac)
 		{
-			ac->NotifyUp();
+			Location point{ x, y };
+			ac->NotifyUp(point);
 			needsUpdate = true;
 		}
 

@@ -34,7 +34,7 @@ namespace libguitest
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
-			btn->NotifyDown();
+			btn->NotifyDown(Location());
 			Assert::AreEqual(true, btn->IsHot());
 			Assert::AreEqual(true, btn->IsPressed());
 		}
@@ -42,7 +42,7 @@ namespace libguitest
 		TEST_METHOD(WhenUpping_StateIsNotPressed)
 		{
 			auto btn = make_shared<Button>();
-			btn->NotifyUp();
+			btn->NotifyUp(Location());
 			Assert::AreEqual(false, btn->IsPressed());
 		}
 
@@ -51,7 +51,7 @@ namespace libguitest
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
-			btn->NotifyDown();
+			btn->NotifyDown(Location());
 			btn->NotifyLeave();
 			Assert::AreEqual(true, btn->IsHot());
 			Assert::AreEqual(false, btn->IsPressed());
@@ -62,7 +62,7 @@ namespace libguitest
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
-			btn->NotifyDown();
+			btn->NotifyDown(Location());
 			btn->NotifyLeave();
 			btn->NotifyEnter();
 			Assert::AreEqual(true, btn->IsHot());
@@ -75,9 +75,9 @@ namespace libguitest
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
 			btn->NotifyEnter();
-			btn->NotifyDown();
+			btn->NotifyDown(Location());
 			btn->NotifyLeave();
-			btn->NotifyUp();
+			btn->NotifyUp(Location());
 			Assert::AreEqual(false, btn->IsHot());
 			Assert::AreEqual(false, btn->IsPressed());
 		}
@@ -94,9 +94,9 @@ namespace libguitest
 
 			em->SetRoot(btn);
 			btn->NotifyEnter();
-			btn->NotifyDown();
+			btn->NotifyDown(Location());
 			btn->NotifyLeave();
-			btn->NotifyUp();
+			btn->NotifyUp(Location());
 			Assert::AreEqual(false, is_clicked);
 		}
 
@@ -106,8 +106,8 @@ namespace libguitest
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
 			btn->NotifyEnter();
-			btn->NotifyDown();
-			btn->NotifyUp();
+			btn->NotifyDown(Location());
+			btn->NotifyUp(Location());
 			Assert::AreEqual(true, btn->IsHot());
 			Assert::AreEqual(false, btn->IsPressed());
 		}

@@ -9,8 +9,9 @@ namespace libgui
 		// Input events
 		virtual void NotifyEnter() {};
 		virtual void NotifyLeave() {};
-		virtual void NotifyDown() {};
-		virtual void NotifyUp() {};
+		virtual void NotifyDown(Location location) {};
+		virtual void NotifyUp(Location location) {};
+		virtual bool NotifyMove(Location location) { return false; };
 
 		void NotifyCapturing();
 		void NotifyReleasingCapture();

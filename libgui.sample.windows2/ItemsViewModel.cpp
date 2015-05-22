@@ -70,6 +70,10 @@ namespace libgui_sample_windows2
 
 	shared_ptr<ItemViewModel> ItemsViewModel::GetItem(int index)
 	{
+		if (index >= m_items.size())
+		{
+			return nullptr;
+		}
 		return m_items[index];
 	}
 }

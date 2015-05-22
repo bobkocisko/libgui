@@ -33,12 +33,12 @@ namespace libguitest
 		class StubControl: public Control
 		{
 		public:
-			void NotifyDown() override
+			void NotifyDown(Location location) override
 			{
 				GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
 			}
 
-			void NotifyUp() override
+			void NotifyUp(Location location) override
 			{
 				notify_up_called_ = true;
 			}
