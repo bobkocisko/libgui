@@ -97,7 +97,7 @@ namespace libgui_sample_windows2
 			grid->SetArrangeCallback([=](shared_ptr<Element> e)
 			{
 				auto p = e->GetParent();
-				e->SetTop(header->GetBottom()); e->SetBottom(footer->GetTop() - 10);
+				e->SetTop(header->GetBottom()); e->SetBottom(footer->GetTop());
 
 				// CanScroll method depends on the height to be specified first
 				auto can_scroll = dynamic_pointer_cast<Grid>(e)->CanScroll();
@@ -111,6 +111,9 @@ namespace libgui_sample_windows2
 				}
 				e->SetLeft(p->GetLeft()); 
 			});
+
+			grid->SetTopPadding(5);
+			grid->SetBottomPadding(5);
 
 			grid->SetCellHeight(100);
 			grid->SetTotalCountCallback([](shared_ptr<Element> e)
@@ -130,7 +133,7 @@ namespace libgui_sample_windows2
 				{
 					auto p = e->GetParent();
 					e->SetLeft(p->GetLeft() + 10); e->SetRight(p->GetRight());
-					e->SetTop(p->GetTop() + 10); e->SetBottom(p->GetBottom());
+					e->SetTop(p->GetTop() + 5); e->SetBottom(p->GetBottom() - 5);
 				});
 
 				cell_background->SetDrawCallback([&](shared_ptr<Element> e)

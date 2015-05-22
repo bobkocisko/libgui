@@ -24,6 +24,11 @@ namespace libgui
 		void SetCellHeight(double);
 		double GetCellHeight();
 
+		const double& GetTopPadding() const;
+		const double& GetBottomPadding() const;
+		void SetTopPadding(double topPadding);
+		void SetBottomPadding(double bottomPadding);
+
 		const function<shared_ptr<Element>()>& GetCellCreateCallback() const;
 		void SetCellCreateCallback(const function<shared_ptr<Element>()>& cellCreateCallback);
 
@@ -37,9 +42,13 @@ namespace libgui
 		int m_columns = 3;
 		double m_cellHeight;
 		double m_cellWidth;
-		double m_offsetPercent = 0.25;
+		double m_offsetPercent = 0.0;
 		int m_baseItemIndex;
-		double m_contentsOffset;
+		double m_rowOffset;
+
+		double m_topPadding = 0.0;
+		double m_bottomPadding = 0.0;
+
 		function<shared_ptr<Element>()> m_cellCreateCallback;
 		function<int(shared_ptr<Element>)> m_totalCountCallback;
 		function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)> m_cellViewModelCallback;
@@ -50,7 +59,7 @@ namespace libgui
 			Cell(const shared_ptr<Grid>& parent, int index);
 
 			void PrepareViewModel() override;
-			void Arrange();
+			void Arrange() override;
 		private:
 			shared_ptr<Grid> m_grid;
 			int m_index;

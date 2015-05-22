@@ -40,12 +40,14 @@ namespace libgui
 		m_cellWidth = GetWidth() / m_columns;
 
 		auto totalRows = ceil(totalCount / m_columns);
-		auto currentRow = floor(totalRows * m_offsetPercent);
-		m_baseItemIndex = currentRow * m_columns;
-
-		auto totalContentHeight = (totalRows * m_cellHeight);
+		auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
 		auto totalHeightOffset = totalContentHeight * m_offsetPercent;
-		m_contentsOffset = fmod(totalHeightOffset, m_cellHeight);
+
+		int currentRow = floor((totalHeightOffset - m_topPadding) / m_cellHeight);
+		m_rowOffset = fmod(totalHeightOffset - m_topPadding, m_cellHeight);
+
+		currentRow = max(0, currentRow);
+		m_baseItemIndex = currentRow * m_columns;
 	}
 
 	double Grid::GetCurrentOffsetPercent()
@@ -56,7 +58,8 @@ namespace libgui
 	double Grid::GetThumbSizePercent()
 	{
 		auto totalRows = ceil(m_totalCountCallback(shared_from_this()) / m_columns);
-		return min(1.0, GetHeight() / (totalRows * m_cellHeight));
+		auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
+		return min(1.0, GetHeight() / totalContentHeight);
 	}
 
 	void Grid::MoveToOffsetPercent(double offsetPercent)
@@ -67,7 +70,8 @@ namespace libgui
 	bool Grid::CanScroll()
 	{
 		auto totalRows = ceil(m_totalCountCallback(shared_from_this()) / m_columns);
-		return (totalRows * m_cellHeight) > GetHeight();
+		auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
+		return totalContentHeight > GetHeight();
 	}
 
 	Grid::Cell::Cell(const shared_ptr<Grid>& grid, int index) :
@@ -79,20 +83,34 @@ namespace libgui
 	{
 		if (m_grid->m_cellViewModelCallback)
 		{
-			SetViewModel(m_grid->m_cellViewModelCallback(m_grid->GetViewModel(), 
-				m_grid->m_baseItemIndex + m_index));
+			auto index = m_grid->m_baseItemIndex + m_index;
+			if (index < m_grid->m_totalCountCallback(m_grid))
+			{
+				SetViewModel(m_grid->m_cellViewModelCallback(m_grid->GetViewModel(),
+					index));
+			}
+			else
+			{
+				SetViewModel(nullptr);
+			}
 		}
 	}
 
 	void Grid::Cell::Arrange()
 	{
+		if (GetViewModel() == nullptr)
+		{
+			SetIsVisible(false);
+			return;
+		}
+
 		auto row = m_index / m_grid->m_columns;
 		auto col = m_index % m_grid->m_columns;
 
 		auto left = (m_grid->GetLeft() + col * m_grid->m_cellWidth); 
 		auto right = left + m_grid->m_cellWidth;
 		auto top = 
-			m_grid->GetTop() - m_grid->m_contentsOffset 
+			m_grid->GetTop() - m_grid->m_rowOffset 
 			+ row * m_grid->m_cellHeight; 
 		auto bottom = top + m_grid->m_cellHeight;
 
@@ -120,6 +138,26 @@ namespace libgui
 	double Grid::GetCellHeight()
 	{
 		return m_cellHeight;
+	}
+
+	const double& Grid::GetTopPadding() const
+	{
+		return m_topPadding;
+	}
+
+	void Grid::SetTopPadding(double topPadding)
+	{
+		m_topPadding = topPadding;
+	}
+
+	const double& Grid::GetBottomPadding() const
+	{
+		return m_bottomPadding;
+	}
+
+	void Grid::SetBottomPadding(double bottomPadding)
+	{
+		m_bottomPadding = bottomPadding;
 	}
 
 	const function<shared_ptr<Element>()>& Grid::GetCellCreateCallback() const
