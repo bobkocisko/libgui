@@ -45,6 +45,7 @@ namespace libgui
 		double m_offsetPercent = 0.0;
 		int m_baseItemIndex;
 		double m_rowOffset;
+		double m_lastHeightUsedForScrollCheck = 0.0;
 
 		double m_topPadding = 0.0;
 		double m_bottomPadding = 0.0;

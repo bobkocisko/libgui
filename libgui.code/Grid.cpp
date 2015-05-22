@@ -48,6 +48,13 @@ namespace libgui
 
 		currentRow = max(0, currentRow);
 		m_baseItemIndex = currentRow * m_columns;
+
+		if (m_lastHeightUsedForScrollCheck != GetHeight())
+		{
+			// Do another scroll height check since the height of the element has changed
+			LimitToBounds(m_offsetPercent);
+			m_lastHeightUsedForScrollCheck = GetHeight();
+		}
 	}
 
 	double Grid::GetCurrentOffsetPercent()

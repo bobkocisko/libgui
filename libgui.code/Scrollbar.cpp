@@ -123,8 +123,7 @@ namespace libgui
 			{
 				auto scrollDelegate = sb->GetScrollDelegate();
 				auto offsetPercent = ((location.y - m_anchorOffset) - track->GetTop()) / track->GetHeight();
-				offsetPercent = max(0.0, offsetPercent);
-				offsetPercent = min(1.0 - scrollDelegate->GetThumbSizePercent(), offsetPercent);
+				scrollDelegate->LimitToBounds(offsetPercent);
 				if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
 				{
 					scrollDelegate->MoveToOffsetPercent(offsetPercent);
