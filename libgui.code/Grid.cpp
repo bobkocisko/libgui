@@ -42,14 +42,19 @@ namespace libgui
 
 	double Grid::GetThumbSizePercent()
 	{
-		auto from_this = dynamic_pointer_cast<Grid>(shared_from_this());
-		auto total_rows = ceil(total_count_callback_(from_this) / columns_);
-		return min(1.0, (total_rows * cell_height_) / GetHeight());
+		auto total_rows = ceil(total_count_callback_(shared_from_this()) / columns_);
+		return min(1.0, GetHeight() / (total_rows * cell_height_));
 	}
 
 	void Grid::MoveToOffsetPercent(double offset_percent)
 	{
 		offset_percent_ = offset_percent;
+	}
+
+	bool Grid::CanScroll()
+	{
+		auto total_rows = ceil(total_count_callback_(shared_from_this()) / columns_);
+		return (total_rows * cell_height_) > GetHeight();
 	}
 
 	Grid::Cell::Cell(const shared_ptr<Grid>& grid, int index) :
@@ -143,13 +148,4 @@ namespace libgui
 		scrollbar_ = scrollbar;
 	}
 
-	const double& Grid::GetScrollbarWidth() const
-	{
-		return scrollbar_width_;
-	}
-
-	void Grid::SetScrollbarWidth(double scrollbar_width)
-	{
-		scrollbar_width_ = scrollbar_width;
-	}
 }

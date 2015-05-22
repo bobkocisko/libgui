@@ -49,15 +49,42 @@ namespace libgui_sample_windows2
 			});
 		}
 
+		auto footer = make_shared<Element>();
+		{
+			root->AddChild(footer);
+			footer->SetArrangeCallback([&](shared_ptr<Element> e)
+			{
+				auto p = e->GetParent();
+				e->SetLeft(p->GetLeft()); e->SetRight(p->GetRight());
+				e->SetBottom(p->GetBottom()); e->SetHeight(41.0);
+			});
+			footer->SetDrawCallback([&](shared_ptr<Element> e)
+			{
+				DrawBorder(1.0, SharedResources::Get()->GrayBrush, e);
+			});
+		}
+
+		auto grid_scroll_width = 32;
+
 		auto grid = make_shared<Grid>();
 		{
 			root->AddChild(grid);
-			grid->SetArrangeCallback([](shared_ptr<Element> e)
+			grid->SetArrangeCallback([=](shared_ptr<Element> e)
 			{
 				auto p = e->GetParent();
-				auto s = e->GetPrevSibling();
-				e->SetLeft(p->GetLeft()); e->SetRight(p->GetRight() - 10);
-				e->SetTop(s->GetBottom()); e->SetBottom(p->GetBottom() - 10);
+				e->SetTop(header->GetBottom()); e->SetBottom(footer->GetTop() - 10);
+
+				// CanScroll method depends on the height to be specified first
+				auto can_scroll = dynamic_pointer_cast<Grid>(e)->CanScroll();
+				if (can_scroll)
+				{
+					e->SetRight(p->GetRight() - grid_scroll_width - 10);
+				}
+				else
+				{
+					e->SetRight(p->GetRight() - 10);
+				}
+				e->SetLeft(p->GetLeft()); 
 			});
 
 			grid->SetCellHeight(100);
@@ -118,6 +145,56 @@ namespace libgui_sample_windows2
 				}
 				return cell_background;
 			});
+		}
+
+		auto grid_scroll = make_shared<Scrollbar>(grid);
+		{
+			root->AddChild(grid_scroll);
+			grid_scroll->Init();
+			grid_scroll->SetArrangeCallback([=](shared_ptr<Element> e)
+			{
+				auto p = e->GetParent();
+				auto can_scroll = dynamic_pointer_cast<Grid>(grid)->CanScroll();
+
+				if (can_scroll)
+				{
+					e->SetWidth(grid_scroll_width); e->SetRight(p->GetRight());
+					e->SetTop(header->GetBottom()); e->SetBottom(footer->GetTop());
+				}
+				else
+				{
+					e->SetIsVisible(false);
+				}
+			});
+
+			grid_scroll->SetDrawCallback([&](shared_ptr<Element> e)
+			{
+				// Draw the scrollbar background
+				auto sr = SharedResources::Get();
+				D2D1_RECT_F rect;
+				rect.left = e->GetLeft(); rect.right = e->GetRight();
+				rect.top = e->GetTop(); rect.bottom = e->GetBottom();
+				render_target_->FillRectangle(rect, sr->LightGrayBrush);
+			});
+
+			auto thumb = grid_scroll->GetThumb();
+			thumb->SetArrangeCallback([=](shared_ptr<Element> e)
+			{
+				e->SetLeft(grid_scroll->GetLeft() + 5); e->SetRight(grid_scroll->GetRight() - 5);
+				auto scroll_height = grid_scroll->GetHeight() - 10;
+				e->SetHeight(grid->GetThumbSizePercent() * scroll_height);
+				e->SetTop(grid_scroll->GetTop() + 5 + (grid->GetCurrentOffsetPercent() * scroll_height));
+			});
+			thumb->SetDrawCallback([&](shared_ptr<Element> e)
+			{
+				auto sr = SharedResources::Get();
+				D2D1_RECT_F rect;
+				rect.left = e->GetLeft(); rect.right = e->GetRight();
+				rect.top = e->GetTop(); rect.bottom = e->GetBottom();
+				render_target_->FillRectangle(rect, sr->MediumGrayBrush);
+			});
+
+
 		}
 	}
 

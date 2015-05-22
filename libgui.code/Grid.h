@@ -14,6 +14,8 @@ namespace libgui
 		double GetThumbSizePercent() override;
 		void MoveToOffsetPercent(double offset_percent) override;
 
+		bool CanScroll();
+
 		const int& GetColumns() const;
 		void SetColumns(int columns);
 
@@ -32,14 +34,10 @@ namespace libgui
 		const shared_ptr<Scrollbar>& GetScrollbar() const;
 		void SetScrollbar(const shared_ptr<Scrollbar>& scrollbar);
 
-		const double& GetScrollbarWidth() const;
-		void SetScrollbarWidth(double scrollbar_width);
-
 	private:
 		int columns_ = 3;
 		double cell_height_;
 		double cell_width_;
-		double scrollbar_width_;
 		double offset_percent_ = 0;
 		function<shared_ptr<Element>()> cell_create_callback_;
 		function<int(shared_ptr<Element>)> total_count_callback_;

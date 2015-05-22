@@ -25,11 +25,6 @@ namespace libgui
 		public:
 			explicit Thumb(weak_ptr<Scrollbar> scrollbar);
 
-			void NotifyEnter() override;
-			void NotifyLeave() override;
-			void NotifyDown() override;
-			void NotifyUp() override;
-
 			const weak_ptr<Scrollbar>& GetScrollbar() const;
 
 		private:
