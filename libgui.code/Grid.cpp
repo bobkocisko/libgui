@@ -31,13 +31,21 @@ namespace libgui
 
 		for (int i = 0; i < missingChildren; i++)
 		{
-			auto cell_container = make_shared<Cell>(fromThis, childrenCount + i);
-			AddChild(cell_container);
-			cell_container->AddChild(m_cellCreateCallback());
+			auto cellContainer = make_shared<Cell>(fromThis, childrenCount + i);
+			AddChild(cellContainer);
+			cellContainer->AddChild(m_cellCreateCallback());
 		}
 
-		// Now determine the cell width based on the current parameters
+		// Now do some calculations based on the current parameters
 		m_cellWidth = GetWidth() / m_columns;
+
+		auto totalRows = ceil(totalCount / m_columns);
+		auto currentRow = floor(totalRows * m_offsetPercent);
+		m_baseItemIndex = currentRow * m_columns;
+
+		auto totalContentHeight = (totalRows * m_cellHeight);
+		auto totalHeightOffset = totalContentHeight * m_offsetPercent;
+		m_contentsOffset = remainder(totalHeightOffset, m_cellHeight);
 	}
 
 	double Grid::GetCurrentOffsetPercent()
@@ -71,7 +79,8 @@ namespace libgui
 	{
 		if (m_grid->m_cellViewModelCallback)
 		{
-			SetViewModel(m_grid->m_cellViewModelCallback(m_grid->GetViewModel(), m_index));
+			SetViewModel(m_grid->m_cellViewModelCallback(m_grid->GetViewModel(), 
+				m_grid->m_baseItemIndex + m_index));
 		}
 	}
 
@@ -82,7 +91,9 @@ namespace libgui
 
 		auto left = (m_grid->GetLeft() + col * m_grid->m_cellWidth); 
 		auto right = left + m_grid->m_cellWidth;
-		auto top = (m_grid->GetTop() + row * m_grid->m_cellHeight); 
+		auto top = 
+			m_grid->GetTop() - m_grid->m_contentsOffset 
+			+ row * m_grid->m_cellHeight; 
 		auto bottom = top + m_grid->m_cellHeight;
 
 		// Snap to pixel boundaries
@@ -139,16 +150,6 @@ namespace libgui
 	void Grid::SetCellViewModelCallback(const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& cellViewModelCallback)
 	{
 		m_cellViewModelCallback = cellViewModelCallback;
-	}
-
-	const shared_ptr<Scrollbar>& Grid::GetScrollbar() const
-	{
-		return m_scrollbar;
-	}
-
-	void Grid::SetScrollbar(const shared_ptr<Scrollbar>& scrollbar)
-	{
-		m_scrollbar = scrollbar;
 	}
 
 }

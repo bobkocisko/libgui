@@ -5,7 +5,7 @@ namespace libgui_sample_windows2
 {
 	ItemsViewModel::ItemsViewModel()
 	{
-		items_ = {
+		m_items = {
 			make_shared<ItemViewModel>(L"abc", L"type a", L"123"),
 			make_shared<ItemViewModel>(L"abc2", L"type a", L"456"),
 			make_shared<ItemViewModel>(L"abc3", L"type a", L"789"),
@@ -65,12 +65,12 @@ namespace libgui_sample_windows2
 
 	int ItemsViewModel::GetTotalItems()
 	{
-		return 15;
+		return m_items.size();
 	}
 
 	shared_ptr<ItemViewModel> ItemsViewModel::GetItem(int index)
 	{
-		return items_[index];
+		return m_items[index];
 	}
 }
 

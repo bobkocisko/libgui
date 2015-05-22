@@ -15,7 +15,7 @@ namespace libgui_sample_windows2
 		shared_ptr<ItemViewModel> GetItem(int index);
 
 	private:
-		vector<shared_ptr<ItemViewModel>> items_;
+		vector<shared_ptr<ItemViewModel>> m_items;
 	};
 }
 

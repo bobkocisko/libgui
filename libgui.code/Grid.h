@@ -33,18 +33,16 @@ namespace libgui
 		const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& GetCellViewModelCallback() const;
 		void SetCellViewModelCallback(const function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)>& cellViewModelCallback);
 
-		const shared_ptr<Scrollbar>& GetScrollbar() const;
-		void SetScrollbar(const shared_ptr<Scrollbar>& scrollbar);
-
 	private:
 		int m_columns = 3;
 		double m_cellHeight;
 		double m_cellWidth;
-		double m_offsetPercent = 0;
+		double m_offsetPercent = 0.25;
+		int m_baseItemIndex;
+		double m_contentsOffset;
 		function<shared_ptr<Element>()> m_cellCreateCallback;
 		function<int(shared_ptr<Element>)> m_totalCountCallback;
 		function<shared_ptr<ViewModelBase>(shared_ptr<ViewModelBase>, int)> m_cellViewModelCallback;
-		shared_ptr<Scrollbar> m_scrollbar;
 
 		class Cell : public Element
 		{
