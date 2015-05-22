@@ -45,7 +45,7 @@ namespace libgui
 		// Now do some calculations based on the current parameters
 		m_cellWidth = GetWidth() / m_columns;
 
-		auto totalRows = ceil(totalCount / m_columns);
+		auto totalRows = ceil(double(totalCount) / m_columns);
 		auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
 		auto totalHeightOffset = totalContentHeight * m_offsetPercent;
 
@@ -64,7 +64,7 @@ namespace libgui
 
 	double Grid::GetThumbSizePercent()
 	{
-		auto totalRows = ceil(m_itemsProvider->GetTotalItems() / m_columns);
+		auto totalRows = ceil(double(m_itemsProvider->GetTotalItems()) / m_columns);
 		auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
 		return min(1.0, GetHeight() / totalContentHeight);
 	}
@@ -76,7 +76,7 @@ namespace libgui
 
 	bool Grid::CanScroll()
 	{
-		auto totalRows = ceil(m_itemsProvider->GetTotalItems() / m_columns);
+		auto totalRows = ceil(double(m_itemsProvider->GetTotalItems()) / m_columns);
 		auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
 		return totalContentHeight > GetHeight();
 	}
