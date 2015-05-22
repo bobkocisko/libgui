@@ -12,6 +12,7 @@
 #include <memory>
 #include <functional>
 #include <list>
+#include <string>
 
 #ifndef Assert
 #if defined( DEBUG ) || defined( _DEBUG )
