@@ -16,7 +16,7 @@ namespace libguitest
 		TEST_METHOD(WhenEntering_StateIsHot)
 		{
 			auto btn = make_shared<Button>();
-			btn->NotifyEnter();
+			btn->NotifyMouseEnter();
 
 			Assert::AreEqual(true, btn->IsHot());
 		}
@@ -24,8 +24,8 @@ namespace libguitest
 		TEST_METHOD(WhenLeaving_StateIsNotHot)
 		{
 			auto btn = make_shared<Button>();
-			btn->NotifyEnter();
-			btn->NotifyLeave();
+			btn->NotifyMouseEnter();
+			btn->NotifyMouseLeave();
 			Assert::AreEqual(false, btn->IsHot());
 		}
 
@@ -34,7 +34,7 @@ namespace libguitest
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
-			btn->NotifyDown(Location());
+			btn->NotifyMouseDown(Location());
 			Assert::AreEqual(true, btn->IsHot());
 			Assert::AreEqual(true, btn->IsPressed());
 		}
@@ -42,7 +42,7 @@ namespace libguitest
 		TEST_METHOD(WhenUpping_StateIsNotPressed)
 		{
 			auto btn = make_shared<Button>();
-			btn->NotifyUp(Location());
+			btn->NotifyMouseUp(Location());
 			Assert::AreEqual(false, btn->IsPressed());
 		}
 
@@ -51,8 +51,8 @@ namespace libguitest
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
-			btn->NotifyDown(Location());
-			btn->NotifyLeave();
+			btn->NotifyMouseDown(Location());
+			btn->NotifyMouseLeave();
 			Assert::AreEqual(true, btn->IsHot());
 			Assert::AreEqual(false, btn->IsPressed());
 		}
@@ -62,9 +62,9 @@ namespace libguitest
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
-			btn->NotifyDown(Location());
-			btn->NotifyLeave();
-			btn->NotifyEnter();
+			btn->NotifyMouseDown(Location());
+			btn->NotifyMouseLeave();
+			btn->NotifyMouseEnter();
 			Assert::AreEqual(true, btn->IsHot());
 			Assert::AreEqual(true, btn->IsPressed());
 		}
@@ -74,10 +74,10 @@ namespace libguitest
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
-			btn->NotifyEnter();
-			btn->NotifyDown(Location());
-			btn->NotifyLeave();
-			btn->NotifyUp(Location());
+			btn->NotifyMouseEnter();
+			btn->NotifyMouseDown(Location());
+			btn->NotifyMouseLeave();
+			btn->NotifyMouseUp(Location());
 			Assert::AreEqual(false, btn->IsHot());
 			Assert::AreEqual(false, btn->IsPressed());
 		}
@@ -93,10 +93,10 @@ namespace libguitest
 			});
 
 			em->SetRoot(btn);
-			btn->NotifyEnter();
-			btn->NotifyDown(Location());
-			btn->NotifyLeave();
-			btn->NotifyUp(Location());
+			btn->NotifyMouseEnter();
+			btn->NotifyMouseDown(Location());
+			btn->NotifyMouseLeave();
+			btn->NotifyMouseUp(Location());
 			Assert::AreEqual(false, is_clicked);
 		}
 
@@ -105,9 +105,9 @@ namespace libguitest
 			auto em = make_shared<ElementManager>();
 			auto btn = make_shared<Button>();
 			em->SetRoot(btn);
-			btn->NotifyEnter();
-			btn->NotifyDown(Location());
-			btn->NotifyUp(Location());
+			btn->NotifyMouseEnter();
+			btn->NotifyMouseDown(Location());
+			btn->NotifyMouseUp(Location());
 			Assert::AreEqual(true, btn->IsHot());
 			Assert::AreEqual(false, btn->IsPressed());
 		}

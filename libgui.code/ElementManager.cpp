@@ -51,7 +51,7 @@ namespace libgui
 
 	bool ElementManager::NotifyMouseMove(int x, int y)
 	{
-		bool needsUpdate = false;
+		bool needsUpdate = false, tempNeedsUpdate;
 
 		Location point{ x, y };
 
@@ -64,7 +64,7 @@ namespace libgui
 		{
 			if (elementAtPoint != ac)
 			{
-				ac->NotifyLeave();
+				ac->NotifyMouseLeave();
 				if (!cc)
 				{
 					m_activeControl.reset();
@@ -79,12 +79,12 @@ namespace libgui
 		{
 			if (ac)
 			{
-				ac->NotifyLeave();
+				ac->NotifyMouseLeave();
 			}
 
 			if (!cc || control == cc)
 			{
-				control->NotifyEnter();
+				control->NotifyMouseEnter();
 				m_activeControl = control;
 			}
 			needsUpdate = true;
@@ -92,14 +92,16 @@ namespace libgui
 
 		if (ac)
 		{
-			if (ac->NotifyMove(point))
+			ac->NotifyMouseMove(point, tempNeedsUpdate);
+			if (tempNeedsUpdate)
 			{
 				needsUpdate = true;
 			}
 		}
 		else if (cc)
 		{
-			if (cc->NotifyMove(point))
+			cc->NotifyMouseMove(point, tempNeedsUpdate);
+			if (tempNeedsUpdate)
 			{
 				needsUpdate = true;
 			}
@@ -110,7 +112,7 @@ namespace libgui
 
 	bool ElementManager::NotifyMouseDown(int x, int y)
 	{
-		bool needsUpdate;
+		bool needsUpdate = false;
 
 		// Just in case the mouse move event was never propagated
 		// for this x and y position
@@ -121,7 +123,7 @@ namespace libgui
 		if (ac)
 		{
 			Location point{ x, y };
-			ac->NotifyDown(point);
+			ac->NotifyMouseDown(point);
 			needsUpdate = true;
 		}
 
@@ -130,7 +132,7 @@ namespace libgui
 
 	bool ElementManager::NotifyMouseUp(int x, int y)
 	{
-		bool needsUpdate;
+		bool needsUpdate = false;
 
 		// Just in case the mouse move event was never propagated
 		// for this x and y position
@@ -141,11 +143,89 @@ namespace libgui
 		if (ac)
 		{
 			Location point{ x, y };
-			ac->NotifyUp(point);
+			ac->NotifyMouseUp(point);
 			needsUpdate = true;
 		}
 
 		return needsUpdate;
 	}
 
+	bool ElementManager::NotifyTouchMove(double touchX, double touchY)
+	{
+		bool needsUpdate = false, tempNeedsUpdate;
+
+		Location point{ touchX, touchY };
+
+		auto elementAtPoint = m_root->GetElementAtPoint(point);
+
+		auto cc = m_capturedControl.lock();
+
+		if (cc)
+		{
+			if (elementAtPoint != cc)
+			{
+				cc->NotifyTouchLeave();
+				needsUpdate = true;
+			}
+		}
+
+		auto control = dynamic_pointer_cast<Control> (elementAtPoint);
+		if (control && cc != control)
+		{
+			if (control == cc)
+			{
+				control->NotifyTouchEnter();
+				needsUpdate = true;
+			}
+		}
+
+		if (cc)
+		{
+			cc->NotifyMouseMove(point, tempNeedsUpdate);
+			if (tempNeedsUpdate)
+			{
+				needsUpdate = true;
+			}
+		}
+
+		return needsUpdate;
+	}
+
+	bool ElementManager::NotifyTouchDown(double touchX, double touchY)
+	{
+		bool needsUpdate = false;
+
+		Location point{ touchX, touchY };
+
+		auto elementAtPoint = m_root->GetElementAtPoint(point);
+
+		auto control = dynamic_pointer_cast<Control> (elementAtPoint);
+		if (control)
+		{
+			control->NotifyTouchDown(point);
+			needsUpdate = true;
+		}
+
+		return needsUpdate;
+	}
+
+	bool ElementManager::NotifyTouchUp(double touchX, double touchY)
+	{
+		bool needsUpdate = false;
+
+		// Just in case the touch move event was never propagated
+		// for this x and y position
+		needsUpdate = NotifyTouchMove(touchX, touchY);
+
+		auto ac = m_activeControl.lock();
+
+		if (ac)
+		{
+			Location point{ touchX, touchY };
+			ac->NotifyTouchUp(point);
+			needsUpdate = true;
+		}
+
+		return needsUpdate;
+	}
 }

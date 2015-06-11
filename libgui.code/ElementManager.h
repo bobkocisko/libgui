@@ -15,6 +15,10 @@ namespace libgui
 		bool NotifyMouseDown(int x, int y);
 		bool NotifyMouseUp(int x, int y);
 
+		bool NotifyTouchMove(double touchX, double touchY);
+		bool NotifyTouchDown(double touchX, double touchY);
+		bool NotifyTouchUp(double touchX, double touchY);
+
 		void RequestCapture(shared_ptr<Control>);
 		void ReleaseCapture();
 
@@ -25,7 +29,7 @@ namespace libgui
 		weak_ptr<Control> m_capturedControl;
 		
 		// The active control is the control that was most
-		// recently sent a NotifyEnter nofication.
+		// recently sent a NotifyMouseEnter nofication.
 		weak_ptr<Control> m_activeControl;
 
 		shared_ptr<Element> m_root = nullptr;

@@ -32,11 +32,11 @@ namespace libgui
 			explicit Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track);
 
 			// Input events
-			void NotifyEnter() override;
-			void NotifyLeave() override;
-			void NotifyDown(Location location) override;
-			void NotifyUp(Location location) override;
-			bool NotifyMove(Location location) override;
+			void NotifyMouseEnter() override;
+			void NotifyMouseLeave() override;
+			void NotifyMouseDown(Location location) override;
+			void NotifyMouseUp(Location location) override;
+			void NotifyMouseMove(Location location, bool& updateScreen) override;
 
 			// Output states
 			const bool& GetIsPressed() const;

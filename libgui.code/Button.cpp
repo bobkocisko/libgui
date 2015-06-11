@@ -4,21 +4,64 @@
 
 namespace libgui
 {
-	void Button::NotifyEnter()
+	void Button::NotifyMouseEnter()
 	{
-		_isOver = true;
+		NotifyEnter(true);
+	}
+
+	void Button::NotifyMouseLeave()
+	{
+		NotifyLeave(true);
+	}
+
+	void Button::NotifyMouseDown(Location location)
+	{
+		NotifyDown(true);
+	}
+
+	void Button::NotifyMouseUp(Location location)
+	{
+		NotifyUp(true);
+	}
+
+	void Button::NotifyTouchEnter()
+	{
+		NotifyEnter(false);
+	}
+
+	void Button::NotifyTouchLeave()
+	{
+		NotifyLeave(false);
+	}
+
+	void Button::NotifyTouchDown(Location location)
+	{
+		NotifyDown(false);
+	}
+
+	void Button::NotifyTouchUp(Location location)
+	{
+		NotifyUp(false);
+	}
+
+	void Button::NotifyEnter(bool isMouse)
+	{
+		if (isMouse || IsCapturing())
+		{
+			_isOver = true;
+		}
 
 		if (IsCapturing())
 		{
 			_isPressed = true;
 		}
-		else
+		else if (isMouse)
 		{
 			_isHot = true;
 		}
 	}
 
-	void Button::NotifyLeave()
+	void Button::NotifyLeave(bool isMouse)
 	{
 		_isOver = false;
 
@@ -26,21 +69,25 @@ namespace libgui
 		{
 			_isPressed = false;
 		}
-		else
+		else if (isMouse)
 		{
 			_isHot = false;
 		}
 	}
 
-	void Button::NotifyDown(Location location)
+	void Button::NotifyDown(bool isMouse)
 	{
-		_isHot = true;
+		if (isMouse)
+		{
+			_isHot = true;
+		}
+
 		_isPressed = true;
 
 		GetElementManager()->RequestCapture(dynamic_pointer_cast<Button>(shared_from_this()));
 	}
 
-	void Button::NotifyUp(Location location)
+	void Button::NotifyUp(bool isMouse)
 	{
 		_isPressed = false;
 		if (IsCapturing())
@@ -49,7 +96,7 @@ namespace libgui
 			{
 				OnClick();
 			}
-			else
+			else if (isMouse)
 			{
 				_isHot = false;
 			}

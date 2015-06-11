@@ -61,7 +61,7 @@ namespace libgui
 		}
 	}
 
-	void Scrollbar::Thumb::NotifyEnter()
+	void Scrollbar::Thumb::NotifyMouseEnter()
 	{
 		m_isOver = true;
 
@@ -75,7 +75,7 @@ namespace libgui
 		}
 	}
 
-	void Scrollbar::Thumb::NotifyLeave()
+	void Scrollbar::Thumb::NotifyMouseLeave()
 	{
 		m_isOver = false;
 
@@ -89,7 +89,7 @@ namespace libgui
 		}
 	}
 
-	void Scrollbar::Thumb::NotifyDown(Location location)
+	void Scrollbar::Thumb::NotifyMouseDown(Location location)
 	{
 		m_isHot = true;
 		m_isPressed = true;
@@ -99,7 +99,7 @@ namespace libgui
 		GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
 	}
 
-	void Scrollbar::Thumb::NotifyUp(Location location)
+	void Scrollbar::Thumb::NotifyMouseUp(Location location)
 	{
 		m_isPressed = false;
 		if (IsCapturing())
@@ -113,7 +113,7 @@ namespace libgui
 		}
 	}
 
-	bool Scrollbar::Thumb::NotifyMove(Location location)
+	void Scrollbar::Thumb::NotifyMouseMove(Location location, bool& updateScreen)
 	{
 		if (IsCapturing())
 		{
@@ -127,11 +127,13 @@ namespace libgui
 				if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
 				{
 					scrollDelegate->MoveToOffsetPercent(offsetPercent);
-					return true;
+					updateScreen = true;
+					return;
 				}
 			}
 		}
-		return false;
+		updateScreen = false;
+		return;
 	}
 
 	const bool& Scrollbar::Thumb::GetIsPressed() const

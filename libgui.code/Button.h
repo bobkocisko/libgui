@@ -6,11 +6,20 @@ namespace libgui
 	class Button : public Control
 	{
 	public:
+		void NotifyEnter(bool isMouse);
 		// Input events
-		void NotifyEnter();
-		void NotifyLeave();
-		void NotifyDown(Location location);
-		void NotifyUp(Location location);
+		void NotifyMouseEnter() override;
+		void NotifyLeave(bool isMouse);
+		void NotifyMouseLeave() override;
+		void NotifyDown(bool isMouse);
+		void NotifyUp(bool isMouse);
+		void NotifyMouseDown(Location location) override;
+		void NotifyMouseUp(Location location) override;
+
+		void NotifyTouchEnter() override;
+		void NotifyTouchLeave() override;
+		void NotifyTouchDown(Location location) override;
+		void NotifyTouchUp(Location location) override;
 
 		// Output states
 		bool IsHot();
