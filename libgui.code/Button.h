@@ -6,13 +6,9 @@ namespace libgui
 	class Button : public Control
 	{
 	public:
-		void NotifyEnter(bool isMouse);
 		// Input events
 		void NotifyMouseEnter() override;
-		void NotifyLeave(bool isMouse);
 		void NotifyMouseLeave() override;
-		void NotifyDown(bool isMouse);
-		void NotifyUp(bool isMouse);
 		void NotifyMouseDown(Location location) override;
 		void NotifyMouseUp(Location location) override;
 
@@ -35,6 +31,11 @@ namespace libgui
 		bool _isPressed = false;
 
 		function<void(shared_ptr<Button>)> m_clickCallback;
+
+		void NotifyEnter(bool isMouse);
+		void NotifyLeave(bool isMouse);
+		void NotifyDown(bool isMouse);
+		void NotifyUp(bool isMouse);
 	};
 
 }

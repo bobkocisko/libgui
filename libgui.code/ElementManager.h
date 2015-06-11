@@ -27,13 +27,14 @@ namespace libgui
 
 	private:
 		weak_ptr<Control> m_capturedControl;
-		
-		// The active control is the control that was most
-		// recently sent a NotifyMouseEnter nofication.
 		weak_ptr<Control> m_activeControl;
 
 		shared_ptr<Element> m_root = nullptr;
 
 		function<void(bool)> m_systemCaptureCallback;
+
+		bool NotifyMove(int x, int y, bool isMouse);
+		bool NotifyUp(int x, int y, bool isMouse);
+
 	};
 }

@@ -81,6 +81,10 @@ namespace libgui
 		{
 			_isHot = true;
 		}
+		else
+		{
+			_isOver = true;
+		}
 
 		_isPressed = true;
 
