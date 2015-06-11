@@ -88,6 +88,18 @@ namespace libgui
 	{
 		bool needsUpdate = false;
 
+		// Make sure that previous mouse activity is ignored when a touch down begins
+		if (auto ac = m_activeControl.lock())
+		{
+			ac->NotifyMouseLeave();
+			m_activeControl.reset();
+		}
+		if (auto cc = m_capturedControl.lock())
+		{
+			cc->NotifyMouseLeave();
+			ReleaseCapture();
+		}
+
 		Location point{ touchX, touchY };
 
 		auto elementAtPoint = m_root->GetElementAtPoint(point);
