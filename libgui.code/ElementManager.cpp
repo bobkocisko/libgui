@@ -105,7 +105,7 @@ namespace libgui
 		auto elementAtPoint = m_root->GetElementAtPoint(point);
 
 		auto control = dynamic_pointer_cast<Control> (elementAtPoint);
-		if (control)
+		if (control && control->GetIsEnabled() && control->GetIsVisible())
 		{
 			control->NotifyTouchDown(point);
 			m_activeControl = control;
@@ -148,14 +148,18 @@ namespace libgui
 			if (ac)
 			{
 				isMouse ? ac->NotifyMouseLeave() : ac->NotifyTouchLeave();
+				needsUpdate = true;
 			}
 
-			if (!cc || control == cc)
+			if (control->GetIsEnabled() && control->GetIsVisible())
 			{
-				isMouse ? control->NotifyMouseEnter() : control->NotifyTouchEnter();
-				m_activeControl = control;
+				if (!cc || control == cc)
+				{
+					isMouse ? control->NotifyMouseEnter() : control->NotifyTouchEnter();
+					m_activeControl = control;
+					needsUpdate = true;
+				}
 			}
-			needsUpdate = true;
 		}
 
 		if (ac)

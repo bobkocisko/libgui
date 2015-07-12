@@ -38,9 +38,18 @@ namespace libgui
 
 		void NotifyCapturing();
 		void NotifyReleasingCapture();
+
+		// State
+		const bool& GetIsEnabled() const;
+		void SetIsEnabled(bool isEnabled);
+
+		// Implementation
+		void ResetArrangement() override;
+
 	protected:
 		bool IsCapturing();
 	private:
-		bool _isCapturing = false;
+		bool m_isCapturing = false;
+		bool m_isEnabled = true;
 	};
 }
