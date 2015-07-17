@@ -13,7 +13,7 @@ namespace libgui
 	public:
 		explicit Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate);
 
-		void Init();
+		virtual void Init();
 
 		class Thumb;
 		class Track;
