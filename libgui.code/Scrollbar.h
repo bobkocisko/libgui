@@ -6,6 +6,10 @@ namespace libgui
 {
 	class Scrollbar : public libgui::Element
 	{
+	protected:
+		// Special constructor to allow derived classes that act as unattached scroll bars
+		Scrollbar();
+
 	public:
 		explicit Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate);
 
