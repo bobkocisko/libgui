@@ -22,6 +22,11 @@ namespace libgui
 
 	void Slider::SetValue(double value)
 	{
+		if (value != m_value)
+		{
+			OnValueChanged();
+		}
+
 		m_value = value;
 	}
 
