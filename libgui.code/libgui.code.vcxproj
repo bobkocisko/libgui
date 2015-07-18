@@ -33,6 +33,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Scrollbar.cpp" />
+    <ClCompile Include="Slider.cpp" />
     <ClCompile Include="VerticalRepeaterElement.cpp" />
     <ClCompile Include="Structs.cpp" />
     <ClCompile Include="ViewModelBase.cpp" />
@@ -48,6 +49,7 @@
     <ClInclude Include="Precompiled.h" />
     <ClInclude Include="Scrollbar.h" />
     <ClInclude Include="ScrollDelegate.h" />
+    <ClInclude Include="Slider.h" />
     <ClInclude Include="VerticalRepeaterElement.h" />
     <ClInclude Include="Structs.h" />
     <ClInclude Include="ViewModelBase.h" />

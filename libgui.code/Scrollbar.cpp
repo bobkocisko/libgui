@@ -4,10 +4,6 @@
 
 namespace libgui
 {
-	Scrollbar::Scrollbar()
-	{
-	}
-
 	Scrollbar::Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate)
 		: m_scrollDelegate(scrollDelegate)
 	{

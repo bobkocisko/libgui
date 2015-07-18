@@ -1,15 +1,18 @@
 ﻿#pragma once
 #include "Control.h"
-#include "ScrollDelegate.h"
 
 namespace libgui
 {
-	class Scrollbar : public libgui::Element
+	class Slider : public libgui::Element
 	{
 	public:
-		explicit Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate);
-
 		virtual void Init();
+
+		const double& GetValue() const;
+		void SetValue(double value);
+
+		const double& GetThumbHeight() const;
+		void SetThumbHeight(double thumbHeight);
 
 		class Thumb;
 		class Track;
@@ -18,18 +21,15 @@ namespace libgui
 
 		const shared_ptr<Track>& GetTrack() const;
 
-		const shared_ptr<ScrollDelegate>& GetScrollDelegate() const;
-		void SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate);
-
-		class Track: public Element
+		class Track : public Element
 		{
-			
+
 		};
 
 		class Thumb : public Control
 		{
 		public:
-			explicit Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track);
+			explicit Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track);
 
 			// Input events
 			void NotifyMouseEnter() override;
@@ -44,10 +44,10 @@ namespace libgui
 
 			void Arrange() override;
 
-			const weak_ptr<Scrollbar>& GetScrollbar() const;
+			const weak_ptr<Slider>& GetSlider() const;
 
 		private:
-			weak_ptr<Scrollbar> m_scrollbar;
+			weak_ptr<Slider> m_slider;
 			weak_ptr<Track> m_track;
 			bool m_isOver;
 			bool m_isPressed;
@@ -57,7 +57,9 @@ namespace libgui
 	private:
 		shared_ptr<Thumb> m_thumb;
 		shared_ptr<Track> m_track;
-		shared_ptr<ScrollDelegate> m_scrollDelegate;
+		double m_value = 0.0;
+
+		double m_thumbHeight = 10.0; // Some default so that it is visible
 	};
 }
 
