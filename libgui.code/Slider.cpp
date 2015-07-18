@@ -53,14 +53,14 @@ namespace libgui
 
 	void Slider::Thumb::Arrange()
 	{
-		if (auto sb = m_slider.lock())
+		if (auto slider = m_slider.lock())
 		{
 			auto p = GetParent();
 			SetLeft(p->GetLeft()); SetRight(p->GetRight());
-			auto thumbHeight = sb->GetThumbHeight();
+			auto thumbHeight = slider->GetThumbHeight();
 			auto boundsTop = p->GetTop();
 			auto boundsHeight = p->GetHeight() - thumbHeight;
-			auto top = boundsTop + (sb->GetValue() * boundsHeight);
+			auto top = boundsTop + (slider->GetRawFromValue() * boundsHeight);
 			SetTop(round(top)); SetBottom(round(top + thumbHeight));
 		}
 	}
@@ -121,17 +121,17 @@ namespace libgui
 	{
 		if (IsCapturing())
 		{
-			auto sb = m_slider.lock();
+			auto slider = m_slider.lock();
 			auto track = m_track.lock();
-			if (sb && track)
+			if (slider && track)
 			{
 				auto offsetPercent = ((location.y - m_anchorOffset) - track->GetTop()) / 
-					(track->GetHeight() - sb->GetThumbHeight());
+					(track->GetHeight() - slider->GetThumbHeight());
 				offsetPercent = max(0.0, offsetPercent);
 				offsetPercent = min(1.0, offsetPercent);
-				if (sb->GetValue() != offsetPercent)
+				if (slider->GetRawFromValue() != offsetPercent)
 				{
-					sb->SetValue(offsetPercent);
+					slider->SetValueFromRaw(offsetPercent);
 					updateScreen = true;
 					return;
 				}
@@ -154,5 +154,15 @@ namespace libgui
 	const weak_ptr<Slider>& Slider::Thumb::GetSlider() const
 	{
 		return m_slider;
+	}
+
+	double Slider::GetRawFromValue()
+	{
+		return 1.0 - GetValue();
+	}
+
+	void Slider::SetValueFromRaw(double raw)
+	{
+		SetValue(1.0 - raw);
 	}
 }

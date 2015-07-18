@@ -54,12 +54,24 @@ namespace libgui
 			bool m_isHot;
 			double m_anchorOffset;
 		};
+
+	protected:
+		// Support transformations of the value from the raw 0.0-1.0 scale meaning a 
+		// linear top to bottom value.  The default transformation that makes 0.0 values 
+		// be at the bottom.
+		virtual double GetRawFromValue();
+		// Support transformations of the value from the raw 0.0-1.0 scale meaning a 
+		// linear top to bottom value.  The default transformation that makes 0.0 values 
+		// be at the bottom.
+		virtual void SetValueFromRaw(double raw);
+
 	private:
 		shared_ptr<Thumb> m_thumb;
 		shared_ptr<Track> m_track;
 		double m_value = 0.0;
 
 		double m_thumbHeight = 10.0; // Some default so that it is visible
+
 	};
 }
 

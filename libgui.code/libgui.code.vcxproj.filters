@@ -64,7 +64,9 @@
     <ClInclude Include="ItemsProvider.h">
       <Filter>ViewModel</Filter>
     </ClInclude>
-    <ClInclude Include="Slider.h" />
+    <ClInclude Include="Slider.h">
+      <Filter>Controls</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Precompiled.cpp">
@@ -103,6 +105,8 @@
     <ClCompile Include="ItemsProvider.cpp">
       <Filter>ViewModel</Filter>
     </ClCompile>
-    <ClCompile Include="Slider.cpp" />
+    <ClCompile Include="Slider.cpp">
+      <Filter>Controls</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
