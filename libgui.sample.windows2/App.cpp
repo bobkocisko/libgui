@@ -9,6 +9,7 @@
 #include <libgui.code/Grid.h>
 #include <libgui.code/DrawingManager.h>
 #include <libgui.code/Slider.h>
+#include <string>
 
 namespace libgui_sample_windows2
 {
@@ -110,7 +111,7 @@ namespace libgui_sample_windows2
 				{
 					e->SetRight(p->GetRight() - 10);
 				}
-				e->SetLeft(p->GetLeft() + grid_scroll_width); 
+				e->SetLeft(p->GetLeft() + grid_scroll_width);
 			});
 
 			grid->SetTopPadding(5);
@@ -207,46 +208,63 @@ namespace libgui_sample_windows2
 				render_target_->FillRectangle(rect, sr->MediumGrayBrush);
 			});
 
-			auto slider = make_shared<Slider>();
+		}
+
+		auto slider = make_shared<Slider>();
+		{
+			root->AddChild(slider);
+			slider->Init();
+			slider->SetThumbHeight(50);
+			slider->SetArrangeCallback([=](shared_ptr<Element> e)
 			{
-				root->AddChild(slider);
-				slider->Init();
-				slider->SetThumbHeight(50);
-				slider->SetArrangeCallback([=](shared_ptr<Element> e)
-				{
-					auto p = e->GetParent();
-					e->SetWidth(grid_scroll_width); e->SetLeft(p->GetLeft());
-					e->SetTop(header->GetBottom()); e->SetBottom(footer->GetTop());
-				});
+				auto p = e->GetParent();
+				e->SetWidth(grid_scroll_width); e->SetLeft(p->GetLeft());
+				e->SetTop(header->GetBottom()); e->SetBottom(footer->GetTop());
+			});
 
-				slider->SetDrawCallback([&](shared_ptr<Element> e)
-				{
-					// Draw the scrollbar background
-					auto sr = SharedResources::Get();
-					D2D1_RECT_F rect;
-					rect.left = e->GetLeft(); rect.right = e->GetRight();
-					rect.top = e->GetTop(); rect.bottom = e->GetBottom();
-					render_target_->FillRectangle(rect, sr->LightGrayBrush);
-				});
+			slider->SetDrawCallback([&](shared_ptr<Element> e)
+			{
+				// Draw the scrollbar background
+				auto sr = SharedResources::Get();
+				D2D1_RECT_F rect;
+				rect.left = e->GetLeft(); rect.right = e->GetRight();
+				rect.top = e->GetTop(); rect.bottom = e->GetBottom();
+				render_target_->FillRectangle(rect, sr->LightGrayBrush);
+			});
 
-				auto slider_track = slider->GetTrack();
-				slider_track->SetArrangeCallback([=](shared_ptr<Element> e)
-				{
-					auto p = e->GetParent();
-					e->SetLeft(p->GetLeft() + 5); e->SetRight(p->GetRight() - 5);
-					e->SetTop(p->GetTop() + 5); e->SetBottom(p->GetBottom() - 5);
-				});
+			auto slider_track = slider->GetTrack();
+			slider_track->SetArrangeCallback([=](shared_ptr<Element> e)
+			{
+				auto p = e->GetParent();
+				e->SetLeft(p->GetLeft() + 5); e->SetRight(p->GetRight() - 5);
+				e->SetTop(p->GetTop() + 5); e->SetBottom(p->GetBottom() - 5);
+			});
 
-				auto slider_thumb = slider->GetThumb();
-				slider_thumb->SetDrawCallback([&](shared_ptr<Element> e)
-				{
-					auto sr = SharedResources::Get();
-					D2D1_RECT_F rect;
-					rect.left = e->GetLeft(); rect.right = e->GetRight();
-					rect.top = e->GetTop(); rect.bottom = e->GetBottom();
-					render_target_->FillRectangle(rect, sr->MediumGrayBrush);
-				});
-			}
+			auto slider_thumb = slider->GetThumb();
+			slider_thumb->SetDrawCallback([&](shared_ptr<Element> e)
+			{
+				auto sr = SharedResources::Get();
+				D2D1_RECT_F rect;
+				rect.left = e->GetLeft(); rect.right = e->GetRight();
+				rect.top = e->GetTop(); rect.bottom = e->GetBottom();
+				render_target_->FillRectangle(rect, sr->MediumGrayBrush);
+			});
+		}
+
+		auto sliderValueText = make_shared<Element>();
+		{
+			footer->AddChild(sliderValueText);
+			sliderValueText->SetDrawCallback([=](shared_ptr<Element> e)
+			{
+				wstring valueString = to_wstring(slider->GetValue());
+				D2D1_RECT_F rect;
+				rect.left = e->GetLeft(); rect.right = e->GetRight();
+				rect.top = e->GetTop(); rect.bottom = e->GetBottom();
+				render_target_->DrawTextW(
+					valueString.c_str(), valueString.length(),
+					m_pTextFormat, rect, SharedResources::Get()->DarkGrayBrush);
+
+			});
 		}
 	}
 

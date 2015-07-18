@@ -14,6 +14,9 @@ namespace libgui
 		const double& GetThumbHeight() const;
 		void SetThumbHeight(double thumbHeight);
 
+		const function<void(shared_ptr<Slider>)>& GetValueChangedCallback() const;
+		void SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback);
+
 		class Thumb;
 		class Track;
 
@@ -56,6 +59,8 @@ namespace libgui
 		};
 
 	protected:
+		virtual void OnValueChanged();
+
 		// Support transformations of the value from the raw 0.0-1.0 scale meaning a 
 		// linear top to bottom value.  The default transformation that makes 0.0 values 
 		// be at the bottom.
@@ -71,7 +76,7 @@ namespace libgui
 		double m_value = 0.0;
 
 		double m_thumbHeight = 10.0; // Some default so that it is visible
-
+		function<void(shared_ptr<Slider>)> m_valueChangedCallback;
 	};
 }
 

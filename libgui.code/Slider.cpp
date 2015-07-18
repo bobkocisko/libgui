@@ -35,6 +35,16 @@ namespace libgui
 		m_thumbHeight = thumbHeight;
 	}
 
+	const function<void(shared_ptr<Slider>)>& Slider::GetValueChangedCallback() const
+	{
+		return m_valueChangedCallback;
+	}
+
+	void Slider::SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback)
+	{
+		m_valueChangedCallback = valueChangedCallback;
+	}
+
 	const shared_ptr<Slider::Thumb>& Slider::GetThumb() const
 	{
 		return m_thumb;
@@ -154,6 +164,14 @@ namespace libgui
 	const weak_ptr<Slider>& Slider::Thumb::GetSlider() const
 	{
 		return m_slider;
+	}
+
+	void Slider::OnValueChanged()
+	{
+		if (m_valueChangedCallback)
+		{
+			m_valueChangedCallback(dynamic_pointer_cast<Slider>(shared_from_this()));
+		}
 	}
 
 	double Slider::GetRawFromValue()
