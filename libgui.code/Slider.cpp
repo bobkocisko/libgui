@@ -22,12 +22,14 @@ namespace libgui
 
 	void Slider::SetValue(double value)
 	{
-		if (value != m_value)
+		auto oldValue = m_value;
+
+		m_value = value;
+
+		if (value != oldValue)
 		{
 			OnValueChanged();
 		}
-
-		m_value = value;
 	}
 
 	const double& Slider::GetThumbHeight() const
