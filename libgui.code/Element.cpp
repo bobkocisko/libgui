@@ -1,7 +1,7 @@
-#include "Precompiled.h"
-#include "Element.h"
-#include "ElementManager.h"
-#include "DrawingManager.h"
+#include "include/Common.h"
+#include "include/Element.h"
+#include "include/ElementManager.h"
+#include "include/DrawingManager.h"
 
 namespace libgui
 {

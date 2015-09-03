@@ -1,6 +1,6 @@
-﻿#include "Precompiled.h"
-#include "Slider.h"
-#include "ElementManager.h"
+﻿#include "include/Common.h"
+#include "include/Slider.h"
+#include "include/ElementManager.h"
 
 namespace libgui
 {

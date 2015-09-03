@@ -1,6 +1,6 @@
-#include "Precompiled.h"
+#include "include/Common.h"
 
-#include "RowViewModel.h"
+#include "include/RowViewModel.h"
 
 namespace libgui_sample_windows
 {

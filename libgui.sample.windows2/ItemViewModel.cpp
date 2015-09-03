@@ -1,5 +1,5 @@
-﻿#include "Precompiled.h"
-#include "ItemViewModel.h"
+﻿#include "include/Common.h"
+#include "include/ItemViewModel.h"
 
 libgui_sample_windows2::ItemViewModel::ItemViewModel(const wstring& name, const wstring& type, const wstring& size) :
 name_(name), type_(type), size_(size)

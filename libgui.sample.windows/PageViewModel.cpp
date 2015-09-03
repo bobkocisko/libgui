@@ -1,6 +1,6 @@
-#include "Precompiled.h"
+#include "include/Common.h"
 
-#include "PageViewModel.h"
+#include "include/PageViewModel.h"
 
 namespace libgui_sample_windows
 {

@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include <libgui.code/ViewModelBase.h>
-#include <libgui.code/ItemsProvider.h>
+#include </libgui.code/include/ViewModelBase.h>
+#include </libgui.code/include/ItemsProvider.h>
 #include "ItemViewModel.h"
 
 using namespace std;

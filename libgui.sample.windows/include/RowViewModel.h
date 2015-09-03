@@ -1,6 +1,6 @@
 #pragma once
 
-#include "libgui.code\ViewModelBase.h"
+#include "/libgui.code/include/ViewModelBase.h"
 
 using namespace std;
 using namespace libgui;

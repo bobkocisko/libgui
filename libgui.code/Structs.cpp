@@ -1,5 +1,5 @@
-#include "Precompiled.h"
-#include "Structs.h"
+#include "include/Common.h"
+#include "include/Structs.h"
 
 namespace libgui
 {

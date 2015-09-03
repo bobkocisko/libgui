@@ -1,5 +1,5 @@
-#include "Precompiled.h"
-#include "VerticalRepeaterElement.h"
+#include "include/Common.h"
+#include "include/VerticalRepeaterElement.h"
 
 namespace libgui
 {

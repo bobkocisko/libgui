@@ -1,11 +1,11 @@
-#include "Precompiled.h"
-#include "App.h"
-#include "SharedResources.h"
-#include "libgui.code\Element.h"
-#include "libgui.code\VerticalRepeaterElement.h"
-#include "libgui.code\Button.h"
-#include "enums.h"
-#include "AppViewModel.h"
+#include "include/Common.h"
+#include "include/App.h"
+#include "include/SharedResources.h"
+#include "/libgui.code/include/Element.h"
+#include "/libgui.code/include/VerticalRepeaterElement.h"
+#include "/libgui.code/include/Button.h"
+#include "include/enums.h"
+#include "include/AppViewModel.h"
 
 namespace libgui_sample_windows
 {

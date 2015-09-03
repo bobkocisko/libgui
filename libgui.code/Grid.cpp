@@ -1,5 +1,5 @@
-﻿#include "Precompiled.h"
-#include "Grid.h"
+﻿#include "include/Common.h"
+#include "include/Grid.h"
 
 namespace libgui
 {

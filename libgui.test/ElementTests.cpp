@@ -1,66 +1,58 @@
-#include "Precompiled.h"
-#include "CppUnitTest.h"
+#include "include/Common.h"
 #include <Element.h>
 #include <ElementManager.h>
+#include <gtest/gtest.h>
 
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace std;
 using namespace libgui;
 
-namespace libguitest
+class TestElement: public Element
 {
-	TEST_CLASS(ElementTests)
-	{
-	public:
-		
-		TEST_METHOD(WhenRemovingChildren_AllReferencesAreCleaned)
-		{
-			auto root = make_shared<Element>();
-			auto em = make_shared<ElementManager>();
-			em->SetRoot(root);
+public:
+    ~TestElement()
+    {
+        if (destructor_callback_)
+        {
+            destructor_callback_();
+        }
+    }
 
-			auto child1 = make_shared<Element>();
-			root->AddChild(child1);
+    void SetDestructorCallback(const function<void()>& destructor_callback)
+    {
+        destructor_callback_ = destructor_callback;
+    }
 
-			auto child2 = make_shared<TestElement>();
-			root->AddChild(child2);
-			bool wasDestructed = false;
-			child2->SetDestructorCallback([&]() { wasDestructed = true; });
+private:
+    function<void()> destructor_callback_;
+};
 
-			auto grandchild1 = make_shared<Element>();
-			child2->AddChild(grandchild1);
-			auto grandchild2 = make_shared<Element>();
-			child2->AddChild(grandchild2);
-			auto grandchild3 = make_shared<Element>();
-			child2->AddChild(grandchild3);
+TEST(ElementTests, WhenRemovingChildren_AllReferencesAreCleaned)
+{
+    auto root = make_shared<Element>();
+    auto em = make_shared<ElementManager>();
+    em->SetRoot(root);
 
-			root->RemoveChildren();
+    auto child1 = make_shared<Element>();
+    root->AddChild(child1);
 
-			child2 = nullptr;
+    auto child2 = make_shared<TestElement>();
+    root->AddChild(child2);
+    bool wasDestructed = false;
+    child2->SetDestructorCallback([&]() { wasDestructed = true; });
 
-			Assert::AreEqual(true, wasDestructed);
-		}
+    auto grandchild1 = make_shared<Element>();
+    child2->AddChild(grandchild1);
+    auto grandchild2 = make_shared<Element>();
+    child2->AddChild(grandchild2);
+    auto grandchild3 = make_shared<Element>();
+    child2->AddChild(grandchild3);
 
-	private:
-		class TestElement: public Element
-		{
-		public:
-			~TestElement()
-			{
-				if (destructor_callback_)
-				{
-					destructor_callback_();
-				}
-			}
+    root->RemoveChildren();
 
-			void SetDestructorCallback(const function<void()>& destructor_callback)
-			{
-				destructor_callback_ = destructor_callback;
-			}
+    child2 = nullptr;
 
-		private:
-			function<void()> destructor_callback_;
-		};
-
-	};
+    ASSERT_EQ(true, wasDestructed);
 }
+
+
+

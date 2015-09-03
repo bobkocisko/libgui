@@ -1,5 +1,5 @@
-#include "Precompiled.h"
-#include "AppViewModel.h"
+#include "include/Common.h"
+#include "include/AppViewModel.h"
 
 namespace libgui_sample_windows
 {

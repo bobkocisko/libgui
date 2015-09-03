@@ -1,6 +1,6 @@
-#include "Precompiled.h"
+#include "include/Common.h"
 
-#include "ViewModelBase.h"
+#include "include/ViewModelBase.h"
 
 libgui::ViewModelBase::~ViewModelBase()
 { }

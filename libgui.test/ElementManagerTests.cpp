@@ -1,209 +1,200 @@
-#include "Precompiled.h"
-#include "CppUnitTest.h"
-#include <ElementManager.h>
+#include <gtest/gtest.h>
+#include "include/Common.h"
+#include "ElementManager.h"
 
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace std;
 using namespace libgui;
 
-namespace libguitest
+class StubControl : public Control
 {
-	TEST_CLASS(ElementManagerTests)
-	{
-	public:
-		
-		TEST_METHOD(WhenControlIsCaptured_ItReceivesNotifyUp)
-		{
-			auto em = make_shared<ElementManager>();
-			auto sc = make_shared<StubControl>();
-			em->SetRoot(sc);
-			sc->SetLeft(1); sc->SetRight(2);
-			sc->SetTop(1); sc->SetBottom(2);
+public:
+    void NotifyMouseDown(Location location) override
+    {
+        m_notifyMouseDownCalled = true;
+        GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
+    }
 
-			em->NotifyMouseMove(1, 1);
-			em->NotifyMouseDown(1, 1);
-			em->NotifyMouseMove(0, 0);
-			em->NotifyMouseUp(0, 0);
+    const bool& GetNotifyMouseDownCalled() const
+    {
+        return m_notifyMouseDownCalled;
+    }
 
-			Assert::AreEqual(true, sc->GetNotifyMouseUpCalled());
-		}
+    void NotifyMouseUp(Location location) override
+    {
+        m_notifyMouseUpCalled = true;
+    }
 
-		TEST_METHOD(WhenControlIsHidden_ItDoesNotReceiveNotifications)
-		{
-			auto em = make_shared<ElementManager>();
-			auto sc = make_shared<StubControl>();
-			sc->SetIsVisible(false);
+    const bool& GetNotifyMouseUpCalled() const
+    {
+        return m_notifyMouseUpCalled;
+    }
 
-			em->SetRoot(sc);
-			sc->SetLeft(1); sc->SetRight(2);
-			sc->SetTop(1); sc->SetBottom(2);
+    void NotifyMouseMove(Location location, bool& updateScreen) override
+    {
+        m_notifyMouseMoveCalled = true;
+        updateScreen = false;
+    }
 
-			em->NotifyMouseMove(1, 1);
-			em->NotifyMouseDown(1, 1);
-			em->NotifyMouseMove(1.5, 1.5);
-			em->NotifyMouseUp(1.5, 1.5);
+    const bool& GetNotifyMouseMoveCalled() const
+    {
+        return m_notifyMouseMoveCalled;
+    }
 
-			Assert::AreEqual(false, sc->GetNotifyMouseDownCalled());
-			Assert::AreEqual(false, sc->GetNotifyMouseUpCalled());
-			Assert::AreEqual(false, sc->GetNotifyMouseMoveCalled());
+    void NotifyTouchDown(Location location) override
+    {
+        m_notifyTouchDownCalled = true;
+        GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
+    }
 
-			em->NotifyTouchDown(1, 1);
-			em->NotifyTouchMove(1.5, 1.5);
-			em->NotifyTouchUp(1.5, 1.5);
+    void NotifyTouchEnter() override
+    {
+        m_notifyTouchEnterCalled = true;
+    }
 
-			Assert::AreEqual(false, sc->GetNotifyTouchDownCalled());
-			Assert::AreEqual(false, sc->GetNotifyTouchUpCalled());
-			Assert::AreEqual(false, sc->GetNotifyTouchMoveCalled());
-		}
+    const bool& GetNotifyTouchDownCalled() const
+    {
+        return m_notifyTouchDownCalled;
+    }
 
-		TEST_METHOD(WhenControlIsDisabled_ItDoesNotReceiveNotifications)
-		{
-			auto em = make_shared<ElementManager>();
-			auto sc = make_shared<StubControl>();
-			sc->SetIsEnabled(false);
+    void NotifyTouchUp(Location location) override
+    {
+        m_notifyTouchUpCalled = true;
+    }
 
-			em->SetRoot(sc);
-			sc->SetLeft(1); sc->SetRight(2);
-			sc->SetTop(1); sc->SetBottom(2);
-
-			em->NotifyMouseMove(1, 1);
-			em->NotifyMouseDown(1, 1);
-			em->NotifyMouseMove(1.5, 1.5);
-			em->NotifyMouseUp(1.5, 1.5);
-
-			Assert::AreEqual(false, sc->GetNotifyMouseDownCalled());
-			Assert::AreEqual(false, sc->GetNotifyMouseUpCalled());
-			Assert::AreEqual(false, sc->GetNotifyMouseMoveCalled());
-
-			em->NotifyTouchDown(1, 1);
-			em->NotifyTouchMove(1.5, 1.5);
-			em->NotifyTouchUp(1.5, 1.5);
-
-			Assert::AreEqual(false, sc->GetNotifyTouchDownCalled());
-			Assert::AreEqual(false, sc->GetNotifyTouchUpCalled());
-			Assert::AreEqual(false, sc->GetNotifyTouchMoveCalled());
-		}
-
-		TEST_METHOD(WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
-		{
-			auto em = make_shared<ElementManager>();
-			auto sc = make_shared<StubControl>();
-			em->SetRoot(sc);
-			sc->SetLeft(1); sc->SetRight(2);
-			sc->SetTop(1); sc->SetBottom(2);
-
-			em->NotifyTouchDown(1, 1);
-			em->NotifyTouchUp(1, 1);
-
-			Assert::AreEqual(true, sc->GetNotifyTouchDownCalled());
-			Assert::AreEqual(true, sc->GetNotifyTouchUpCalled());
-		}
-
-		TEST_METHOD(WhenControlIsTouchedDownLeavesAndReturns_ItReceivesNotifyEnter)
-		{
-			auto em = make_shared<ElementManager>();
-			auto sc = make_shared<StubControl>();
-			em->SetRoot(sc);
-			sc->SetLeft(1); sc->SetRight(2);
-			sc->SetTop(1); sc->SetBottom(2);
-
-			em->NotifyTouchDown(1, 1);
-			em->NotifyTouchMove(0, 0);
-			em->NotifyTouchMove(1, 1);
-
-			Assert::AreEqual(true, sc->GetNotifyTouchDownCalled());
-			Assert::AreEqual(true, sc->GetNotifyTouchEnterCalled());
-		}
+    const bool& GetNotifyTouchUpCalled() const
+    {
+        return m_notifyTouchUpCalled;
+    }
 
 
-	private:
-		class StubControl : public Control
-		{
-		public:
-			void NotifyMouseDown(Location location) override
-			{
-				m_notifyMouseDownCalled = true;
-				GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
-			}
+    void NotifyTouchMove(Location location, bool& updateScreen) override
+    {
+        m_notifyTouchMoveCalled = true;
+        updateScreen = false;
+    }
 
-			const bool& GetNotifyMouseDownCalled() const
-			{
-				return m_notifyMouseDownCalled;
-			}
+    const bool& GetNotifyTouchMoveCalled() const
+    {
+        return m_notifyTouchMoveCalled;
+    }
 
-			void NotifyMouseUp(Location location) override
-			{
-				m_notifyMouseUpCalled = true;
-			}
+    const bool& GetNotifyTouchEnterCalled() const
+    {
+        return m_notifyTouchEnterCalled;
+    }
 
-			const bool& GetNotifyMouseUpCalled() const
-			{
-				return m_notifyMouseUpCalled;
-			}
+private:
+    bool m_notifyMouseDownCalled = false;
+    bool m_notifyMouseMoveCalled = false;
+    bool m_notifyMouseUpCalled = false;
 
-			void NotifyMouseMove(Location location, bool& updateScreen) override
-			{
-				m_notifyMouseMoveCalled = true;
-				updateScreen = false;
-			}
+    bool m_notifyTouchDownCalled = false;
+    bool m_notifyTouchUpCalled = false;
+    bool m_notifyTouchMoveCalled = false;
+    bool m_notifyTouchEnterCalled = false;
+};
 
-			const bool& GetNotifyMouseMoveCalled() const
-			{
-				return m_notifyMouseMoveCalled;
-			}
+TEST(ElementManagerTests, WhenControlIsCaptured_ItReceivesNotifyUp)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+    em->SetRoot(sc);
+    sc->SetLeft(1); sc->SetRight(2);
+    sc->SetTop(1); sc->SetBottom(2);
 
-			void NotifyTouchDown(Location location) override
-			{
-				m_notifyTouchDownCalled = true;
-				GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
-			}
+    em->NotifyMouseMove(1, 1);
+    em->NotifyMouseDown(1, 1);
+    em->NotifyMouseMove(0, 0);
+    em->NotifyMouseUp(0, 0);
 
-			void NotifyTouchEnter() override
-			{
-				m_notifyTouchEnterCalled = true;
-			}
-
-			const bool& GetNotifyTouchDownCalled() const
-			{
-				return m_notifyTouchDownCalled;
-			}
-
-			void NotifyTouchUp(Location location) override
-			{
-				m_notifyTouchUpCalled = true;
-			}
-
-			const bool& GetNotifyTouchUpCalled() const
-			{
-				return m_notifyTouchUpCalled;
-			}
-
-
-			void NotifyTouchMove(Location location, bool& updateScreen) override
-			{
-				m_notifyTouchMoveCalled = true;
-				updateScreen = false;
-			}
-
-			const bool& GetNotifyTouchMoveCalled() const
-			{
-				return m_notifyTouchMoveCalled;
-			}
-
-			const bool& GetNotifyTouchEnterCalled() const
-			{
-				return m_notifyTouchEnterCalled;
-			}
-
-		private:
-			bool m_notifyMouseDownCalled = false;
-			bool m_notifyMouseMoveCalled = false;
-			bool m_notifyMouseUpCalled = false;
-
-			bool m_notifyTouchDownCalled = false;
-			bool m_notifyTouchUpCalled = false;
-			bool m_notifyTouchMoveCalled = false;
-			bool m_notifyTouchEnterCalled = false;
-		};
-	};
+    ASSERT_EQ(true, sc->GetNotifyMouseUpCalled());
 }
+
+TEST(ElementManagerTests, WhenControlIsHidden_ItDoesNotReceiveNotifications)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+    sc->SetIsVisible(false);
+
+    em->SetRoot(sc);
+    sc->SetLeft(1); sc->SetRight(2);
+    sc->SetTop(1); sc->SetBottom(2);
+
+    em->NotifyMouseMove(1, 1);
+    em->NotifyMouseDown(1, 1);
+    em->NotifyMouseMove(1.5, 1.5);
+    em->NotifyMouseUp(1.5, 1.5);
+
+    ASSERT_EQ(false, sc->GetNotifyMouseDownCalled());
+    ASSERT_EQ(false, sc->GetNotifyMouseUpCalled());
+    ASSERT_EQ(false, sc->GetNotifyMouseMoveCalled());
+
+    em->NotifyTouchDown(1, 1);
+    em->NotifyTouchMove(1.5, 1.5);
+    em->NotifyTouchUp(1.5, 1.5);
+
+    ASSERT_EQ(false, sc->GetNotifyTouchDownCalled());
+    ASSERT_EQ(false, sc->GetNotifyTouchUpCalled());
+    ASSERT_EQ(false, sc->GetNotifyTouchMoveCalled());
+}
+
+TEST(ElementManagerTests, WhenControlIsDisabled_ItDoesNotReceiveNotifications)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+    sc->SetIsEnabled(false);
+
+    em->SetRoot(sc);
+    sc->SetLeft(1); sc->SetRight(2);
+    sc->SetTop(1); sc->SetBottom(2);
+
+    em->NotifyMouseMove(1, 1);
+    em->NotifyMouseDown(1, 1);
+    em->NotifyMouseMove(1.5, 1.5);
+    em->NotifyMouseUp(1.5, 1.5);
+
+    ASSERT_EQ(false, sc->GetNotifyMouseDownCalled());
+    ASSERT_EQ(false, sc->GetNotifyMouseUpCalled());
+    ASSERT_EQ(false, sc->GetNotifyMouseMoveCalled());
+
+    em->NotifyTouchDown(1, 1);
+    em->NotifyTouchMove(1.5, 1.5);
+    em->NotifyTouchUp(1.5, 1.5);
+
+    ASSERT_EQ(false, sc->GetNotifyTouchDownCalled());
+    ASSERT_EQ(false, sc->GetNotifyTouchUpCalled());
+    ASSERT_EQ(false, sc->GetNotifyTouchMoveCalled());
+}
+
+TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+    em->SetRoot(sc);
+    sc->SetLeft(1); sc->SetRight(2);
+    sc->SetTop(1); sc->SetBottom(2);
+
+    em->NotifyTouchDown(1, 1);
+    em->NotifyTouchUp(1, 1);
+
+    ASSERT_EQ(true, sc->GetNotifyTouchDownCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchUpCalled());
+}
+
+TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesNotifyEnter)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+    em->SetRoot(sc);
+    sc->SetLeft(1); sc->SetRight(2);
+    sc->SetTop(1); sc->SetBottom(2);
+
+    em->NotifyTouchDown(1, 1);
+    em->NotifyTouchMove(0, 0);
+    em->NotifyTouchMove(1, 1);
+
+    ASSERT_EQ(true, sc->GetNotifyTouchDownCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchEnterCalled());
+}
+
+

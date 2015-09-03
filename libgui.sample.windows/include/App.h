@@ -1,11 +1,11 @@
 #pragma once
 #include "Resources.h"
-#include "libgui.code\ElementManager.h"
+#include "/libgui.code/include/ElementManager.h"
 #include "enums.h";
 
 using namespace libgui;
 
-namespace libgui_sample_windows2
+namespace libgui_sample_windows
 {
 	class App
 	{
@@ -51,7 +51,7 @@ namespace libgui_sample_windows2
 
 		HWND m_hwnd;
 		ID2D1Factory* m_pDirect2dFactory;
-		ID2D1HwndRenderTarget* render_target_;
+		ID2D1HwndRenderTarget* m_pRenderTarget;
 		IDWriteFactory * m_pDWriteFactory;
 		IDWriteTextFormat * m_pTextFormat;
 

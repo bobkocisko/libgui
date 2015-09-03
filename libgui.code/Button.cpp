@@ -1,6 +1,6 @@
-#include "Precompiled.h"
-#include "Button.h"
-#include "ElementManager.h"
+#include "include/Common.h"
+#include "include/Button.h"
+#include "include/ElementManager.h"
 
 namespace libgui
 {

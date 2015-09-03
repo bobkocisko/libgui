@@ -1,146 +1,141 @@
-#include "Precompiled.h"
-#include "CppUnitTest.h"
+#include "include/Common.h"
 #include "Button.h"
 #include "ElementManager.h"
 
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 using namespace libgui;
 using namespace std;
 
-namespace libguitest
+using ::testing::Return;
+
+
+TEST(ButtonTests, WhenMouseEntering_StateIsHot)
 {
-	TEST_CLASS(ButtonTests)
-	{
-	public:
+    auto btn = make_shared<Button>();
+    btn->NotifyMouseEnter();
 
-		TEST_METHOD(WhenMouseEntering_StateIsHot)
-		{
-			auto btn = make_shared<Button>();
-			btn->NotifyMouseEnter();
+    ASSERT_EQ(true, btn->IsHot());
+}
 
-			Assert::AreEqual(true, btn->IsHot());
-		}
+TEST(ButtonTests, WhenMouseLeaving_StateIsNotHot)
+{
+    auto btn = make_shared<Button>();
+    btn->NotifyMouseEnter();
+    btn->NotifyMouseLeave();
+    ASSERT_EQ(false, btn->IsHot());
+}
 
-		TEST_METHOD(WhenMouseLeaving_StateIsNotHot)
-		{
-			auto btn = make_shared<Button>();
-			btn->NotifyMouseEnter();
-			btn->NotifyMouseLeave();
-			Assert::AreEqual(false, btn->IsHot());
-		}
+TEST(ButtonTests, WhenMouseDowning_StateIsHotAndPressed)
+{
+    auto em = make_shared<ElementManager>();
+    auto btn = make_shared<Button>();
+    em->SetRoot(btn);
+    btn->NotifyMouseDown(Location());
+    ASSERT_EQ(true, btn->IsHot());
+    ASSERT_EQ(true, btn->IsPressed());
+}
 
-		TEST_METHOD(WhenMouseDowning_StateIsHotAndPressed)
-		{
-			auto em = make_shared<ElementManager>();
-			auto btn = make_shared<Button>();
-			em->SetRoot(btn);
-			btn->NotifyMouseDown(Location());
-			Assert::AreEqual(true, btn->IsHot());
-			Assert::AreEqual(true, btn->IsPressed());
-		}
+TEST(ButtonTests, WhenMouseUpping_StateIsNotPressed)
+{
+    auto btn = make_shared<Button>();
+    btn->NotifyMouseUp(Location());
+    ASSERT_EQ(false, btn->IsPressed());
+}
 
-		TEST_METHOD(WhenMouseUpping_StateIsNotPressed)
-		{
-			auto btn = make_shared<Button>();
-			btn->NotifyMouseUp(Location());
-			Assert::AreEqual(false, btn->IsPressed());
-		}
+TEST(ButtonTests, WhenMouseDownAndLeaving_StateIsHotAndNotPressed)
+{
+    auto em = make_shared<ElementManager>();
+    auto btn = make_shared<Button>();
+    em->SetRoot(btn);
+    btn->NotifyMouseDown(Location());
+    btn->NotifyMouseLeave();
+    ASSERT_EQ(true, btn->IsHot());
+    ASSERT_EQ(false, btn->IsPressed());
+}
 
-		TEST_METHOD(WhenMouseDownAndLeaving_StateIsHotAndNotPressed)
-		{
-			auto em = make_shared<ElementManager>();
-			auto btn = make_shared<Button>();
-			em->SetRoot(btn);
-			btn->NotifyMouseDown(Location());
-			btn->NotifyMouseLeave();
-			Assert::AreEqual(true, btn->IsHot());
-			Assert::AreEqual(false, btn->IsPressed());
-		}
+TEST(ButtonTests, WhenMouseDownAndReturning_StateIsHotAndPressed)
+{
+    auto em = make_shared<ElementManager>();
+    auto btn = make_shared<Button>();
+    em->SetRoot(btn);
+    btn->NotifyMouseDown(Location());
+    btn->NotifyMouseLeave();
+    btn->NotifyMouseEnter();
+    ASSERT_EQ(true, btn->IsHot());
+    ASSERT_EQ(true, btn->IsPressed());
+}
 
-		TEST_METHOD(WhenMouseDownAndReturning_StateIsHotAndPressed)
-		{
-			auto em = make_shared<ElementManager>();
-			auto btn = make_shared<Button>();
-			em->SetRoot(btn);
-			btn->NotifyMouseDown(Location());
-			btn->NotifyMouseLeave();
-			btn->NotifyMouseEnter();
-			Assert::AreEqual(true, btn->IsHot());
-			Assert::AreEqual(true, btn->IsPressed());
-		}
+TEST(ButtonTests, WhenMouseLeftAndUppingOutside_StateIsNothing)
+{
+    auto em = make_shared<ElementManager>();
+    auto btn = make_shared<Button>();
+    em->SetRoot(btn);
+    btn->NotifyMouseEnter();
+    btn->NotifyMouseDown(Location());
+    btn->NotifyMouseLeave();
+    btn->NotifyMouseUp(Location());
+    ASSERT_EQ(false, btn->IsHot());
+    ASSERT_EQ(false, btn->IsPressed());
+}
 
-		TEST_METHOD(WhenMouseLeftAndUppingOutside_StateIsNothing)
-		{
-			auto em = make_shared<ElementManager>();
-			auto btn = make_shared<Button>();
-			em->SetRoot(btn);
-			btn->NotifyMouseEnter();
-			btn->NotifyMouseDown(Location());
-			btn->NotifyMouseLeave();
-			btn->NotifyMouseUp(Location());
-			Assert::AreEqual(false, btn->IsHot());
-			Assert::AreEqual(false, btn->IsPressed());
-		}
+TEST(ButtonTests, WhenMouseLeftAndUppingOutside_NoClick)
+{
+    auto em = make_shared<ElementManager>();
+    auto btn = make_shared<Button>();
+    bool is_clicked = false;
+    btn->SetClickCallback([&](shared_ptr<Button> b)
+    {
+        is_clicked = true;
+    });
 
-		TEST_METHOD(WhenMouseLeftAndUppingOutside_NoClick)
-		{
-			auto em = make_shared<ElementManager>();
-			auto btn = make_shared<Button>();
-			bool is_clicked = false;
-			btn->SetClickCallback([&](shared_ptr<Button> b)
-			{
-				is_clicked = true;
-			});
+    em->SetRoot(btn);
+    btn->NotifyMouseEnter();
+    btn->NotifyMouseDown(Location());
+    btn->NotifyMouseLeave();
+    btn->NotifyMouseUp(Location());
+    ASSERT_EQ(false, is_clicked);
+}
 
-			em->SetRoot(btn);
-			btn->NotifyMouseEnter();
-			btn->NotifyMouseDown(Location());
-			btn->NotifyMouseLeave();
-			btn->NotifyMouseUp(Location());
-			Assert::AreEqual(false, is_clicked);
-		}
+TEST(ButtonTests, AfterMouseClicked_StateIsHot)
+{
+    auto em = make_shared<ElementManager>();
+    auto btn = make_shared<Button>();
+    em->SetRoot(btn);
+    btn->NotifyMouseEnter();
+    btn->NotifyMouseDown(Location());
+    btn->NotifyMouseUp(Location());
+    ASSERT_EQ(true, btn->IsHot());
+    ASSERT_EQ(false, btn->IsPressed());
+}
 
-		TEST_METHOD(AfterMouseClicked_StateIsHot)
-		{
-			auto em = make_shared<ElementManager>();
-			auto btn = make_shared<Button>();
-			em->SetRoot(btn);
-			btn->NotifyMouseEnter();
-			btn->NotifyMouseDown(Location());
-			btn->NotifyMouseUp(Location());
-			Assert::AreEqual(true, btn->IsHot());
-			Assert::AreEqual(false, btn->IsPressed());
-		}
+TEST(ButtonTests, WhenTouchDownAndUp_Click)
+{
+    auto em = make_shared<ElementManager>();
+    auto btn = make_shared<Button>();
+    bool isClicked = false;
+    btn->SetClickCallback([&](shared_ptr<Button> b)
+    {
+        isClicked = true;
+    });
 
-		TEST_METHOD(WhenTouchDownAndUp_Click)
-		{
-			auto em = make_shared<ElementManager>();
-			auto btn = make_shared<Button>();
-			bool isClicked = false;
-			btn->SetClickCallback([&](shared_ptr<Button> b)
-			{
-				isClicked = true;
-			});
+    em->SetRoot(btn);
+    btn->NotifyTouchDown(Location());
+    btn->NotifyTouchUp(Location());
+    ASSERT_EQ(true, isClicked);
+}
 
-			em->SetRoot(btn);
-			btn->NotifyTouchDown(Location());
-			btn->NotifyTouchUp(Location());
-			Assert::AreEqual(true, isClicked);
-		}
+TEST(ButtonTests, WhenTouchDownLeaveReturnAndUp_StateIsNotPressed)
+{
+    auto em = make_shared<ElementManager>();
+    auto btn = make_shared<Button>();
 
-		TEST_METHOD(WhenTouchDownLeaveReturnAndUp_StateIsNotPressed)
-		{
-			auto em = make_shared<ElementManager>();
-			auto btn = make_shared<Button>();
+    em->SetRoot(btn);
+    btn->NotifyTouchDown(Location());
+    btn->NotifyTouchLeave();
+    btn->NotifyTouchEnter();
+    btn->NotifyTouchUp(Location());
 
-			em->SetRoot(btn);
-			btn->NotifyTouchDown(Location());
-			btn->NotifyTouchLeave();
-			btn->NotifyTouchEnter();
-			btn->NotifyTouchUp(Location());
-
-			Assert::AreEqual(false, btn->IsPressed());
-			Assert::AreEqual(false, btn->IsHot());
-		}
-	};
+    ASSERT_EQ(false, btn->IsPressed());
+    ASSERT_EQ(false, btn->IsHot());
 }

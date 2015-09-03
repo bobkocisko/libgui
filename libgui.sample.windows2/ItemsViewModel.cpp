@@ -1,5 +1,5 @@
-﻿#include "Precompiled.h"
-#include "ItemsViewModel.h"
+﻿#include "include/Common.h"
+#include "include/ItemsViewModel.h"
 
 namespace libgui_sample_windows2
 {

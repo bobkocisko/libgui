@@ -1,6 +1,6 @@
-﻿#include "Precompiled.h"
-#include "Scrollbar.h"
-#include "ElementManager.h"
+﻿#include "include/Common.h"
+#include "include/Scrollbar.h"
+#include "include/ElementManager.h"
 
 namespace libgui
 {
