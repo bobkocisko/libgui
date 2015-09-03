@@ -1,5 +1,8 @@
 include(ExternalProject)
 
+# We need threads support for the google test library
+find_package(Threads REQUIRED)
+
 set(SOURCE_FILES
     include/Common.h
     ButtonTests.cpp
