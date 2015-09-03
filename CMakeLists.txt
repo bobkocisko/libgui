@@ -6,12 +6,10 @@ option(libgui_build_tests "Build all of libgui's own tests." OFF)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-add_subdirectory(libgui.code)
+# Make the include files from the library available to all targets
+include_directories(libgui.code/include)
 
-if(libgui_build_samples OR libgui_build_tests)
-    # Make the include files from the library available to other targets
-    include_directories(libgui.code/include)
-endif()
+add_subdirectory(libgui.code)
 
 if(libgui_build_samples)
     add_subdirectory(libgui.sample.windows)

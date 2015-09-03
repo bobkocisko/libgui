@@ -1,6 +1,6 @@
-#include "include/Common.h"
+#include "libgui/Common.h"
 
-#include "include/ViewModelBase.h"
+#include "libgui/ViewModelBase.h"
 
 libgui::ViewModelBase::~ViewModelBase()
 { }

@@ -1,5 +1,5 @@
-#include "include/Common.h"
-#include "include/ElementManager.h"
+#include "libgui/Common.h"
+#include "libgui/ElementManager.h"
 
 namespace libgui
 {

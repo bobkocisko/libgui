@@ -1,5 +1,5 @@
-#include "include/Common.h"
-#include "include/Control.h"
+#include "libgui/Common.h"
+#include "libgui/Control.h"
 
 namespace libgui
 {

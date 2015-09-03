@@ -1,5 +1,5 @@
-﻿#include "include/Common.h"
-#include "include/ItemsProvider.h"
+﻿#include "libgui/Common.h"
+#include "libgui/ItemsProvider.h"
 
 libgui::ItemsProvider::~ItemsProvider()
 {

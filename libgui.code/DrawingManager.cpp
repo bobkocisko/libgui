@@ -1,5 +1,5 @@
-﻿#include "include/Common.h"
-#include "include/DrawingManager.h"
+﻿#include "libgui/Common.h"
+#include "libgui/DrawingManager.h"
 
 namespace libgui
 {

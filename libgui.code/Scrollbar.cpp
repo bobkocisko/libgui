@@ -1,6 +1,6 @@
-﻿#include "include/Common.h"
-#include "include/Scrollbar.h"
-#include "include/ElementManager.h"
+﻿#include "libgui/Common.h"
+#include "libgui/Scrollbar.h"
+#include "libgui/ElementManager.h"
 
 namespace libgui
 {

@@ -1,19 +1,19 @@
 set(SOURCE_FILES
-    include/Button.h
-    include/Container.h
-    include/Control.h
-    include/DrawingManager.h
-    include/Element.h
-    include/ElementManager.h
-    include/Grid.h
-    include/ItemsProvider.h
-    include/Common.h
-    include/Scrollbar.h
-    include/ScrollDelegate.h
-    include/Slider.h
-    include/Structs.h
-    include/VerticalRepeaterElement.h
-    include/ViewModelBase.h
+    include/libgui/Button.h
+    include/libgui/Container.h
+    include/libgui/Control.h
+    include/libgui/DrawingManager.h
+    include/libgui/Element.h
+    include/libgui/ElementManager.h
+    include/libgui/Grid.h
+    include/libgui/ItemsProvider.h
+    include/libgui/Common.h
+    include/libgui/Scrollbar.h
+    include/libgui/ScrollDelegate.h
+    include/libgui/Slider.h
+    include/libgui/Structs.h
+    include/libgui/VerticalRepeaterElement.h
+    include/libgui/ViewModelBase.h
     Button.cpp
     Container.cpp
     Control.cpp

@@ -1,6 +1,6 @@
 #include "include/Common.h"
-#include "Button.h"
-#include "ElementManager.h"
+#include "libgui/Button.h"
+#include "libgui/ElementManager.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>

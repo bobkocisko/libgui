@@ -1,7 +1,7 @@
-#include "include/Common.h"
-#include "include/Element.h"
-#include "include/ElementManager.h"
-#include "include/DrawingManager.h"
+#include "libgui/Common.h"
+#include "libgui/Element.h"
+#include "libgui/ElementManager.h"
+#include "libgui/DrawingManager.h"
 
 namespace libgui
 {

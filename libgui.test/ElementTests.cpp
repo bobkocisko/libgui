@@ -1,6 +1,6 @@
 #include "include/Common.h"
-#include <Element.h>
-#include <ElementManager.h>
+#include <libgui/Element.h>
+#include <libgui/ElementManager.h>
 #include <gtest/gtest.h>
 
 using namespace std;

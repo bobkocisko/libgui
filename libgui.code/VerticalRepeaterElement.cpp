@@ -1,5 +1,5 @@
-#include "include/Common.h"
-#include "include/VerticalRepeaterElement.h"
+#include "libgui/Common.h"
+#include "libgui/VerticalRepeaterElement.h"
 
 namespace libgui
 {

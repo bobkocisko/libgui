@@ -1,5 +1,5 @@
-﻿#include "include/Common.h"
-#include "include/Grid.h"
+﻿#include "libgui/Common.h"
+#include "libgui/Grid.h"
 
 namespace libgui
 {
