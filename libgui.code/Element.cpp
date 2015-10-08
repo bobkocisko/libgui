@@ -2,6 +2,7 @@
 #include "libgui/Element.h"
 #include "libgui/ElementManager.h"
 #include "libgui/DrawingManager.h"
+#include "libgui/Location.h"
 
 namespace libgui
 {

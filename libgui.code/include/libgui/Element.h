@@ -1,6 +1,6 @@
 #pragma once 
-#include "Structs.h"
 #include "ViewModelBase.h"
+#include "Location.h"
 
 using namespace std;
 

@@ -1,20 +1,11 @@
 #pragma once
 
+#include "Size.h"
+#include "Location.h"
 namespace libgui
 {
-	struct Size
-	{
-		double width;
-		double height;
-	};
 
-	struct Location
-	{
-		double x;
-		double y;
-	};
-
-	struct Rect
+struct Rect
 	{
 		Rect(Location, Size);
 

@@ -1,6 +1,7 @@
 ﻿#include "libgui/Common.h"
 #include "libgui/Slider.h"
 #include "libgui/ElementManager.h"
+#include "libgui/Location.h"
 
 namespace libgui
 {

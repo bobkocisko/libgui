@@ -1,6 +1,7 @@
 #include "libgui/Common.h"
 #include "libgui/Button.h"
 #include "libgui/ElementManager.h"
+#include "libgui/Location.h"
 
 namespace libgui
 {

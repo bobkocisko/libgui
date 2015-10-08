@@ -28,7 +28,10 @@ set(SOURCE_FILES
     Structs.cpp
     VerticalRepeaterElement.cpp
     ViewModelBase.cpp
-
-)
+    include/libgui/Size.h
+    AnimatableValue.cpp include/libgui/AnimatableValue.h Animation.cpp include/libgui/Animation.h
+    Visibility.cpp include/libgui/Visibility.h include/libgui/Length.h
+    include/libgui/Location.h
+    Length.cpp Location.cpp)
 
 add_library(libgui ${SOURCE_FILES})

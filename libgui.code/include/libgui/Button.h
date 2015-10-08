@@ -1,5 +1,6 @@
 #pragma once 
 #include "Control.h"
+#include "Location.h"
 
 namespace libgui
 {

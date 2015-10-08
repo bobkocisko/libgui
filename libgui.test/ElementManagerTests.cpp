@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "include/Common.h"
 #include "libgui/ElementManager.h"
+#include "libgui/Location.h"
 
 using namespace std;
 using namespace libgui;

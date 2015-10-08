@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Control.h"
 #include "ScrollDelegate.h"
+#include "Location.h"
 
 namespace libgui
 {
