@@ -9,6 +9,16 @@
 class Size
 {
 public:
+    Size()
+        : width(0), height(0)
+    {
+    }
+
+    Size(Length width, Length height)
+        : width(width), height(height)
+    {
+    }
+
     Length width;
     Length height;
 };
