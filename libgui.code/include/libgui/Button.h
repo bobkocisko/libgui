@@ -1,42 +1,46 @@
 #pragma once 
 #include "Control.h"
 #include "Location.h"
+#include "InputType.h"
+#include "Point.h"
 
 namespace libgui
 {
-	class Button : public Control
-	{
-	public:
-		// Input events
-		void NotifyMouseEnter() override;
-		void NotifyMouseLeave() override;
-		void NotifyMouseDown(Location location) override;
-		void NotifyMouseUp(Location location) override;
+    class Button: public Control
+    {
+    public:
+        Button();
+        virtual ~Button();
 
-		void NotifyTouchEnter() override;
-		void NotifyTouchLeave() override;
-		void NotifyTouchDown(Location location) override;
-		void NotifyTouchUp(Location location) override;
+        // Input events
+        void NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen) override;
 
-		// Output states
-		bool IsHot();
-		bool IsPressed();
-		
-		// Output events
-		virtual void OnClick();
-		void SetClickCallback(function<void(shared_ptr<Button>)>);
+        // This enum must match the order of the states defined in the state machine table
+        enum VisibleState
+        {
+            Cold_Up,
+            Hot_Up,
+            Hot_Down,
+            Cold_Claimed
+        };
 
-	private:
-		bool _isOver = false;
-		bool _isHot = false;
-		bool _isPressed = false;
+        VisibleState GetVisibleState();
 
-		function<void(shared_ptr<Button>)> m_clickCallback;
+        enum OutputEvent
+        {
+            Pushed,
+            Released,
+            Clicked
+        };
 
-		void NotifyEnter(bool isMouse);
-		void NotifyLeave(bool isMouse);
-		void NotifyDown(bool isMouse);
-		void NotifyUp(bool isMouse);
-	};
+        virtual void OnEvent(OutputEvent outputEvent);
+        void         SetEventCallback(function<void(shared_ptr<Button>, OutputEvent)>);
+
+    private:
+        void * _stateMachine;
+
+        function<void(shared_ptr<Button>, OutputEvent)>
+                     _eventCallback;
+    };
 
 }

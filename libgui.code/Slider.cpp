@@ -1,4 +1,7 @@
-﻿#include "libgui/Common.h"
+﻿#include <libgui/InputAction.h>
+#include <libgui/InputType.h>
+#include <libgui/Point.h>
+#include "libgui/Common.h"
 #include "libgui/Slider.h"
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
@@ -83,7 +86,7 @@ namespace libgui
 		}
 	}
 
-	void Slider::Thumb::NotifyMouseEnter()
+	void Slider::Thumb::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
 	{
 		m_isOver = true;
 

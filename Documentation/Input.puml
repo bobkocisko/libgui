@@ -1,0 +1,13 @@
+@startuml
+[*] --> Exists
+
+Exists -> OverPickable
+Exists --> Captured
+
+OverPickable --> Captured
+OverPickable --> Exists
+
+Captured --> Exists
+Captured --> OverPickable
+
+@enduml

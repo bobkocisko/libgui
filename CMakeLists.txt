@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.3)
 project(libgui)
 
 option(libgui_build_samples "Build all of libgui's own samples." OFF)
-option(libgui_build_tests "Build all of libgui's own tests." OFF)
+option(libgui_build_tests "Build all of libgui's own tests." ON)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 

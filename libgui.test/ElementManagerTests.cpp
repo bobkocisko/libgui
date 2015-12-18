@@ -130,9 +130,9 @@ TEST(ElementManagerTests, WhenControlIsHidden_ItDoesNotReceiveNotifications)
     ASSERT_EQ(false, sc->GetNotifyMouseUpCalled());
     ASSERT_EQ(false, sc->GetNotifyMouseMoveCalled());
 
-    em->NotifyTouchDown(1, 1);
-    em->NotifyTouchMove(1.5, 1.5);
-    em->NotifyTouchUp(1.5, 1.5);
+    em->NotifyDown((InputIdentifier(0)), (Point()));
+    em->NotifyMove((InputIdentifier(0)), 1.5);
+    em->NotifyUp((InputIdentifier(0)), (Point()));
 
     ASSERT_EQ(false, sc->GetNotifyTouchDownCalled());
     ASSERT_EQ(false, sc->GetNotifyTouchUpCalled());
@@ -158,9 +158,9 @@ TEST(ElementManagerTests, WhenControlIsDisabled_ItDoesNotReceiveNotifications)
     ASSERT_EQ(false, sc->GetNotifyMouseUpCalled());
     ASSERT_EQ(false, sc->GetNotifyMouseMoveCalled());
 
-    em->NotifyTouchDown(1, 1);
-    em->NotifyTouchMove(1.5, 1.5);
-    em->NotifyTouchUp(1.5, 1.5);
+    em->NotifyDown((InputIdentifier(0)), (Point()));
+    em->NotifyMove((InputIdentifier(0)), 1.5);
+    em->NotifyUp((InputIdentifier(0)), (Point()));
 
     ASSERT_EQ(false, sc->GetNotifyTouchDownCalled());
     ASSERT_EQ(false, sc->GetNotifyTouchUpCalled());
@@ -175,8 +175,8 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
     sc->SetLeft(1); sc->SetRight(2);
     sc->SetTop(1); sc->SetBottom(2);
 
-    em->NotifyTouchDown(1, 1);
-    em->NotifyTouchUp(1, 1);
+    em->NotifyDown((InputIdentifier(0)), (Point()));
+    em->NotifyUp((InputIdentifier(0)), (Point()));
 
     ASSERT_EQ(true, sc->GetNotifyTouchDownCalled());
     ASSERT_EQ(true, sc->GetNotifyTouchUpCalled());
@@ -190,9 +190,9 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesNot
     sc->SetLeft(1); sc->SetRight(2);
     sc->SetTop(1); sc->SetBottom(2);
 
-    em->NotifyTouchDown(1, 1);
-    em->NotifyTouchMove(0, 0);
-    em->NotifyTouchMove(1, 1);
+    em->NotifyDown((InputIdentifier(0)), (Point()));
+    em->NotifyMove((InputIdentifier(0)), 0);
+    em->NotifyMove((InputIdentifier(0)), 1);
 
     ASSERT_EQ(true, sc->GetNotifyTouchDownCalled());
     ASSERT_EQ(true, sc->GetNotifyTouchEnterCalled());

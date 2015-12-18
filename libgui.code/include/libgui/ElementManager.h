@@ -1,6 +1,9 @@
 #pragma once 
 #include "Element.h"
 #include "Control.h"
+#include "ActiveControl.h"
+#include "Input.h"
+#include <list>
 
 namespace libgui
 {
@@ -11,30 +14,20 @@ namespace libgui
 
 		shared_ptr<Element> GetRoot();
 
-		bool NotifyMouseMove(int x, int y);
-		bool NotifyMouseDown(int x, int y);
-		bool NotifyMouseUp(int x, int y);
-
-		bool NotifyTouchMove(double touchX, double touchY);
-		bool NotifyTouchDown(double touchX, double touchY);
-		bool NotifyTouchUp(double touchX, double touchY);
-
-		void RequestCapture(shared_ptr<Control>);
-		void ReleaseCapture();
+		bool NotifyMove(InputId inputId, Point point);
+		bool NotifyDown(InputId inputId, Point point);
+		bool NotifyUp(InputId inputId, Point point);
 
 		const function<void(bool)>& GetSystemCaptureCallback() const;
 		void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
 
 	private:
-		weak_ptr<Control> m_capturedControl;
-		weak_ptr<Control> m_activeControl;
+		//std::list<ActiveControl*> _activeControls;
+		std::vector<Input*> _activeInputs;
 
-		shared_ptr<Element> m_root = nullptr;
+		shared_ptr<Element>  _root = nullptr;
 
-		function<void(bool)> m_systemCaptureCallback;
-
-		bool NotifyMove(int x, int y, bool isMouse);
-		bool NotifyUp(int x, int y, bool isMouse);
-
-	};
+		function<void(bool)> _systemCaptureCallback;
+        Input* GetActiveInput(const InputId& inputId);
+    };
 }

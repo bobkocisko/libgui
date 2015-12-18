@@ -1,5 +1,5 @@
 #include "libgui/Common.h"
-#include "libgui/Structs.h"
+#include "Rect.h"
 #include "libgui/Size.h"
 #include "libgui/Location.h"
 

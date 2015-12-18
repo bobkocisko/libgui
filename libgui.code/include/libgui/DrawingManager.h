@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Structs.h"
+#include "Rect.h"
 
 using namespace std;
 

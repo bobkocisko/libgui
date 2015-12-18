@@ -3,39 +3,39 @@
 
 namespace libgui
 {
-	void Control::NotifyCapturing()
-	{
-		m_isCapturing = true;
-	}
-
-	void Control::NotifyReleasingCapture()
-	{
-		m_isCapturing = false;
-	}
-
 	const bool& Control::GetIsEnabled() const
 	{
-		return m_isEnabled;
+		return _isEnabled;
 	}
 
 	void Control::SetIsEnabled(bool isEnabled)
 	{
-		m_isEnabled = isEnabled;
+		_isEnabled = isEnabled;
 	}
 
 	void Control::ResetArrangement()
 	{
 		Element::ResetArrangement();
 
-		// Just like the m_isVisible property in Element,
-		// m_isEnabled gets reset each time before we arrange
+		// Just like the _isVisible property in Element,
+		// _isEnabled gets reset each time before we arrange
 		// and so it must be updated every time later in
 		// the arrange cycle.
-		m_isEnabled = true;
+		_isEnabled = true;
 	}
 
-	bool Control::IsCapturing()
+	void virtual Control::PreNotifyInput(InputAction inputAction,
+										 InputType inputType,
+										 Point point,
+										 bool& updateScreen,
+										 bool& notify)
 	{
-		return m_isCapturing;
+		updateScreen = (InputAction::Move != inputAction);
+		notify = true;
+	}
+
+	void virtual Control::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
+	{
+		updateScreen = (InputAction::Move != inputAction);
 	}
 }

@@ -2,6 +2,8 @@
 #include "Control.h"
 #include "ScrollDelegate.h"
 #include "Location.h"
+#include "InputType.h"
+#include "Point.h"
 
 namespace libgui
 {
@@ -33,7 +35,7 @@ namespace libgui
 			explicit Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track);
 
 			// Input events
-			void NotifyMouseEnter() override;
+			void NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen) override;
 			void NotifyMouseLeave() override;
 			void NotifyMouseDown(Location location) override;
 			void NotifyMouseUp(Location location) override;

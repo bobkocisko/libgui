@@ -1,56 +1,37 @@
 #pragma once 
 #include "Element.h"
 #include "Location.h"
+#include "InputAction.h"
+#include "InputType.h"
+#include "Point.h"
 
 namespace libgui
 {
-	class Control : public Element
-	{
-	public:
-		// Input events
+    class Control: public Element
+    {
+    public:
+        // Called before NotifyInput and can optionally prevent the sending of NotifyInput event
+        virtual void PreNotifyInput(InputAction
+                                    inputAction,
+                                    InputType inputType,
+                                    Point point,
+                                    bool& updateScreen,
+                                    bool& notify);
 
-		virtual void NotifyMouseEnter() {};
-		virtual void NotifyMouseLeave() {};
-		virtual void NotifyMouseDown(Location location) {};
-		virtual void NotifyMouseUp(Location location) {};
-		virtual void NotifyMouseMove(Location location, bool& updateScreen)
-		{
-			updateScreen = false;
-		};
+        // Called when an input action occurs.  See ElementManager for details of when this is called.
+        virtual void NotifyInput(InputAction inputAction,
+                                 InputType inputType,
+                                 Point point,
+                                 bool& updateScreen);
 
-		virtual void PreNotifyTouchLeave(bool& notify) { notify = true; };
-		virtual void PreNotifyTouchEnter(bool& notify) { notify = true; };
-		virtual void PreNotifyTouchDown(Location location, bool& notify) { notify = true; };
-		virtual void PreNotifyTouchUp(Location location, bool& notify) { notify = true; };
-		virtual void PreNotifyTouchMove(Location location, bool& updateScreen, bool& notify)
-		{
-			updateScreen = false;
-			notify = true;
-		};
+        // State
+        const bool& GetIsEnabled() const;
+        void SetIsEnabled(bool isEnabled);
 
-		virtual void NotifyTouchLeave() {};
-		virtual void NotifyTouchEnter() {};
-		virtual void NotifyTouchDown(Location location) {};
-		virtual void NotifyTouchUp(Location location) {};
-		virtual void NotifyTouchMove(Location location, bool& updateScreen)
-		{
-			updateScreen = false;
-		};
+        // Implementation
+        void ResetArrangement() override;
 
-		void NotifyCapturing();
-		void NotifyReleasingCapture();
-
-		// State
-		const bool& GetIsEnabled() const;
-		void SetIsEnabled(bool isEnabled);
-
-		// Implementation
-		void ResetArrangement() override;
-
-	protected:
-		bool IsCapturing();
-	private:
-		bool m_isCapturing = false;
-		bool m_isEnabled = true;
-	};
+    private:
+        bool _isEnabled = true;
+    };
 }

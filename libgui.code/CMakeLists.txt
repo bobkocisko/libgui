@@ -1,3 +1,11 @@
+
+# We need Boost MSM (meta state machine)
+find_package(Boost
+    1.54.0
+    REQUIRED
+    )
+include_directories(${Boost_INCLUDE_DIRS})
+
 set(SOURCE_FILES
     include/libgui/Button.h
     include/libgui/Container.h
@@ -11,7 +19,7 @@ set(SOURCE_FILES
     include/libgui/Scrollbar.h
     include/libgui/ScrollDelegate.h
     include/libgui/Slider.h
-    include/libgui/Structs.h
+    include/libgui/Rect.h
     include/libgui/VerticalRepeaterElement.h
     include/libgui/ViewModelBase.h
     Button.cpp
@@ -25,13 +33,20 @@ set(SOURCE_FILES
     Precompiled.cpp
     Scrollbar.cpp
     Slider.cpp
-    Structs.cpp
+    Rect.cpp
     VerticalRepeaterElement.cpp
     ViewModelBase.cpp
     include/libgui/Size.h
-    AnimatableValue.cpp include/libgui/AnimatableValue.h Animation.cpp include/libgui/Animation.h
-    Visibility.cpp include/libgui/Visibility.h include/libgui/Length.h
+    AnimatableValue.cpp
+    include/libgui/AnimatableValue.h
+    Animation.cpp
+    include/libgui/Animation.h
+    Visibility.cpp
+    include/libgui/Visibility.h
+    include/libgui/Length.h
     include/libgui/Location.h
-    Length.cpp Location.cpp)
+    Length.cpp Location.cpp
+    include/libgui/InputAction.h
+    include/libgui/Point.h include/libgui/InputType.h include/libgui/ActiveControl.cpp include/libgui/ActiveControl.h include/libgui/InputId.h include/libgui/InputId.cpp Input.cpp include/libgui/Input.h)
 
 add_library(libgui ${SOURCE_FILES})
