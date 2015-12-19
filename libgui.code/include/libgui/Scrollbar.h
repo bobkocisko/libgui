@@ -7,60 +7,65 @@
 
 namespace libgui
 {
-	class Scrollbar : public libgui::Element
-	{
-	public:
-		explicit Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate);
+class Scrollbar: public libgui::Element
+{
+public:
+    explicit Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate);
 
-		virtual void Init();
+    virtual void Init();
 
-		class Thumb;
-		class Track;
+    class Thumb;
+    class Track;
 
-		const shared_ptr<Thumb>& GetThumb() const;
+    const shared_ptr<Thumb>& GetThumb() const;
+    const shared_ptr<Track>& GetTrack() const;
 
-		const shared_ptr<Track>& GetTrack() const;
+    const shared_ptr<ScrollDelegate>& GetScrollDelegate() const;
+    void SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate);
 
-		const shared_ptr<ScrollDelegate>& GetScrollDelegate() const;
-		void SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate);
+    class Track: public Element
+    {
 
-		class Track: public Element
-		{
-			
-		};
+    };
 
-		class Thumb : public Control
-		{
-		public:
-			explicit Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track);
+    class Thumb: public Control
+    {
+    public:
+        explicit Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track);
+        virtual ~Thumb();
 
-			// Input events
-			void NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen) override;
-			void NotifyMouseLeave() override;
-			void NotifyMouseDown(Location location) override;
-			void NotifyMouseUp(Location location) override;
-			void NotifyMouseMove(Location location, bool& updateScreen) override;
+        // Input events
+        void  NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen) override;
 
-			// Output states
-			const bool& GetIsPressed() const;
-			const bool& GetIsHot() const;
+        // States
+        // This enum must match the order of the states defined in the state machine table
+        // As well as the funky id logic in GetState()
+        enum State
+        {
+            Idle,
+            Pending,
+            Engaged
+        };
+        State GetState() const;
 
-			void Arrange() override;
+        void Arrange() override;
 
-			const weak_ptr<Scrollbar>& GetScrollbar() const;
+        const weak_ptr<Scrollbar>& GetScrollbar() const;
 
-		private:
-			weak_ptr<Scrollbar> m_scrollbar;
-			weak_ptr<Track> m_track;
-			bool m_isOver;
-			bool m_isPressed;
-			bool m_isHot;
-			double m_anchorOffset;
-		};
-	private:
-		shared_ptr<Thumb> m_thumb;
-		shared_ptr<Track> m_track;
-		shared_ptr<ScrollDelegate> m_scrollDelegate;
-	};
+        void RecordAnchor();
+    private:
+        void* _stateMachine;
+        weak_ptr<Scrollbar> _scrollbar;
+        weak_ptr<Track>     _track;
+        double              _anchorOffset;
+        Point               _pointer;
+
+        void NotifyPointerMove(Point point, bool& updateScreen);
+    };
+private:
+    shared_ptr<Thumb>          _thumb;
+    shared_ptr<Track>          _track;
+    shared_ptr<ScrollDelegate> _scrollDelegate;
+};
 }
 

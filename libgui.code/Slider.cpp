@@ -4,194 +4,302 @@
 #include "libgui/Common.h"
 #include "libgui/Slider.h"
 #include "libgui/ElementManager.h"
-#include "libgui/Location.h"
+
+#include <boost/msm/front/states.hpp>
+#include <boost/msm/front/state_machine_def.hpp>
+#include <boost/msm/back/state_machine.hpp>
+#include <boost/msm/front/euml/euml.hpp>
+
+using namespace boost::msm::front;
+using namespace boost::msm::back;
+using boost::msm::front::euml::func_state;
+using emptyvector = boost::fusion::vector<>;
+using boost::mpl::vector1;
+using boost::mpl::vector2;
+using boost::msm::TerminateFlag;
 
 namespace libgui
 {
-	void Slider::Init()
-	{
-		m_track = make_shared<Track>();
-		this->AddChild(m_track);
+void Slider::Init()
+{
+    _track = make_shared<Track>();
+    this->AddChild(_track);
 
-		m_thumb = make_shared<Thumb>(
-			dynamic_pointer_cast<Slider>(shared_from_this()),
-			m_track);
-		m_track->AddChild(m_thumb);
-	}
+    _thumb = make_shared<Thumb>(
+        dynamic_pointer_cast<Slider>(shared_from_this()),
+        _track);
+    _track->AddChild(_thumb);
+}
 
-	const double& Slider::GetValue() const
-	{
-		return m_value;
-	}
+const double& Slider::GetValue() const
+{
+    return _value;
+}
 
-	void Slider::SetValue(double value)
-	{
-		auto oldValue = m_value;
+void Slider::SetValue(double value)
+{
+    auto oldValue = _value;
 
-		m_value = value;
+    _value = value;
 
-		if (value != oldValue)
-		{
-			OnValueChanged();
-		}
-	}
+    if (value != oldValue)
+    {
+        OnValueChanged();
+    }
+}
 
-	const double& Slider::GetThumbHeight() const
-	{
-		return m_thumbHeight;
-	}
+const double& Slider::GetThumbHeight() const
+{
+    return _thumbHeight;
+}
 
-	void Slider::SetThumbHeight(double thumbHeight)
-	{
-		m_thumbHeight = thumbHeight;
-	}
+void Slider::SetThumbHeight(double thumbHeight)
+{
+    _thumbHeight = thumbHeight;
+}
 
-	const function<void(shared_ptr<Slider>)>& Slider::GetValueChangedCallback() const
-	{
-		return m_valueChangedCallback;
-	}
+const function<void(shared_ptr<Slider>)>& Slider::GetValueChangedCallback() const
+{
+    return _valueChangedCallback;
+}
 
-	void Slider::SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback)
-	{
-		m_valueChangedCallback = valueChangedCallback;
-	}
+void Slider::SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback)
+{
+    _valueChangedCallback = valueChangedCallback;
+}
 
-	const shared_ptr<Slider::Thumb>& Slider::GetThumb() const
-	{
-		return m_thumb;
-	}
+const shared_ptr<Slider::Thumb>& Slider::GetThumb() const
+{
+    return _thumb;
+}
 
-	const shared_ptr<Slider::Track>& Slider::GetTrack() const
-	{
-		return m_track;
-	}
+const shared_ptr<Slider::Track>& Slider::GetTrack() const
+{
+    return _track;
+}
 
-	Slider::Thumb::Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track)
-		: m_slider(slider),
-		m_track(track)
-	{
-	}
+namespace sm
+{
+// events
+struct Enter
+{
+};
+struct Leave
+{
+};
+struct Push
+{
+};
+struct Release
+{
+};
 
-	void Slider::Thumb::Arrange()
-	{
-		if (auto slider = m_slider.lock())
-		{
-			auto p = GetParent();
-			SetLeft(p->GetLeft()); SetRight(p->GetRight());
-			auto thumbHeight = slider->GetThumbHeight();
-			auto boundsTop = p->GetTop();
-			auto boundsHeight = p->GetHeight() - thumbHeight;
-			auto top = boundsTop + (slider->GetRawFromValue() * boundsHeight);
-			SetTop(round(top)); SetBottom(round(top + thumbHeight));
-		}
-	}
+class StateMachineFrontEnd: public state_machine_def<StateMachineFrontEnd>
+{
 
-	void Slider::Thumb::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
-	{
-		m_isOver = true;
+public:
+    StateMachineFrontEnd(Slider::Thumb* parent)
+        : _parent(parent)
+    {
+    }
 
-		if (IsCapturing())
-		{
-			m_isPressed = true;
-		}
-		else
-		{
-			m_isHot = true;
-		}
-	}
+    // states
+    struct Idle: public state<>
+    {
+    };
+    struct Pending: public state<>
+    {
+    };
+    struct Engaged: public state<>
+    {
+    };
+    struct EngagedRemotely: public state<>
+    {
+    };
 
-	void Slider::Thumb::NotifyMouseLeave()
-	{
-		m_isOver = false;
+    // actions
+    struct RecordAnchor
+    {
+        template<class EVT, class FSM, class SourceState, class TargetState>
+        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+        {
+            fsm._parent->RecordAnchor();
+        }
+    };
 
-		if (IsCapturing())
-		{
-			m_isPressed = false;
-		}
-		else
-		{
-			m_isHot = false;
-		}
-	}
+    // Replaces the default no-transition response.
+    template<class FSM, class Event>
+    void no_transition(Event const& e, FSM&, int state)
+    {
+        // Simply ignore any event that doesn't generate a transition
+    }
 
-	void Slider::Thumb::NotifyMouseDown(Location location)
-	{
-		m_isHot = true;
-		m_isPressed = true;
+    // Set up the starting state of the state machine
+    typedef Idle initial_state;
 
-		m_anchorOffset = location.y - GetTop();
 
-		GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
-	}
+    // Transition table for state machine
+    // @formatter:off
 
-	void Slider::Thumb::NotifyMouseUp(Location location)
-	{
-		m_isPressed = false;
-		if (IsCapturing())
-		{
-			if (!m_isOver)
-			{
-				m_isHot = false;
-			}
 
-			GetElementManager()->ReleaseCapture();
-		}
-	}
+    // NOTE: The order of the states listed in this table must match the order in the State enum
+    // as well as the funky logic in GetState().
+    struct transition_table : boost::mpl::vector<
+    //    Start              Event       Next State         Action           Guard
+    //  +------------------+-----------+------------------+----------------+---------+
+    Row < Idle             , Enter     , Pending          , none           , none    >,
+    Row < Idle             , Push      , Engaged          , RecordAnchor   , none    >,
+    //  +------------------+-----------+------------------+----------------+---------+
+    Row < Pending          , Leave     , Idle             , none           , none    >,
+    Row < Pending          , Push      , Engaged          , RecordAnchor   , none    >,
+    //  +------------------+-----------+------------------+----------------+---------+
+    Row < Engaged          , Release   , Pending          , none           , none    >,
+    Row < Engaged          , Leave     , EngagedRemotely  , none           , none    >,
+    //  +------------------+-----------+------------------+----------------+---------+
+    Row < EngagedRemotely  , Enter     , Engaged          , none           , none    >,
+    Row < EngagedRemotely  , Release   , Idle             , none           , none    >
+    //  +------------------+-----------+------------------+----------------+---------+
+    > {};
 
-	void Slider::Thumb::NotifyMouseMove(Location location, bool& updateScreen)
-	{
-		if (IsCapturing())
-		{
-			auto slider = m_slider.lock();
-			auto track = m_track.lock();
-			if (slider && track)
-			{
-				auto offsetPercent = ((location.y - m_anchorOffset) - track->GetTop()) / 
-					(track->GetHeight() - slider->GetThumbHeight());
-				offsetPercent = max(0.0, offsetPercent);
-				offsetPercent = min(1.0, offsetPercent);
-				if (slider->GetRawFromValue() != offsetPercent)
-				{
-					slider->SetValueFromRaw(offsetPercent);
-					updateScreen = true;
-					return;
-				}
-			}
-		}
-		updateScreen = false;
-		return;
-	}
+    // @formatter:on
 
-	const bool& Slider::Thumb::GetIsPressed() const
-	{
-		return m_isPressed;
-	}
+private:
+    Slider::Thumb* _parent;
 
-	const bool& Slider::Thumb::GetIsHot() const
-	{
-		return m_isHot;
-	}
+};
 
-	const weak_ptr<Slider>& Slider::Thumb::GetSlider() const
-	{
-		return m_slider;
-	}
+typedef state_machine<StateMachineFrontEnd> StateMachine;
+}
 
-	void Slider::OnValueChanged()
-	{
-		if (m_valueChangedCallback)
-		{
-			m_valueChangedCallback(dynamic_pointer_cast<Slider>(shared_from_this()));
-		}
-	}
+Slider::Thumb::Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track)
+    : _slider(slider),
+      _track(track)
+{
+    // Create and store state machine
+    auto stateMachine = new sm::StateMachine(this);
+    stateMachine->start();
 
-	double Slider::GetRawFromValue()
-	{
-		return 1.0 - GetValue();
-	}
+    _stateMachine = stateMachine;
+}
 
-	void Slider::SetValueFromRaw(double raw)
-	{
-		SetValue(1.0 - raw);
-	}
+Slider::Thumb::~Thumb()
+{
+    // Delete state machine
+    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    delete stateMachine;
+    _stateMachine = nullptr;
+}
+
+void Slider::Thumb::Arrange()
+{
+    if (auto slider = _slider.lock())
+    {
+        auto p = GetParent();
+        SetLeft(p->GetLeft());
+        SetRight(p->GetRight());
+        auto thumbHeight  = slider->GetThumbHeight();
+        auto boundsTop    = p->GetTop();
+        auto boundsHeight = p->GetHeight() - thumbHeight;
+        auto top          = boundsTop + (slider->GetRawFromValue() * boundsHeight);
+        SetTop(round(top));
+        SetBottom(round(top + thumbHeight));
+    }
+}
+
+void Slider::Thumb::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
+{
+    // Apply the default screen update logic
+    Control::NotifyInput(inputAction, inputType, point, updateScreen);
+
+    auto stateMachine = (sm::StateMachine*) _stateMachine;
+
+    switch (inputAction)
+    {
+        case InputAction::EnterReleased:
+            stateMachine->process_event(sm::Enter());
+            break;
+        case InputAction::EnterPushed:
+            stateMachine->process_event(sm::Enter());
+            break;
+        case InputAction::Move:
+            bool moveUpdateScreen;
+            NotifyPointerMove(point, moveUpdateScreen);
+            if (moveUpdateScreen)
+            {
+                updateScreen = true;
+            }
+            break;
+        case InputAction::Push:
+            stateMachine->process_event(sm::Push());
+            break;
+        case InputAction::Release:
+            stateMachine->process_event(sm::Release());
+            break;
+        case InputAction::Leave:
+            stateMachine->process_event(sm::Leave());
+            break;
+    }
+}
+
+void Slider::Thumb::RecordAnchor()
+{
+    _anchorOffset = _pointer.Y - GetTop();
+}
+
+void Slider::Thumb::NotifyPointerMove(Point point, bool& updateScreen)
+{
+    updateScreen = false;
+    _pointer     = point;
+    if (State::Engaged == GetState())
+    {
+        auto slider = _slider.lock();
+        auto track  = _track.lock();
+        if (slider && track)
+        {
+            auto offsetPercent = ((point.Y - _anchorOffset) - track->GetTop()) /
+                                 (track->GetHeight() - slider->GetThumbHeight());
+            offsetPercent      = max(0.0, offsetPercent);
+            offsetPercent      = min(1.0, offsetPercent);
+            if (slider->GetRawFromValue() != offsetPercent)
+            {
+                slider->SetValueFromRaw(offsetPercent);
+                updateScreen = true;
+            }
+        }
+    }
+}
+
+const weak_ptr<Slider>& Slider::Thumb::GetSlider() const
+{
+    return _slider;
+}
+
+void Slider::OnValueChanged()
+{
+    if (_valueChangedCallback)
+    {
+        _valueChangedCallback(dynamic_pointer_cast<Slider>(shared_from_this()));
+    }
+}
+
+double Slider::GetRawFromValue()
+{
+    return 1.0 - GetValue();
+}
+
+void Slider::SetValueFromRaw(double raw)
+{
+    SetValue(1.0 - raw);
+}
+
+Slider::Thumb::State Slider::Thumb::GetState() const
+{
+    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    auto currentState = stateMachine->current_state()[0];
+    if (3 == currentState) // Treat EngagedRemotely and Engaged as the same state
+    {
+        currentState = 2;
+    }
+    return (State) currentState;
+}
 }

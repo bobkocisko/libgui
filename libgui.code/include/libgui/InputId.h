@@ -17,7 +17,7 @@ struct InputIdentifier
 
     bool IsTouch();
 
-    operator int();
+    operator int() const;
 
     bool operator==(const InputIdentifier other);
 

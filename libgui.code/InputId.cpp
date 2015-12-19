@@ -25,7 +25,7 @@ bool InputIdentifier::IsTouch()
     return _inputId > PointerInputId;
 }
 
-InputIdentifier::operator int()
+InputIdentifier::operator int() const
 {
     return _inputId;
 }
@@ -34,4 +34,3 @@ bool InputIdentifier::operator==(const InputIdentifier other)
 {
     return _inputId == other._inputId;
 }
-

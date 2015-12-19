@@ -1,7 +1,6 @@
 #pragma once 
 #include "Element.h"
 #include "Control.h"
-#include "ActiveControl.h"
 #include "Input.h"
 #include <list>
 
@@ -15,8 +14,8 @@ namespace libgui
 		shared_ptr<Element> GetRoot();
 
 		bool NotifyMove(InputId inputId, Point point);
-		bool NotifyDown(InputId inputId, Point point);
-		bool NotifyUp(InputId inputId, Point point);
+        bool NotifyDown(InputId inputId);
+        bool NotifyUp(InputId inputId);
 
 		const function<void(bool)>& GetSystemCaptureCallback() const;
 		void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
@@ -28,6 +27,6 @@ namespace libgui
 		shared_ptr<Element>  _root = nullptr;
 
 		function<void(bool)> _systemCaptureCallback;
-        Input* GetActiveInput(const InputId& inputId);
+        Input* GetInput(const InputId& inputId);
     };
 }

@@ -6,152 +6,269 @@
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
 
+#include <boost/msm/front/states.hpp>
+#include <boost/msm/front/state_machine_def.hpp>
+#include <boost/msm/back/state_machine.hpp>
+#include <boost/msm/front/euml/euml.hpp>
+
+using namespace boost::msm::front;
+using namespace boost::msm::back;
+using boost::msm::front::euml::func_state;
+using emptyvector = boost::fusion::vector<>;
+using boost::mpl::vector1;
+using boost::mpl::vector2;
+using boost::msm::TerminateFlag;
+
 namespace libgui
 {
-	Scrollbar::Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate)
-		: m_scrollDelegate(scrollDelegate)
-	{
-	}
+Scrollbar::Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate)
+    : _scrollDelegate(scrollDelegate)
+{
+}
 
-	void Scrollbar::Init()
-	{
-		m_track = make_shared<Track>();
-		this->AddChild(m_track);
+void Scrollbar::Init()
+{
+    _track = make_shared<Track>();
+    this->AddChild(_track);
 
-		m_thumb = make_shared<Thumb>(
-			dynamic_pointer_cast<Scrollbar>(shared_from_this()),
-			m_track);
-		m_track->AddChild(m_thumb);
-	}
+    _thumb = make_shared<Thumb>(
+        dynamic_pointer_cast<Scrollbar>(shared_from_this()),
+        _track);
+    _track->AddChild(_thumb);
+}
 
-	const shared_ptr<Scrollbar::Thumb>& Scrollbar::GetThumb() const
-	{
-		return m_thumb;
-	}
+const shared_ptr<Scrollbar::Thumb>& Scrollbar::GetThumb() const
+{
+    return _thumb;
+}
 
-	const shared_ptr<Scrollbar::Track>& Scrollbar::GetTrack() const
-	{
-		return m_track;
-	}
+const shared_ptr<Scrollbar::Track>& Scrollbar::GetTrack() const
+{
+    return _track;
+}
 
-	const shared_ptr<ScrollDelegate>& Scrollbar::GetScrollDelegate() const
-	{
-		return m_scrollDelegate;
-	}
+const shared_ptr<ScrollDelegate>& Scrollbar::GetScrollDelegate() const
+{
+    return _scrollDelegate;
+}
 
-	void Scrollbar::SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate)
-	{
-		m_scrollDelegate = scrollDelegate;
-	}
+void Scrollbar::SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate)
+{
+    _scrollDelegate = scrollDelegate;
+}
 
-	Scrollbar::Thumb::Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track)
-		: m_scrollbar(scrollbar),
-		m_track(track)
-	{
-	}
+namespace sm
+{
+// events
+struct Enter
+{
+};
+struct Leave
+{
+};
+struct Push
+{
+};
+struct Release
+{
+};
 
-	void Scrollbar::Thumb::Arrange()
-	{
-		if (auto sb = m_scrollbar.lock())
-		{
-			auto scrollDelegate = sb->GetScrollDelegate();
+class StateMachineFrontEnd: public state_machine_def<StateMachineFrontEnd>
+{
 
-			auto p = GetParent();
-			SetLeft(p->GetLeft()); SetRight(p->GetRight());
-			auto trackHeight = p->GetHeight();
-			auto height = scrollDelegate->GetThumbSizePercent() * trackHeight;
-			auto top = p->GetTop() + (scrollDelegate->GetCurrentOffsetPercent() * trackHeight);
-			SetTop(round(top)); SetBottom(round(top + height));
-		}
-	}
+public:
+    StateMachineFrontEnd(Scrollbar::Thumb* parent)
+        : _parent(parent)
+    {
+    }
 
-	void Scrollbar::Thumb::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
-	{
-		m_isOver = true;
+    // states
+    struct Idle: public state<>
+    {
+    };
+    struct Pending: public state<>
+    {
+    };
+    struct Engaged: public state<>
+    {
+    };
+    struct EngagedRemotely: public state<>
+    {
+    };
 
-		if (IsCapturing())
-		{
-			m_isPressed = true;
-		}
-		else
-		{
-			m_isHot = true;
-		}
-	}
+    // actions
+    struct RecordAnchor
+    {
+        template<class EVT, class FSM, class SourceState, class TargetState>
+        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+        {
+            fsm._parent->RecordAnchor();
+        }
+    };
 
-	void Scrollbar::Thumb::NotifyMouseLeave()
-	{
-		m_isOver = false;
+    // Replaces the default no-transition response.
+    template<class FSM, class Event>
+    void no_transition(Event const& e, FSM&, int state)
+    {
+        // Simply ignore any event that doesn't generate a transition
+    }
 
-		if (IsCapturing())
-		{
-			m_isPressed = false;
-		}
-		else
-		{
-			m_isHot = false;
-		}
-	}
+    // Set up the starting state of the state machine
+    typedef Idle initial_state;
 
-	void Scrollbar::Thumb::NotifyMouseDown(Location location)
-	{
-		m_isHot = true;
-		m_isPressed = true;
 
-		m_anchorOffset = location.y - GetTop();
+    // Transition table for state machine
+    // @formatter:off
 
-		GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
-	}
 
-	void Scrollbar::Thumb::NotifyMouseUp(Location location)
-	{
-		m_isPressed = false;
-		if (IsCapturing())
-		{
-			if (!m_isOver)
-			{
-				m_isHot = false;
-			}
+    // NOTE: The order of the states listed in this table must match the order in the State enum
+    // as well as the funky logic in GetState().
+    struct transition_table : boost::mpl::vector<
+    //    Start              Event       Next State         Action           Guard
+    //  +------------------+-----------+------------------+----------------+---------+
+    Row < Idle             , Enter     , Pending          , none           , none    >,
+    //  +------------------+-----------+------------------+----------------+---------+
+    Row < Pending          , Leave     , Idle             , none           , none    >,
+    Row < Pending          , Push      , Engaged          , RecordAnchor   , none    >,
+    //  +------------------+-----------+------------------+----------------+---------+
+    Row < Engaged          , Release   , Pending          , none           , none    >,
+    Row < Engaged          , Leave     , EngagedRemotely  , none           , none    >,
+    //  +------------------+-----------+------------------+----------------+---------+
+    Row < EngagedRemotely  , Enter     , Engaged          , none           , none    >,
+    Row < EngagedRemotely  , Release   , Idle             , none           , none    >
+    //  +------------------+-----------+------------------+----------------+---------+
+    > {};
 
-			GetElementManager()->ReleaseCapture();
-		}
-	}
+    // @formatter:on
 
-	void Scrollbar::Thumb::NotifyMouseMove(Location location, bool& updateScreen)
-	{
-		if (IsCapturing())
-		{
-			auto sb = m_scrollbar.lock();
-			auto track = m_track.lock();
-			if (sb && track)
-			{
-				auto scrollDelegate = sb->GetScrollDelegate();
-				auto offsetPercent = ((location.y - m_anchorOffset) - track->GetTop()) / track->GetHeight();
-				scrollDelegate->LimitToBounds(offsetPercent);
-				if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
-				{
-					scrollDelegate->MoveToOffsetPercent(offsetPercent);
-					updateScreen = true;
-					return;
-				}
-			}
-		}
-		updateScreen = false;
-		return;
-	}
+private:
+    Scrollbar::Thumb* _parent;
 
-	const bool& Scrollbar::Thumb::GetIsPressed() const
-	{
-		return m_isPressed;
-	}
+};
 
-	const bool& Scrollbar::Thumb::GetIsHot() const
-	{
-		return m_isHot;
-	}
+typedef state_machine<StateMachineFrontEnd> StateMachine;
+}
 
-	const weak_ptr<Scrollbar>& Scrollbar::Thumb::GetScrollbar() const
-	{
-		return m_scrollbar;
-	}
+Scrollbar::Thumb::Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track)
+    : _scrollbar(scrollbar),
+      _track(track)
+{
+    // Create and store state machine
+    auto stateMachine = new sm::StateMachine(this);
+    stateMachine->start();
+
+    _stateMachine = stateMachine;
+}
+
+Scrollbar::Thumb::~Thumb()
+{
+    // Delete state machine
+    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    delete stateMachine;
+    _stateMachine = nullptr;
+}
+
+void Scrollbar::Thumb::Arrange()
+{
+    if (auto sb = _scrollbar.lock())
+    {
+        auto scrollDelegate = sb->GetScrollDelegate();
+
+        auto p = GetParent();
+        SetLeft(p->GetLeft());
+        SetRight(p->GetRight());
+        auto trackHeight = p->GetHeight();
+        auto height      = scrollDelegate->GetThumbSizePercent() * trackHeight;
+        auto top         = p->GetTop() + (scrollDelegate->GetCurrentOffsetPercent() * trackHeight);
+        SetTop(round(top));
+        SetBottom(round(top + height));
+    }
+}
+
+void Scrollbar::Thumb::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
+{
+    if (InputType::Touch == inputType)
+    {
+        // Biased judgement: Scrollbars shouldn't even be visible in touch mode, so ignore touch inputs
+        updateScreen = false;
+        return;
+    }
+
+    // Apply the default screen update logic
+    Control::NotifyInput(inputAction, inputType, point, updateScreen);
+
+    auto stateMachine = (sm::StateMachine*) _stateMachine;
+
+    switch (inputAction)
+    {
+
+        case InputAction::EnterReleased:
+            stateMachine->process_event(sm::Enter());
+            break;
+        case InputAction::EnterPushed:
+            stateMachine->process_event(sm::Enter());
+            break;
+        case InputAction::Move:
+            bool moveUpdateScreen;
+            NotifyPointerMove(point, moveUpdateScreen);
+            if (moveUpdateScreen)
+            {
+                updateScreen = true;
+            }
+            break;
+        case InputAction::Push:
+            stateMachine->process_event(sm::Push());
+            break;
+        case InputAction::Release:
+            stateMachine->process_event(sm::Release());
+            break;
+        case InputAction::Leave:
+            stateMachine->process_event(sm::Leave());
+            break;
+    }
+
+}
+
+void Scrollbar::Thumb::RecordAnchor()
+{
+    _anchorOffset = _pointer.Y - GetTop();
+}
+
+void Scrollbar::Thumb::NotifyPointerMove(Point point, bool& updateScreen)
+{
+    updateScreen = false;
+    _pointer     = point;
+    if (State::Engaged == GetState())
+    {
+        auto sb    = _scrollbar.lock();
+        auto track = _track.lock();
+        if (sb && track)
+        {
+            auto scrollDelegate = sb->GetScrollDelegate();
+            auto offsetPercent  = ((point.Y - _anchorOffset) - track->GetTop()) / track->GetHeight();
+            scrollDelegate->LimitToBounds(offsetPercent);
+            if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
+            {
+                scrollDelegate->MoveToOffsetPercent(offsetPercent);
+                updateScreen = true;
+            }
+        }
+    }
+}
+
+const weak_ptr<Scrollbar>& Scrollbar::Thumb::GetScrollbar() const
+{
+    return _scrollbar;
+}
+
+Scrollbar::Thumb::State Scrollbar::Thumb::GetState() const
+{
+    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    auto currentState = stateMachine->current_state()[0];
+    if (3 == currentState) // Treat EngagedRemotely and Engaged as the same state
+    {
+        currentState = 2;
+    }
+    return (State) currentState;
+}
 }

@@ -10,7 +10,12 @@ namespace libgui
 Input::Input(const InputId& inputId)
     : _inputId(inputId)
 {
-    _isDown = false;
+    _isDown           = false;
+    _activeControl    = nullptr;
+    _ignoredByControl = nullptr;
+
+    // By default there is no simulation
+    _simulationOffset = Point{0, 0};
 
     if (_inputId.IsPointer())
     {
@@ -50,6 +55,13 @@ bool Input::NotifyMove(Point point, Element* overElement)
             }
         }
     }
+    else if (_ignoredByControl)
+    {
+        if (overElement != _ignoredByControl)
+        {
+            LeaveIgnoredControl();
+        }
+    }
     else
     {
         if (overElement)
@@ -73,6 +85,9 @@ bool Input::NotifyMove(Point point, Element* overElement)
 bool Input::NotifyDown()
 {
     bool shouldUpdateScreen = false;
+
+    _isDown = true;
+
     if (_activeControl)
     {
         shouldUpdateScreen = ActiveControlDown(_point);
@@ -87,6 +102,9 @@ bool Input::NotifyDown()
 bool Input::NotifyUp()
 {
     bool shouldUpdateScreen = false;
+
+    _isDown = false;
+
     if (_activeControl)
     {
         shouldUpdateScreen = ActiveControlUp(_point);
@@ -94,15 +112,14 @@ bool Input::NotifyUp()
         // Consider the input capture released whenever the input goes up
         if (_isCapturedByActiveControl)
         {
-            _activeControl = nullptr;
+            _activeControl->SetHasActiveInput(false);
+            _activeControl             = nullptr;
             _isCapturedByActiveControl = false;
         }
     }
 
     return shouldUpdateScreen;
 }
-
-
 
 /*
  * Helper functions
@@ -116,6 +133,7 @@ bool Input::LeaveActiveControl(Point point)
 
     if (!_isCapturedByActiveControl)
     {
+        _activeControl->SetHasActiveInput(false);
         _activeControl = nullptr;
     }
 
@@ -135,6 +153,13 @@ bool Input::EnterControl(Point point, Control* control)
 {
     bool shouldUpdateScreen;
 
+    if (control->HasActiveInput())
+    {
+        // There is already another input for this control so we'll be ignored
+        _ignoredByControl = control;
+        return false;
+    }
+
     InputAction action;
     if (_isDown)
     {
@@ -146,6 +171,7 @@ bool Input::EnterControl(Point point, Control* control)
     }
 
     _activeControl = control;
+    control->SetHasActiveInput(true);
     _activeControl->NotifyInput(action, _inputType, point, shouldUpdateScreen);
 
     return shouldUpdateScreen;
@@ -168,4 +194,10 @@ bool Input::ActiveControlUp(Point point)
 
     return shouldUpdateScreen;
 }
+
+void Input::LeaveIgnoredControl()
+{
+    _ignoredByControl = nullptr;
+}
+
 }

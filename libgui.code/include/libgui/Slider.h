@@ -7,80 +7,87 @@
 
 namespace libgui
 {
-	class Slider : public libgui::Element
-	{
-	public:
-		virtual void Init();
+class Slider: public libgui::Element
+{
+public:
+    virtual void Init();
 
-		const double& GetValue() const;
-		void SetValue(double value);
+    const double& GetValue() const;
+    void SetValue(double value);
 
-		const double& GetThumbHeight() const;
-		void SetThumbHeight(double thumbHeight);
+    const double& GetThumbHeight() const;
+    void SetThumbHeight(double thumbHeight);
 
-		const function<void(shared_ptr<Slider>)>& GetValueChangedCallback() const;
-		void SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback);
+    const function<void(shared_ptr<Slider>)>& GetValueChangedCallback() const;
+    void SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback);
 
-		class Thumb;
-		class Track;
+    class Thumb;
+    class Track;
 
-		const shared_ptr<Thumb>& GetThumb() const;
+    const shared_ptr<Thumb>& GetThumb() const;
 
-		const shared_ptr<Track>& GetTrack() const;
+    const shared_ptr<Track>& GetTrack() const;
 
-		class Track : public Element
-		{
+    class Track: public Element
+    {
 
-		};
+    };
 
-		class Thumb : public Control
-		{
-		public:
-			explicit Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track);
+    class Thumb: public Control
+    {
+    public:
+        explicit Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track);
+        virtual ~Thumb();
 
-			// Input events
-			void NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen) override;
-			void NotifyMouseLeave() override;
-			void NotifyMouseDown(Location location) override;
-			void NotifyMouseUp(Location location) override;
-			void NotifyMouseMove(Location location, bool& updateScreen) override;
+        // Input events
+        void  NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen) override;
 
-			// Output states
-			const bool& GetIsPressed() const;
-			const bool& GetIsHot() const;
+        // States
+        // This enum must match the order of the states defined in the state machine table
+        // As well as the funky id logic in GetState()
+        enum State
+        {
+            Idle,
+            Pending,
+            Engaged
+        };
+        State GetState() const;
 
-			void Arrange() override;
+        void Arrange() override;
 
-			const weak_ptr<Slider>& GetSlider() const;
+        const weak_ptr<Slider>& GetSlider() const;
 
-		private:
-			weak_ptr<Slider> m_slider;
-			weak_ptr<Track> m_track;
-			bool m_isOver;
-			bool m_isPressed;
-			bool m_isHot;
-			double m_anchorOffset;
-		};
+        void RecordAnchor();
+    private:
+        void* _stateMachine;
+        weak_ptr<Slider> _slider;
+        weak_ptr<Track>  _track;
+        double           _anchorOffset;
+        Point            _pointer;
 
-	protected:
-		virtual void OnValueChanged();
+        void NotifyPointerMove(Point point, bool& updateScreen);
+    };
 
-		// Support transformations of the value from the raw 0.0-1.0 scale meaning a 
-		// linear top to bottom value.  The default transformation that makes 0.0 values 
-		// be at the bottom.
-		virtual double GetRawFromValue();
-		// Support transformations of the value from the raw 0.0-1.0 scale meaning a 
-		// linear top to bottom value.  The default transformation that makes 0.0 values 
-		// be at the bottom.
-		virtual void SetValueFromRaw(double raw);
+protected:
+    virtual void OnValueChanged();
 
-	private:
-		shared_ptr<Thumb> m_thumb;
-		shared_ptr<Track> m_track;
-		double m_value = 0.0;
+    // Support transformations of the value from the raw 0.0-1.0 scale meaning a
+    // linear top to bottom value.  The default transformation that makes 0.0 values
+    // be at the bottom.
+    virtual double GetRawFromValue();
+    // Support transformations of the value from the raw 0.0-1.0 scale meaning a
+    // linear top to bottom value.  The default transformation that makes 0.0 values
+    // be at the bottom.
+    virtual void   SetValueFromRaw(double raw);
 
-		double m_thumbHeight = 10.0; // Some default so that it is visible
-		function<void(shared_ptr<Slider>)> m_valueChangedCallback;
-	};
+private:
+    shared_ptr<Thumb> _thumb;
+    shared_ptr<Track> _track;
+    double            _value = 0.0;
+
+    double _thumbHeight = 10.0; // Some default so that it is visible
+    function<void(shared_ptr<Slider>)>
+           _valueChangedCallback;
+};
 }
 

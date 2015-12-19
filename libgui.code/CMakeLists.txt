@@ -47,6 +47,11 @@ set(SOURCE_FILES
     include/libgui/Location.h
     Length.cpp Location.cpp
     include/libgui/InputAction.h
-    include/libgui/Point.h include/libgui/InputType.h include/libgui/ActiveControl.cpp include/libgui/ActiveControl.h include/libgui/InputId.h include/libgui/InputId.cpp Input.cpp include/libgui/Input.h)
+    include/libgui/Point.h
+    include/libgui/InputType.h
+    include/libgui/InputId.h
+    InputId.cpp
+    Input.cpp
+    include/libgui/Input.h)
 
 add_library(libgui ${SOURCE_FILES})

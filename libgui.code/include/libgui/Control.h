@@ -5,33 +5,43 @@
 #include "InputType.h"
 #include "Point.h"
 
+
 namespace libgui
 {
-    class Control: public Element
-    {
-    public:
-        // Called before NotifyInput and can optionally prevent the sending of NotifyInput event
-        virtual void PreNotifyInput(InputAction
-                                    inputAction,
-                                    InputType inputType,
-                                    Point point,
-                                    bool& updateScreen,
-                                    bool& notify);
+class Input;
 
-        // Called when an input action occurs.  See ElementManager for details of when this is called.
-        virtual void NotifyInput(InputAction inputAction,
-                                 InputType inputType,
-                                 Point point,
-                                 bool& updateScreen);
+class Control: public Element
+{
+public:
+    // Called before NotifyInput and can optionally prevent the sending of NotifyInput event
+    virtual void PreNotifyInput(InputAction
+                                inputAction,
+                                InputType inputType,
+                                Point point,
+                                bool& updateScreen,
+                                bool& notify);
 
-        // State
-        const bool& GetIsEnabled() const;
-        void SetIsEnabled(bool isEnabled);
+    // Called when an input action occurs.  See ElementManager for details of when this is called.
+    virtual void NotifyInput(InputAction inputAction,
+                             InputType inputType,
+                             Point point,
+                             bool& updateScreen);
 
-        // Implementation
-        void ResetArrangement() override;
+    // State
+    const bool& GetIsEnabled() const;
+    void SetIsEnabled(bool isEnabled);
 
-    private:
-        bool _isEnabled = true;
-    };
+    // Input Management
+
+    bool HasActiveInput() const;
+    void SetHasActiveInput(bool hasActiveInput);
+
+// Implementation
+    void ResetArrangement() override;
+
+private:
+    bool _isEnabled      = true;
+    bool _hasActiveInput = false;
+
+};
 }
