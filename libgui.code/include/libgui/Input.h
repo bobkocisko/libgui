@@ -8,7 +8,7 @@
 #include "Point.h"
 #include "Control.h"
 #include "Element.h"
-#include "InputId.h"
+#include "InputIdentifier.h"
 
 namespace libgui
 {

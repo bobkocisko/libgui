@@ -49,8 +49,8 @@ set(SOURCE_FILES
     include/libgui/InputAction.h
     include/libgui/Point.h
     include/libgui/InputType.h
-    include/libgui/InputId.h
-    InputId.cpp
+    include/libgui/InputIdentifier.h
+    InputIdentifier.cpp
     Input.cpp
     include/libgui/Input.h)
 
