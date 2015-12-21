@@ -13,7 +13,7 @@ namespace libgui
 
 		shared_ptr<Element> GetRoot();
 
-		bool NotifyMove(InputId inputId, Point point);
+        bool NotifyNewPoint(InputId inputId, Point point);
         bool NotifyDown(InputId inputId);
         bool NotifyUp(InputId inputId);
 

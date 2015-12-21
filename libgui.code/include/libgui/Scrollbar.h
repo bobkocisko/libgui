@@ -35,7 +35,7 @@ public:
         virtual ~Thumb();
 
         // Input events
-        void  NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen) override;
+        void  NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen) override;
 
         // States
         // This enum must match the order of the states defined in the state machine table

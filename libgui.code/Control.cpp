@@ -34,7 +34,7 @@ void Control::PreNotifyInput(InputAction inputAction,
     notify       = true;
 }
 
-void Control::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
+void Control::NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen)
 {
     updateScreen = (InputAction::Move != inputAction);
 }

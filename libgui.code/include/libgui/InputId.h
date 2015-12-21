@@ -9,6 +9,8 @@
 // input ids represent unique touch points.  InputId 0 is undefined.
 const int PointerInputId = 1;
 
+const int FirstTouchId   = PointerInputId + 1;
+
 struct InputIdentifier
 {
     InputIdentifier(int inputId);

@@ -34,7 +34,7 @@ Input::Input(const InputId& inputId)
  *
  */
 
-bool Input::NotifyMove(Point point, Element* overElement)
+bool Input::NotifyNewPoint(Point point, Element* overElement)
 {
     bool shouldUpdateScreen = false;
 
@@ -67,7 +67,7 @@ bool Input::NotifyMove(Point point, Element* overElement)
         if (overElement)
         {
             Control* overControl = dynamic_cast<Control*>(overElement);
-            if (overControl)
+            if (overControl && overControl->GetIsEnabled())
             {
                 if (EnterControl(point, overControl))
                 {
@@ -129,7 +129,7 @@ bool Input::LeaveActiveControl(Point point)
 {
     bool shouldUpdateScreen;
 
-    _activeControl->NotifyInput(InputAction::Leave, _inputType, point, shouldUpdateScreen);
+    _activeControl->NotifyInput(_inputType, InputAction::Leave, point, shouldUpdateScreen);
 
     if (!_isCapturedByActiveControl)
     {
@@ -144,7 +144,7 @@ bool Input::ActiveControlMove(Point point)
 {
     bool shouldUpdateScreen;
 
-    _activeControl->NotifyInput(InputAction::Move, _inputType, point, shouldUpdateScreen);
+    _activeControl->NotifyInput(_inputType, InputAction::Move, point, shouldUpdateScreen);
 
     return shouldUpdateScreen;
 }
@@ -172,7 +172,7 @@ bool Input::EnterControl(Point point, Control* control)
 
     _activeControl = control;
     control->SetHasActiveInput(true);
-    _activeControl->NotifyInput(action, _inputType, point, shouldUpdateScreen);
+    _activeControl->NotifyInput(_inputType, action, point, shouldUpdateScreen);
 
     return shouldUpdateScreen;
 }
@@ -181,7 +181,7 @@ bool Input::ActiveControlDown(Point point)
 {
     bool shouldUpdateScreen;
 
-    _activeControl->NotifyInput(InputAction::Push, _inputType, point, shouldUpdateScreen);
+    _activeControl->NotifyInput(_inputType, InputAction::Push, point, shouldUpdateScreen);
 
     return shouldUpdateScreen;
 }
@@ -190,7 +190,7 @@ bool Input::ActiveControlUp(Point point)
 {
     bool shouldUpdateScreen;
 
-    _activeControl->NotifyInput(InputAction::Release, _inputType, point, shouldUpdateScreen);
+    _activeControl->NotifyInput(_inputType, InputAction::Release, point, shouldUpdateScreen);
 
     return shouldUpdateScreen;
 }

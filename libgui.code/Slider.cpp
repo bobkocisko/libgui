@@ -206,10 +206,10 @@ void Slider::Thumb::Arrange()
     }
 }
 
-void Slider::Thumb::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
+void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen)
 {
     // Apply the default screen update logic
-    Control::NotifyInput(inputAction, inputType, point, updateScreen);
+    Control::NotifyInput(inputType, inputAction, point, updateScreen);
 
     auto stateMachine = (sm::StateMachine*) _stateMachine;
 

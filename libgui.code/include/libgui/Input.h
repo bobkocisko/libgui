@@ -17,7 +17,7 @@ class Input
 public:
     Input(const InputId& inputId);
 
-    bool NotifyMove(Point point, Element* overElement);
+    bool NotifyNewPoint(Point point, Element* overElement);
     bool NotifyDown();
     bool NotifyUp();
 

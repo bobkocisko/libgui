@@ -22,10 +22,7 @@ public:
                                 bool& notify);
 
     // Called when an input action occurs.  See ElementManager for details of when this is called.
-    virtual void NotifyInput(InputAction inputAction,
-                             InputType inputType,
-                             Point point,
-                             bool& updateScreen);
+    virtual void NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen);
 
     // State
     const bool& GetIsEnabled() const;

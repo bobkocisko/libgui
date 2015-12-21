@@ -6,72 +6,32 @@
 using namespace std;
 using namespace libgui;
 
-class StubControl : public Control
+class StubControl: public Control
 {
 public:
-    void NotifyMouseDown(Location location) override
+    const bool& GetNotifyPointerPushCalled() const
     {
-        m_notifyMouseDownCalled = true;
-        GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
+        return m_notifyPointerPushCalled;
     }
 
-    const bool& GetNotifyMouseDownCalled() const
+    const bool& GetNotifyPointerReleaseCalled() const
     {
-        return m_notifyMouseDownCalled;
+        return m_notifyPointerReleaseCalled;
     }
 
-    void NotifyMouseUp(Location location) override
+    const bool& GetNotifyPointerMoveCalled() const
     {
-        m_notifyMouseUpCalled = true;
+        return m_notifyPointerMoveCalled;
     }
 
-    const bool& GetNotifyMouseUpCalled() const
+    const bool& GetNotifyTouchPushCalled() const
     {
-        return m_notifyMouseUpCalled;
+        return m_notifyTouchPushCalled;
     }
 
-    void NotifyMouseMove(Location location, bool& updateScreen) override
+    const bool& GetNotifyTouchReleaseCalled() const
     {
-        m_notifyMouseMoveCalled = true;
-        updateScreen = false;
-    }
-
-    const bool& GetNotifyMouseMoveCalled() const
-    {
-        return m_notifyMouseMoveCalled;
-    }
-
-    void NotifyTouchDown(Location location) override
-    {
-        m_notifyTouchDownCalled = true;
-        GetElementManager()->RequestCapture(dynamic_pointer_cast<Control>(shared_from_this()));
-    }
-
-    void NotifyTouchEnter() override
-    {
-        m_notifyTouchEnterCalled = true;
-    }
-
-    const bool& GetNotifyTouchDownCalled() const
-    {
-        return m_notifyTouchDownCalled;
-    }
-
-    void NotifyTouchUp(Location location) override
-    {
-        m_notifyTouchUpCalled = true;
-    }
-
-    const bool& GetNotifyTouchUpCalled() const
-    {
-        return m_notifyTouchUpCalled;
-    }
-
-
-    void NotifyTouchMove(Location location, bool& updateScreen) override
-    {
-        m_notifyTouchMoveCalled = true;
-        updateScreen = false;
+        return m_notifyTouchReleaseCalled;
     }
 
     const bool& GetNotifyTouchMoveCalled() const
@@ -84,15 +44,67 @@ public:
         return m_notifyTouchEnterCalled;
     }
 
-private:
-    bool m_notifyMouseDownCalled = false;
-    bool m_notifyMouseMoveCalled = false;
-    bool m_notifyMouseUpCalled = false;
+    void NotifyInput(InputType inputType,
+                     InputAction inputAction,
+                     Point point,
+                     bool& updateScreen) override
+    {
+        Control::NotifyInput(inputType, inputAction, point, updateScreen);
+        if (InputType::Pointer == inputType)
+        {
+            switch (inputAction)
+            {
+                case InputAction::EnterReleased:
+                    break;
+                case InputAction::EnterPushed:
+                    break;
+                case InputAction::Move:
+                    m_notifyPointerMoveCalled = true;
+                    break;
+                case InputAction::Push:
+                    m_notifyPointerPushCalled = true;
+                    break;
+                case InputAction::Release:
+                    m_notifyPointerReleaseCalled = true;
+                    break;
+                case InputAction::Leave:
+                    break;
+            }
+        }
+        else // touch
+        {
+            switch (inputAction)
+            {
+                case InputAction::EnterReleased:
+                    m_notifyTouchEnterCalled = true;
+                    break;
+                case InputAction::EnterPushed:
+                    m_notifyTouchEnterCalled = true;
+                    break;
+                case InputAction::Move:
+                    m_notifyTouchMoveCalled = true;
+                    break;
+                case InputAction::Push:
+                    m_notifyTouchPushCalled = true;
+                    break;
+                case InputAction::Release:
+                    m_notifyTouchReleaseCalled = true;
+                    break;
+                case InputAction::Leave:
+                    break;
+            }
+        }
+    }
 
-    bool m_notifyTouchDownCalled = false;
-    bool m_notifyTouchUpCalled = false;
-    bool m_notifyTouchMoveCalled = false;
-    bool m_notifyTouchEnterCalled = false;
+private:
+    bool m_notifyPointerPushCalled    = false;
+    bool m_notifyPointerMoveCalled    = false;
+    bool m_notifyPointerReleaseCalled = false;
+
+    bool m_notifyTouchPushCalled    = false;
+    bool m_notifyTouchReleaseCalled = false;
+    bool m_notifyTouchMoveCalled    = false;
+    bool m_notifyTouchEnterCalled   = false;
 };
 
 TEST(ElementManagerTests, WhenControlIsCaptured_ItReceivesNotifyUp)
@@ -100,15 +112,18 @@ TEST(ElementManagerTests, WhenControlIsCaptured_ItReceivesNotifyUp)
     auto em = make_shared<ElementManager>();
     auto sc = make_shared<StubControl>();
     em->SetRoot(sc);
-    sc->SetLeft(1); sc->SetRight(2);
-    sc->SetTop(1); sc->SetBottom(2);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
 
-    em->NotifyMouseMove(1, 1);
-    em->NotifyMouseDown(1, 1);
-    em->NotifyMouseMove(0, 0);
-    em->NotifyMouseUp(0, 0);
+    auto pointerInput = InputId(PointerInputId);
+    em->NotifyNewPoint(pointerInput, Point{1, 1});
+    em->NotifyDown(pointerInput);
+    em->NotifyNewPoint(pointerInput, Point{0, 0});
+    em->NotifyUp(pointerInput);
 
-    ASSERT_EQ(true, sc->GetNotifyMouseUpCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerReleaseCalled());
 }
 
 TEST(ElementManagerTests, WhenControlIsHidden_ItDoesNotReceiveNotifications)
@@ -118,24 +133,29 @@ TEST(ElementManagerTests, WhenControlIsHidden_ItDoesNotReceiveNotifications)
     sc->SetIsVisible(false);
 
     em->SetRoot(sc);
-    sc->SetLeft(1); sc->SetRight(2);
-    sc->SetTop(1); sc->SetBottom(2);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
 
-    em->NotifyMouseMove(1, 1);
-    em->NotifyMouseDown(1, 1);
-    em->NotifyMouseMove(1.5, 1.5);
-    em->NotifyMouseUp(1.5, 1.5);
+    auto pointerInput = InputId(PointerInputId);
+    em->NotifyNewPoint(pointerInput, Point{1, 1});
+    em->NotifyDown(pointerInput);
+    em->NotifyNewPoint(pointerInput, Point{1.5, 1.5});
+    em->NotifyUp(pointerInput);
 
-    ASSERT_EQ(false, sc->GetNotifyMouseDownCalled());
-    ASSERT_EQ(false, sc->GetNotifyMouseUpCalled());
-    ASSERT_EQ(false, sc->GetNotifyMouseMoveCalled());
+    ASSERT_EQ(false, sc->GetNotifyPointerPushCalled());
+    ASSERT_EQ(false, sc->GetNotifyPointerReleaseCalled());
+    ASSERT_EQ(false, sc->GetNotifyPointerMoveCalled());
 
-    em->NotifyDown((InputIdentifier(0)));
-    em->NotifyMove((InputIdentifier(0)), 1.5);
-    em->NotifyUp((InputIdentifier(0)));
+    auto touchPoint = InputId(FirstTouchId);
+    em->NotifyNewPoint(touchPoint, Point{1, 1});
+    em->NotifyDown(touchPoint);
+    em->NotifyNewPoint(touchPoint, Point{1.5, 1.5});
+    em->NotifyUp(touchPoint);
 
-    ASSERT_EQ(false, sc->GetNotifyTouchDownCalled());
-    ASSERT_EQ(false, sc->GetNotifyTouchUpCalled());
+    ASSERT_EQ(false, sc->GetNotifyTouchPushCalled());
+    ASSERT_EQ(false, sc->GetNotifyTouchReleaseCalled());
     ASSERT_EQ(false, sc->GetNotifyTouchMoveCalled());
 }
 
@@ -146,24 +166,29 @@ TEST(ElementManagerTests, WhenControlIsDisabled_ItDoesNotReceiveNotifications)
     sc->SetIsEnabled(false);
 
     em->SetRoot(sc);
-    sc->SetLeft(1); sc->SetRight(2);
-    sc->SetTop(1); sc->SetBottom(2);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
 
-    em->NotifyMouseMove(1, 1);
-    em->NotifyMouseDown(1, 1);
-    em->NotifyMouseMove(1.5, 1.5);
-    em->NotifyMouseUp(1.5, 1.5);
+    auto pointerInput = InputId(PointerInputId);
+    em->NotifyNewPoint(pointerInput, Point{1, 1});
+    em->NotifyDown(pointerInput);
+    em->NotifyNewPoint(pointerInput, Point{1.5, 1.5});
+    em->NotifyUp(pointerInput);
 
-    ASSERT_EQ(false, sc->GetNotifyMouseDownCalled());
-    ASSERT_EQ(false, sc->GetNotifyMouseUpCalled());
-    ASSERT_EQ(false, sc->GetNotifyMouseMoveCalled());
+    ASSERT_EQ(false, sc->GetNotifyPointerPushCalled());
+    ASSERT_EQ(false, sc->GetNotifyPointerReleaseCalled());
+    ASSERT_EQ(false, sc->GetNotifyPointerMoveCalled());
 
-    em->NotifyDown((InputIdentifier(0)));
-    em->NotifyMove((InputIdentifier(0)), 1.5);
-    em->NotifyUp((InputIdentifier(0)));
+    auto touchInput = InputId(FirstTouchId);
+    em->NotifyNewPoint(touchInput, Point{1, 1});
+    em->NotifyDown(touchInput);
+    em->NotifyNewPoint(touchInput, Point{1.5, 1.5});
+    em->NotifyUp(touchInput);
 
-    ASSERT_EQ(false, sc->GetNotifyTouchDownCalled());
-    ASSERT_EQ(false, sc->GetNotifyTouchUpCalled());
+    ASSERT_EQ(false, sc->GetNotifyTouchPushCalled());
+    ASSERT_EQ(false, sc->GetNotifyTouchReleaseCalled());
     ASSERT_EQ(false, sc->GetNotifyTouchMoveCalled());
 }
 
@@ -172,14 +197,18 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
     auto em = make_shared<ElementManager>();
     auto sc = make_shared<StubControl>();
     em->SetRoot(sc);
-    sc->SetLeft(1); sc->SetRight(2);
-    sc->SetTop(1); sc->SetBottom(2);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
 
-    em->NotifyDown((InputIdentifier(0)));
-    em->NotifyUp((InputIdentifier(0)));
+    auto touchInput = InputId(FirstTouchId);
+    em->NotifyNewPoint(touchInput, Point{1, 1});
+    em->NotifyDown(touchInput);
+    em->NotifyUp(touchInput);
 
-    ASSERT_EQ(true, sc->GetNotifyTouchDownCalled());
-    ASSERT_EQ(true, sc->GetNotifyTouchUpCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchReleaseCalled());
 }
 
 TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesNotifyEnter)
@@ -187,15 +216,17 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesNot
     auto em = make_shared<ElementManager>();
     auto sc = make_shared<StubControl>();
     em->SetRoot(sc);
-    sc->SetLeft(1); sc->SetRight(2);
-    sc->SetTop(1); sc->SetBottom(2);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
 
-    em->NotifyDown((InputIdentifier(0)));
-    em->NotifyMove((InputIdentifier(0)), 0);
-    em->NotifyMove((InputIdentifier(0)), 1);
+    auto touchInput = InputId(FirstTouchId);
+    em->NotifyNewPoint(touchInput, Point{1, 1});
+    em->NotifyDown(touchInput);
+    em->NotifyNewPoint(touchInput, Point{0, 0});
+    em->NotifyNewPoint(touchInput, Point{1, 1});
 
-    ASSERT_EQ(true, sc->GetNotifyTouchDownCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
     ASSERT_EQ(true, sc->GetNotifyTouchEnterCalled());
 }
-
-

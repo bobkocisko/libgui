@@ -6,506 +6,507 @@
 
 namespace libgui
 {
-    // Element Manager
-    void Element::SetElementManager(shared_ptr<ElementManager> elementManager)
+// Element Manager
+void Element::SetElementManager(shared_ptr<ElementManager> elementManager)
+{
+    _elementManager = elementManager;
+}
+
+shared_ptr<ElementManager> Element::GetElementManager()
+{
+    return _elementManager;
+}
+
+// View Model
+void Element::SetViewModel(shared_ptr<ViewModelBase> viewModel)
+{
+    _viewModel = viewModel;
+}
+
+shared_ptr<ViewModelBase> Element::GetViewModel()
+{
+    return _viewModel;
+}
+
+// Visual tree
+shared_ptr<Element> Element::GetParent()
+{
+    return _parent;
+}
+
+shared_ptr<Element> Element::GetFirstChild()
+{
+    return _firstChild;
+}
+
+shared_ptr<Element> Element::GetLastChild()
+{
+    return _lastChild;
+}
+
+shared_ptr<Element> Element::GetPrevSibling()
+{
+    return _prevsibling;
+}
+
+shared_ptr<Element> Element::GetNextSibling()
+{
+    return _nextsibling;
+}
+
+void Element::RemoveChildren()
+{
+    // Recurse into children to thoroughly clean the element tree
+    auto e = _firstChild;
+    while (e != nullptr)
     {
-        _elementManager = elementManager;
+        e->RemoveChildren();
+
+        // Clean up pointers so that the class will be deleted
+        e->_parent      = nullptr;
+        e->_prevsibling = nullptr;
+        auto next_e = e->_nextsibling;
+        e->_nextsibling = nullptr;
+        e = next_e;
     }
 
-    shared_ptr<ElementManager> Element::GetElementManager()
+    _firstChild    = nullptr;
+    _lastChild     = nullptr;
+    _childrenCount = 0;
+}
+
+void Element::AddChild(shared_ptr<Element> element)
+{
+    if (_firstChild == nullptr)
     {
-        return _elementManager;
+        _firstChild = element;
+    }
+    else
+    {
+        element->_prevsibling    = _lastChild;
+        _lastChild->_nextsibling = element;
     }
 
-    // View Model
-    void Element::SetViewModel(shared_ptr<ViewModelBase> viewModel)
-    {
-        _viewModel = viewModel;
-    }
+    element->_parent = shared_from_this();
+    _lastChild = element;
 
-    shared_ptr<ViewModelBase> Element::GetViewModel()
-    {
-        return _viewModel;
-    }
+    _childrenCount++;
+}
 
-    // Visual tree
-    shared_ptr<Element> Element::GetParent()
-    {
-        return _parent;
-    }
+int Element::GetChildrenCount()
+{
+    return _childrenCount;
+}
 
-    shared_ptr<Element> Element::GetFirstChild()
+void Element::SetSingleChild(shared_ptr<Element> child)
+{
+    // Could be optimized to improve performance
+    RemoveChildren();
+    AddChild(child);
+}
+
+shared_ptr<Element> Element::GetSingleChild()
+{
+    if (_childrenCount == 1)
     {
         return _firstChild;
     }
 
-    shared_ptr<Element> Element::GetLastChild()
+    if (_childrenCount == 0)
     {
-        return _lastChild;
+        return nullptr;
     }
 
-    shared_ptr<Element> Element::GetPrevSibling()
-    {
-        return _prevsibling;
-    }
+    throw std::runtime_error("There is more than one child in this element");
+}
 
-    shared_ptr<Element> Element::GetNextSibling()
-    {
-        return _nextsibling;
-    }
+// Cache Management
+void Element::ClearCache(int cacheLevel)
+{
+    ClearElementCache(cacheLevel);
 
-    void Element::RemoveChildren()
+    // Recurse to children
+    if (_firstChild)
     {
-        // Recurse into children to thoroughly clean the element tree
-        auto e = _firstChild;
-        while (e != nullptr)
+        for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
         {
-            e->RemoveChildren();
+            e->ClearCache(cacheLevel);
+        }
+    }
+}
 
-            // Clean up pointers so that the class will be deleted
-            e->_parent      = nullptr;
-            e->_prevsibling = nullptr;
-            auto next_e = e->_nextsibling;
-            e->_nextsibling = nullptr;
-            e = next_e;
+void Element::ClearElementCache(int cacheLevel)
+{
+    // This is intended to be overridden as needed for OS-specific needs.
+}
+
+// Arrangement
+void Element::ResetArrangement()
+{
+    if (_parent)
+    {
+        // Copy the element manager from the parent
+        _elementManager = _parent->_elementManager;
+    }
+
+    _isVisible = true;
+
+    _left    = 0;
+    _top     = 0;
+    _right   = 0;
+    _bottom  = 0;
+    _centerX = 0;
+    _centerY = 0;
+    _width   = 0;
+    _height  = 0;
+
+    _isLeftSet    = false;
+    _isTopSet     = false;
+    _isRightSet   = false;
+    _isBottomSet  = false;
+    _isCenterXSet = false;
+    _isCenterYSet = false;
+    _isWidthSet   = false;
+    _isHeightSet  = false;
+}
+
+void Element::SetSetViewModelCallback(function<void(shared_ptr<Element>)> setViewModelCallback)
+{
+    _setViewModelCallback = setViewModelCallback;
+}
+
+void Element::PrepareViewModel()
+{
+    if (_setViewModelCallback)
+    {
+        _setViewModelCallback(shared_from_this());
+    }
+    else
+    {
+        // By default the ViewModel is copied from the parent
+        if (_parent)
+        {
+            _viewModel = _parent->_viewModel;
+        }
+    }
+}
+
+void Element::SetArrangeCallback(function<void(shared_ptr<Element>)> arrangeCallback)
+{
+    _arrangeCallback = arrangeCallback;
+}
+
+void Element::Arrange()
+{
+    if (_arrangeCallback)
+    {
+        _arrangeCallback(shared_from_this());
+    }
+    else
+    {
+        // By default each element stretches
+        // to fill its parent
+        SetLeft(_parent->GetLeft());
+        SetTop(_parent->GetTop());
+        SetRight(_parent->GetRight());
+        SetBottom(_parent->GetBottom());
+    }
+}
+
+void Element::ArrangeAndDraw(bool draw)
+{
+    ResetArrangement();
+    PrepareViewModel();
+    Arrange();
+    if (draw && _isVisible)
+    {
+        if (_clipToBounds)
+        {
+            if (auto startClipping = DrawingManager::Get()->GetStartClippingCallback())
+            {
+                Rect4 r(GetLeft(), GetTop(), GetRight(), GetBottom());
+                startClipping(r);
+            }
         }
 
-        _firstChild    = nullptr;
-        _lastChild     = nullptr;
-        _childrenCount = 0;
-    }
-
-    void Element::AddChild(shared_ptr<Element> element)
-    {
-        if (_firstChild == nullptr)
-        {
-            _firstChild = element;
-        }
-        else
-        {
-            element->_prevsibling    = _lastChild;
-            _lastChild->_nextsibling = element;
-        }
-
-        element->_parent = shared_from_this();
-        _lastChild = element;
-
-        _childrenCount++;
-    }
-
-    int Element::GetChildrenCount()
-    {
-        return _childrenCount;
-    }
-
-    void Element::SetSingleChild(shared_ptr<Element> child)
-    {
-        // Could be optimized to improve performance
-        RemoveChildren();
-        AddChild(child);
-    }
-
-    shared_ptr<Element> Element::GetSingleChild()
-    {
-        if (_childrenCount == 1)
-        {
-            return _firstChild;
-        }
-
-        if (_childrenCount == 0)
-        {
-            return nullptr;
-        }
-
-        throw std::runtime_error("There is more than one child in this element");
-    }
-
-    // Cache Management
-    void Element::ClearCache(int cacheLevel)
-    {
-        ClearElementCache(cacheLevel);
-
-        // Recurse to children
+        Draw();
         if (_firstChild)
         {
             for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
             {
-                e->ClearCache(cacheLevel);
+                e->ArrangeAndDraw(draw);
             }
         }
-    }
 
-    void Element::ClearElementCache(int cacheLevel)
-    {
-        // This is intended to be overridden as needed for OS-specific needs.
-    }
-
-    // Arrangement
-    void Element::ResetArrangement()
-    {
-        if (_parent)
+        if (_clipToBounds)
         {
-            // Copy the element manager from the parent
-            _elementManager = _parent->_elementManager;
-        }
-
-        _isVisible = true;
-
-        _left    = 0;
-        _top     = 0;
-        _right   = 0;
-        _bottom  = 0;
-        _centerX = 0;
-        _centerY = 0;
-        _width   = 0;
-        _height  = 0;
-
-        _isLeftSet    = false;
-        _isTopSet     = false;
-        _isRightSet   = false;
-        _isBottomSet  = false;
-        _isCenterXSet = false;
-        _isCenterYSet = false;
-        _isWidthSet   = false;
-        _isHeightSet  = false;
-    }
-
-    void Element::SetSetViewModelCallback(function<void(shared_ptr<Element>)> setViewModelCallback)
-    {
-        _setViewModelCallback = setViewModelCallback;
-    }
-
-    void Element::PrepareViewModel()
-    {
-        if (_setViewModelCallback)
-        {
-            _setViewModelCallback(shared_from_this());
-        }
-        else
-        {
-            // By default the ViewModel is copied from the parent
-            if (_parent)
+            if (auto stopClipping = DrawingManager::Get()->GetStopClippingCallback())
             {
-                _viewModel = _parent->_viewModel;
+                stopClipping();
             }
         }
     }
+}
 
-    void Element::SetArrangeCallback(function<void(shared_ptr<Element>)> arrangeCallback)
-    {
-        _arrangeCallback = arrangeCallback;
-    }
+void Element::SetIsVisible(bool isVisible)
+{
+    _isVisible = isVisible;
+}
 
-    void Element::Arrange()
+bool Element::GetIsVisible()
+{
+    return _isVisible;
+}
+
+void Element::SetClipToBounds(bool clipToBounds)
+{
+    _clipToBounds = clipToBounds;
+}
+
+bool Element::GetClipToBounds()
+{
+    return _clipToBounds;
+}
+
+void Element::SetLeft(double left)
+{
+    _isLeftSet = true;
+    _left      = left;
+}
+
+void Element::SetTop(double top)
+{
+    _isTopSet = true;
+    _top      = top;
+}
+
+void Element::SetRight(double right)
+{
+    _isRightSet = true;
+    _right      = right;
+}
+
+void Element::SetBottom(double bottom)
+{
+    _isBottomSet = true;
+    _bottom      = bottom;
+}
+
+void Element::SetCenterX(double centerX)
+{
+    _isCenterXSet = true;
+    _centerX      = centerX;
+}
+
+void Element::SetCenterY(double centerY)
+{
+    _isCenterYSet = true;
+    _centerY      = centerY;
+}
+
+void Element::SetWidth(double width)
+{
+    _isWidthSet = true;
+    _width      = width;
+}
+
+void Element::SetHeight(double height)
+{
+    _isHeightSet = true;
+    _height      = height;
+}
+
+double Element::GetLeft()
+{
+    if (!_isLeftSet)
     {
-        if (_arrangeCallback)
+        if (_isWidthSet)
         {
-            _arrangeCallback(shared_from_this());
-        }
-        else
-        {
-            // By default each element stretches
-            // to fill its parent
-            SetLeft(_parent->GetLeft());
-            SetTop(_parent->GetTop());
-            SetRight(_parent->GetRight());
-            SetBottom(_parent->GetBottom());
-        }
-    }
-
-    void Element::ArrangeAndDraw(bool draw)
-    {
-        ResetArrangement();
-        PrepareViewModel();
-        Arrange();
-        if (draw && _isVisible)
-        {
-            if (_clipToBounds)
+            if (_isRightSet)
             {
-                if (auto startClipping = DrawingManager::Get()->GetStartClippingCallback())
-                {
-                    Rect4 r(GetLeft(), GetTop(), GetRight(), GetBottom());
-                    startClipping(r);
-                }
+                _left = _right - _width;
             }
-
-            Draw();
-            if (_firstChild)
+            else if (_isCenterXSet)
             {
-                for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
-                {
-                    e->ArrangeAndDraw(draw);
-                }
-            }
-
-            if (_clipToBounds)
-            {
-                if (auto stopClipping = DrawingManager::Get()->GetStopClippingCallback())
-                {
-                    stopClipping();
-                }
+                _left = _centerX - (_width / 2);
             }
         }
-    }
-
-    void Element::SetIsVisible(bool isVisible)
-    {
-        _isVisible = isVisible;
-    }
-
-    bool Element::GetIsVisible()
-    {
-        return _isVisible;
-    }
-
-    void Element::SetClipToBounds(bool clipToBounds)
-    {
-        _clipToBounds = clipToBounds;
-    }
-
-    bool Element::GetClipToBounds()
-    {
-        return _clipToBounds;
-    }
-
-    void Element::SetLeft(double left)
-    {
         _isLeftSet = true;
-        _left      = left;
     }
+    return _left;
+}
 
-    void Element::SetTop(double top)
+double Element::GetTop()
+{
+    if (!_isTopSet)
     {
+        if (_isHeightSet)
+        {
+            if (_isBottomSet)
+            {
+                _top = _bottom - _height;
+            }
+            else if (_isCenterYSet)
+            {
+                _top = _centerY - (_height / 2);
+            }
+        }
         _isTopSet = true;
-        _top      = top;
     }
+    return _top;
+}
 
-    void Element::SetRight(double right)
+double Element::GetRight()
+{
+    if (!_isRightSet)
     {
+        if (_isWidthSet)
+        {
+            if (_isLeftSet)
+            {
+                _right = _left + _width;
+            }
+            else if (_isCenterXSet)
+            {
+                _right = _centerX + (_width / 2);
+            }
+        }
         _isRightSet = true;
-        _right      = right;
     }
+    return _right;
+}
 
-    void Element::SetBottom(double bottom)
+double Element::GetBottom()
+{
+    if (!_isBottomSet)
     {
+        if (_isHeightSet)
+        {
+            if (_isTopSet)
+            {
+                _bottom = _top + _height;
+            }
+            else if (_isCenterYSet)
+            {
+                _bottom = _centerY + (_height / 2);
+            }
+        }
         _isBottomSet = true;
-        _bottom      = bottom;
     }
+    return _bottom;
+}
 
-    void Element::SetCenterX(double centerX)
+double Element::GetCenterX()
+{
+    if (!_isCenterXSet)
     {
+        if (_isLeftSet && _isRightSet)
+        {
+            _centerX = _left + (_right - _left) / 2;
+        }
+        else if (_isLeftSet && _isWidthSet)
+        {
+            _centerX = _left + (_width / 2);
+        }
+        else if (_isRightSet && _isWidthSet)
+        {
+            _centerX = _right - (_width / 2);
+        }
         _isCenterXSet = true;
-        _centerX      = centerX;
     }
+    return _centerX;
+}
 
-    void Element::SetCenterY(double centerY)
+double Element::GetCenterY()
+{
+    if (!_isCenterYSet)
     {
+        if (_isTopSet && _isBottomSet)
+        {
+            _centerY = _top + (_bottom - _top) / 2;
+        }
+        else if (_isTopSet && _isHeightSet)
+        {
+            _centerY = _top + (_height / 2);
+        }
+        else if (_isBottomSet && _isHeightSet)
+        {
+            _centerY = _bottom - (_height / 2);
+        }
         _isCenterYSet = true;
-        _centerY      = centerY;
     }
+    return _centerY;
+}
 
-    void Element::SetWidth(double width)
+double Element::GetWidth()
+{
+    if (!_isWidthSet)
     {
+        if (_isLeftSet && _isRightSet)
+        {
+            _width = _right - _left;
+        }
         _isWidthSet = true;
-        _width      = width;
     }
+    return _width;
+}
 
-    void Element::SetHeight(double height)
+double Element::GetHeight()
+{
+    if (!_isHeightSet)
     {
+        if (_isTopSet && _isBottomSet)
+        {
+            _height = _bottom - _top;
+        }
         _isHeightSet = true;
-        _height      = height;
     }
+    return _height;
+}
 
-    double Element::GetLeft()
+// Drawing
+void Element::Draw()
+{
+    if (_drawCallback)
     {
-        if (!_isLeftSet)
-        {
-            if (_isWidthSet)
-            {
-                if (_isRightSet)
-                {
-                    _left = _right - _width;
-                }
-                else if (_isCenterXSet)
-                {
-                    _left = _centerX - (_width / 2);
-                }
-            }
-            _isLeftSet = true;
-        }
-        return _left;
+        _drawCallback(shared_from_this());
     }
-
-    double Element::GetTop()
+    else
     {
-        if (!_isTopSet)
-        {
-            if (_isHeightSet)
-            {
-                if (_isBottomSet)
-                {
-                    _top = _bottom - _height;
-                }
-                else if (_isCenterYSet)
-                {
-                    _top = _centerY - (_height / 2);
-                }
-            }
-            _isTopSet = true;
-        }
-        return _top;
+        // By default no drawing takes place
     }
+}
 
-    double Element::GetRight()
-    {
-        if (!_isRightSet)
-        {
-            if (_isWidthSet)
-            {
-                if (_isLeftSet)
-                {
-                    _right = _left + _width;
-                }
-                else if (_isCenterXSet)
-                {
-                    _right = _centerX + (_width / 2);
-                }
-            }
-            _isRightSet = true;
-        }
-        return _right;
-    }
+void Element::SetDrawCallback(function<void(shared_ptr<Element>)> drawCallback)
+{
+    _drawCallback = drawCallback;
+}
 
-    double Element::GetBottom()
+// Hit testing
+Element* Element::GetElementAtPoint(Point point)
+{
+    if (_firstChild)
     {
-        if (!_isBottomSet)
+        for (auto e = _lastChild; e != nullptr; e = e->_prevsibling)
         {
-            if (_isHeightSet)
+            auto elementAtPoint = e->GetElementAtPoint(point);
+            if (elementAtPoint)
             {
-                if (_isTopSet)
-                {
-                    _bottom = _top + _height;
-                }
-                else if (_isCenterYSet)
-                {
-                    _bottom = _centerY + (_height / 2);
-                }
+                return elementAtPoint;
             }
-            _isBottomSet = true;
-        }
-        return _bottom;
-    }
-
-    double Element::GetCenterX()
-    {
-        if (!_isCenterXSet)
-        {
-            if (_isLeftSet && _isRightSet)
-            {
-                _centerX = _left + (_right - _left) / 2;
-            }
-            else if (_isLeftSet && _isWidthSet)
-            {
-                _centerX = _left + (_width / 2);
-            }
-            else if (_isRightSet && _isWidthSet)
-            {
-                _centerX = _right - (_width / 2);
-            }
-            _isCenterXSet = true;
-        }
-        return _centerX;
-    }
-
-    double Element::GetCenterY()
-    {
-        if (!_isCenterYSet)
-        {
-            if (_isTopSet && _isBottomSet)
-            {
-                _centerY = _top + (_bottom - _top) / 2;
-            }
-            else if (_isTopSet && _isHeightSet)
-            {
-                _centerY = _top + (_height / 2);
-            }
-            else if (_isBottomSet && _isHeightSet)
-            {
-                _centerY = _bottom - (_height / 2);
-            }
-            _isCenterYSet = true;
-        }
-        return _centerY;
-    }
-
-    double Element::GetWidth()
-    {
-        if (!_isWidthSet)
-        {
-            if (_isLeftSet && _isRightSet)
-            {
-                _width = _right - _left;
-            }
-            _isWidthSet = true;
-        }
-        return _width;
-    }
-
-    double Element::GetHeight()
-    {
-        if (!_isHeightSet)
-        {
-            if (_isTopSet && _isBottomSet)
-            {
-                _height = _bottom - _top;
-            }
-            _isHeightSet = true;
-        }
-        return _height;
-    }
-
-    // Drawing
-    void Element::Draw()
-    {
-        if (_drawCallback)
-        {
-            _drawCallback(shared_from_this());
-        }
-        else
-        {
-            // By default no drawing takes place
         }
     }
 
-    void Element::SetDrawCallback(function<void(shared_ptr<Element>)> drawCallback)
+    if (GetIsVisible() &&
+        point.X >= GetLeft() && point.X <= GetRight() &&
+        point.Y >= GetTop() && point.Y <= GetBottom())
     {
-        _drawCallback = drawCallback;
+        return this;
     }
+    return nullptr;
+}
 
-    // Hit testing
-    Element* Element::GetElementAtPoint(Point point)
-    {
-        if (_firstChild)
-        {
-            for (auto e = _lastChild; e != nullptr; e = e->_prevsibling)
-            {
-                auto elementAtPoint = e->GetElementAtPoint(point);
-                if (elementAtPoint)
-                {
-                    return elementAtPoint;
-                }
-            }
-        }
-
-        if (point.X >= GetLeft() && point.X <= GetRight() &&
-            point.Y >= GetTop() && point.Y <= GetBottom())
-        {
-            return this;
-        }
-        return nullptr;
-    }
-
-    Element::~Element()
-    {
-    }
+Element::~Element()
+{
+}
 }

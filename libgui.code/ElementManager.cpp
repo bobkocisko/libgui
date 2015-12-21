@@ -27,13 +27,13 @@ void ElementManager::SetSystemCaptureCallback(const function<void(bool)>& system
     _systemCaptureCallback = systemCaptureCallback;
 }
 
-bool ElementManager::NotifyMove(InputId inputId, Point point)
+bool ElementManager::NotifyNewPoint(InputId inputId, Point point)
 {
     auto input = GetInput(inputId);
 
     auto elementAtPoint = _root->GetElementAtPoint(point);
 
-    return input->NotifyMove(point, elementAtPoint);
+    return input->NotifyNewPoint(point, elementAtPoint);
 
 }
 

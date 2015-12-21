@@ -185,7 +185,7 @@ void Scrollbar::Thumb::Arrange()
     }
 }
 
-void Scrollbar::Thumb::NotifyInput(InputAction inputAction, InputType inputType, Point point, bool& updateScreen)
+void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen)
 {
     if (InputType::Touch == inputType)
     {
@@ -195,7 +195,7 @@ void Scrollbar::Thumb::NotifyInput(InputAction inputAction, InputType inputType,
     }
 
     // Apply the default screen update logic
-    Control::NotifyInput(inputAction, inputType, point, updateScreen);
+    Control::NotifyInput(inputType, inputAction, point, updateScreen);
 
     auto stateMachine = (sm::StateMachine*) _stateMachine;
 
