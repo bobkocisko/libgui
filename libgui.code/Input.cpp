@@ -10,9 +10,10 @@ namespace libgui
 Input::Input(const InputId& inputId)
     : _inputId(inputId)
 {
-    _isDown           = false;
-    _activeControl    = nullptr;
-    _ignoredByControl = nullptr;
+    _isOverActiveControl = false;
+    _isDown              = false;
+    _activeControl       = nullptr;
+    _ignoredByControl    = nullptr;
 
     // By default there is no simulation
     _simulationOffset = Point{0, 0};
@@ -112,9 +113,12 @@ bool Input::NotifyUp()
         // Consider the input capture released whenever the input goes up
         if (_isCapturedByActiveControl)
         {
-            _activeControl->SetHasActiveInput(false);
-            _activeControl             = nullptr;
             _isCapturedByActiveControl = false;
+            if (!_isOverActiveControl)
+            {
+                _activeControl->SetHasActiveInput(false);
+                _activeControl = nullptr;
+            }
         }
     }
 
@@ -136,6 +140,8 @@ bool Input::LeaveActiveControl(Point point)
         _activeControl->SetHasActiveInput(false);
         _activeControl = nullptr;
     }
+
+    _isOverActiveControl = false;
 
     return shouldUpdateScreen;
 }
@@ -170,7 +176,8 @@ bool Input::EnterControl(Point point, Control* control)
         action = InputAction::EnterReleased;
     }
 
-    _activeControl = control;
+    _activeControl       = control;
+    _isOverActiveControl = true;
     control->SetHasActiveInput(true);
     _activeControl->NotifyInput(_inputType, action, point, shouldUpdateScreen);
 

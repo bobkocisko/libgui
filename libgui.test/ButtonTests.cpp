@@ -156,3 +156,30 @@ TEST(ButtonTests, WhenTouchDownLeaveReturnAndUp_StateIsHotAndUp)
 
     ASSERT_EQ(Button::VisibleState::Hot_Up, btn->GetVisibleState());
 }
+
+TEST(ButtonTests, WhenMultiplePushAndRelease_MultipleOutputEvents)
+{
+    auto em        = make_shared<ElementManager>();
+    auto btn       = make_shared<Button>();
+    bool is_pushed = false;
+    btn->SetEventCallback([&](shared_ptr<Button> b, Button::OutputEvent event)
+                          {
+                              if (Button::OutputEvent::Pushed == event)
+                              {
+                                  is_pushed = true;
+                              }
+                          });
+
+    em->SetRoot(btn);
+    bool updateScreen;
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
+    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
+    ASSERT_EQ(true, is_pushed);
+
+    // Now do it again
+    is_pushed = false;
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
+    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
+    ASSERT_EQ(true, is_pushed);
+}

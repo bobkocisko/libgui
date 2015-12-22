@@ -96,6 +96,18 @@ public:
         }
     }
 
+    void ResetNotifications()
+    {
+        m_notifyPointerPushCalled    = false;
+        m_notifyPointerMoveCalled    = false;
+        m_notifyPointerReleaseCalled = false;
+
+        m_notifyTouchEnterCalled   = false;
+        m_notifyTouchReleaseCalled = false;
+        m_notifyTouchPushCalled    = false;
+        m_notifyTouchMoveCalled    = false;
+    }
+
 private:
     bool m_notifyPointerPushCalled    = false;
     bool m_notifyPointerMoveCalled    = false;
@@ -230,3 +242,32 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesNot
     ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
     ASSERT_EQ(true, sc->GetNotifyTouchEnterCalled());
 }
+
+TEST(ElementManagerTests, WhenControlIsDownAndUpMultipleTimes_ItReceivesNotifications)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+    em->SetRoot(sc);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
+
+    auto touchInput = InputId(PointerInputId);
+    em->NotifyNewPoint(touchInput, Point{1, 1});
+    em->NotifyDown(touchInput);
+    em->NotifyUp(touchInput);
+
+    ASSERT_EQ(true, sc->GetNotifyPointerPushCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerReleaseCalled());
+
+    sc->ResetNotifications();
+
+    em->NotifyDown(touchInput);
+    em->NotifyUp(touchInput);
+
+    ASSERT_EQ(true, sc->GetNotifyPointerPushCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerReleaseCalled());
+
+}
+

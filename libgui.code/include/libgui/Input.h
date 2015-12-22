@@ -27,6 +27,7 @@ private:
     Control* _activeControl;
     Control* _ignoredByControl;
     bool      _isDown;
+    bool      _isOverActiveControl;
     bool      _isCapturedByActiveControl;
     Point     _point;
     InputType _inputType;
