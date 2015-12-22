@@ -2,7 +2,7 @@
 #include "Element.h"
 #include "Control.h"
 #include "Input.h"
-#include <list>
+#include <vector>
 
 namespace libgui
 {
@@ -21,7 +21,6 @@ namespace libgui
 		void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
 
 	private:
-		//std::list<ActiveControl*> _activeControls;
 		std::vector<Input*> _activeInputs;
 
 		shared_ptr<Element>  _root = nullptr;
