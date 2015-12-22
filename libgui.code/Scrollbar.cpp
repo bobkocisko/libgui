@@ -57,7 +57,7 @@ void Scrollbar::SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelega
     _scrollDelegate = scrollDelegate;
 }
 
-namespace sm
+namespace SmScrollbar
 {
 // events
 struct Enter
@@ -154,7 +154,7 @@ Scrollbar::Thumb::Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track)
       _track(track)
 {
     // Create and store state machine
-    auto stateMachine = new sm::StateMachine(this);
+    auto stateMachine = new SmScrollbar::StateMachine(this);
     stateMachine->start();
 
     _stateMachine = stateMachine;
@@ -163,7 +163,7 @@ Scrollbar::Thumb::Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track)
 Scrollbar::Thumb::~Thumb()
 {
     // Delete state machine
-    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    auto stateMachine = (SmScrollbar::StateMachine*) _stateMachine;
     delete stateMachine;
     _stateMachine = nullptr;
 }
@@ -197,16 +197,16 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
     // Apply the default screen update logic
     Control::NotifyInput(inputType, inputAction, point, updateScreen);
 
-    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    auto stateMachine = (SmScrollbar::StateMachine*) _stateMachine;
 
     switch (inputAction)
     {
 
         case InputAction::EnterReleased:
-            stateMachine->process_event(sm::Enter());
+            stateMachine->process_event(SmScrollbar::Enter());
             break;
         case InputAction::EnterPushed:
-            stateMachine->process_event(sm::Enter());
+            stateMachine->process_event(SmScrollbar::Enter());
             break;
         case InputAction::Move:
             bool moveUpdateScreen;
@@ -217,13 +217,13 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
             }
             break;
         case InputAction::Push:
-            stateMachine->process_event(sm::Push());
+            stateMachine->process_event(SmScrollbar::Push());
             break;
         case InputAction::Release:
-            stateMachine->process_event(sm::Release());
+            stateMachine->process_event(SmScrollbar::Release());
             break;
         case InputAction::Leave:
-            stateMachine->process_event(sm::Leave());
+            stateMachine->process_event(SmScrollbar::Leave());
             break;
     }
 
@@ -263,7 +263,7 @@ const weak_ptr<Scrollbar>& Scrollbar::Thumb::GetScrollbar() const
 
 Scrollbar::Thumb::State Scrollbar::Thumb::GetState() const
 {
-    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    auto stateMachine = (SmScrollbar::StateMachine*) _stateMachine;
     auto currentState = stateMachine->current_state()[0];
     if (3 == currentState) // Treat EngagedRemotely and Engaged as the same state
     {

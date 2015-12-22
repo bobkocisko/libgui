@@ -78,7 +78,7 @@ const shared_ptr<Slider::Track>& Slider::GetTrack() const
     return _track;
 }
 
-namespace sm
+namespace SmSlider
 {
 // events
 struct Enter
@@ -176,7 +176,7 @@ Slider::Thumb::Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track)
       _track(track)
 {
     // Create and store state machine
-    auto stateMachine = new sm::StateMachine(this);
+    auto stateMachine = new SmSlider::StateMachine(this);
     stateMachine->start();
 
     _stateMachine = stateMachine;
@@ -185,7 +185,7 @@ Slider::Thumb::Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track)
 Slider::Thumb::~Thumb()
 {
     // Delete state machine
-    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    auto stateMachine = (SmSlider::StateMachine*) _stateMachine;
     delete stateMachine;
     _stateMachine = nullptr;
 }
@@ -211,15 +211,15 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
     // Apply the default screen update logic
     Control::NotifyInput(inputType, inputAction, point, updateScreen);
 
-    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    auto stateMachine = (SmSlider::StateMachine*) _stateMachine;
 
     switch (inputAction)
     {
         case InputAction::EnterReleased:
-            stateMachine->process_event(sm::Enter());
+            stateMachine->process_event(SmSlider::Enter());
             break;
         case InputAction::EnterPushed:
-            stateMachine->process_event(sm::Enter());
+            stateMachine->process_event(SmSlider::Enter());
             break;
         case InputAction::Move:
             bool moveUpdateScreen;
@@ -230,13 +230,13 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
             }
             break;
         case InputAction::Push:
-            stateMachine->process_event(sm::Push());
+            stateMachine->process_event(SmSlider::Push());
             break;
         case InputAction::Release:
-            stateMachine->process_event(sm::Release());
+            stateMachine->process_event(SmSlider::Release());
             break;
         case InputAction::Leave:
-            stateMachine->process_event(sm::Leave());
+            stateMachine->process_event(SmSlider::Leave());
             break;
     }
 }
@@ -294,7 +294,7 @@ void Slider::SetValueFromRaw(double raw)
 
 Slider::Thumb::State Slider::Thumb::GetState() const
 {
-    auto stateMachine = (sm::StateMachine*) _stateMachine;
+    auto stateMachine = (SmSlider::StateMachine*) _stateMachine;
     auto currentState = stateMachine->current_state()[0];
     if (3 == currentState) // Treat EngagedRemotely and Engaged as the same state
     {
