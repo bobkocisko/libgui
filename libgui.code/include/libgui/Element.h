@@ -17,8 +17,8 @@ namespace libgui
     {
     public:
         // Element Manager
-        void                       SetElementManager(shared_ptr<ElementManager>);
-        shared_ptr<ElementManager> GetElementManager();
+        void SetElementManager(ElementManager* elementManager);
+        ElementManager* GetElementManager();
 
         // View Model
         void                      SetViewModel(shared_ptr<ViewModelBase>);
@@ -83,7 +83,7 @@ namespace libgui
 
     private:
         // Element manager
-        shared_ptr<ElementManager> _elementManager;
+        ElementManager* _elementManager;
 
         shared_ptr<ViewModelBase> _viewModel;
 

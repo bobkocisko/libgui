@@ -7,12 +7,12 @@
 namespace libgui
 {
 // Element Manager
-void Element::SetElementManager(shared_ptr<ElementManager> elementManager)
+void Element::SetElementManager(ElementManager* elementManager)
 {
     _elementManager = elementManager;
 }
 
-shared_ptr<ElementManager> Element::GetElementManager()
+ElementManager* Element::GetElementManager()
 {
     return _elementManager;
 }

@@ -7,7 +7,7 @@ namespace libgui
 void ElementManager::SetRoot(shared_ptr<Element> element)
 {
     _root = element;
-    element->SetElementManager(shared_from_this());
+    element->SetElementManager(this);
 }
 
 shared_ptr<Element> ElementManager::GetRoot()
