@@ -110,12 +110,24 @@ bool Input::NotifyUp()
     {
         shouldUpdateScreen = ActiveControlUp(_point);
 
-        // Consider the input capture released whenever the input goes up
         if (_isCapturedByActiveControl)
         {
             _isCapturedByActiveControl = false;
-            if (!_isOverActiveControl)
+
+            if (InputType::Pointer == _inputType)
             {
+                // When we release a pointer, then the input might still be active
+                // depending on whether the point is over the control still or not
+                if (!_isOverActiveControl)
+                {
+                    _activeControl->SetHasActiveInput(false);
+                    _activeControl = nullptr;
+                }
+            }
+            else // Touch
+            {
+                // When we release a touch point, that's it.  Everything is done
+                // for this input.
                 _activeControl->SetHasActiveInput(false);
                 _activeControl = nullptr;
             }
