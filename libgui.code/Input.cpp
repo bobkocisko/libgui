@@ -108,26 +108,34 @@ bool Input::NotifyUp()
 
     if (_activeControl)
     {
-        shouldUpdateScreen = ActiveControlUp(_point);
+        if (ActiveControlUp(_point))
+        {
+            shouldUpdateScreen = true;
+        }
 
         if (_isCapturedByActiveControl)
         {
             _isCapturedByActiveControl = false;
 
-            if (InputType::Pointer == _inputType)
+            if (_isOverActiveControl)
             {
-                // When we release a pointer, then the input might still be active
-                // depending on whether the point is over the control still or not
-                if (!_isOverActiveControl)
+                if (InputType::Touch == _inputType)
                 {
-                    _activeControl->SetHasActiveInput(false);
-                    _activeControl = nullptr;
+                    // The finger has released so we need to indicate that the control has been left
+                    if (LeaveActiveControl(_point))
+                    {
+                        shouldUpdateScreen = true;
+                    }
+                }
+                else
+                {
+                    // The Pointer hasn't left the control so we don't do anything here.
                 }
             }
-            else // Touch
+            else
             {
-                // When we release a touch point, that's it.  Everything is done
-                // for this input.
+                // We're releasing outside the control.  Regardless of touch or pointer type,
+                // in this case the control has already been notified of having left so we just need to clean up now.
                 _activeControl->SetHasActiveInput(false);
                 _activeControl = nullptr;
             }
