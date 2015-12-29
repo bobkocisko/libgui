@@ -93,6 +93,12 @@ struct Push
 struct Release
 {
 };
+struct EngagedEscape
+{
+};
+struct EngagedReturn
+{
+};
 
 class StateMachineFrontEnd: public state_machine_def<StateMachineFrontEnd>
 {
@@ -145,20 +151,20 @@ public:
     // NOTE: The order of the states listed in this table must match the order in the State enum
     // as well as the funky logic in GetState().
     struct transition_table : boost::mpl::vector<
-    //    Start              Event       Next State         Action           Guard
-    //  +------------------+-----------+------------------+----------------+---------+
-    Row < Idle             , Enter     , Pending          , none           , none    >,
-    Row < Idle             , Push      , Engaged          , RecordAnchor   , none    >,
-    //  +------------------+-----------+------------------+----------------+---------+
-    Row < Pending          , Leave     , Idle             , none           , none    >,
-    Row < Pending          , Push      , Engaged          , RecordAnchor   , none    >,
-    //  +------------------+-----------+------------------+----------------+---------+
-    Row < Engaged          , Release   , Pending          , none           , none    >,
-    Row < Engaged          , Leave     , EngagedRemotely  , none           , none    >,
-    //  +------------------+-----------+------------------+----------------+---------+
-    Row < EngagedRemotely  , Enter     , Engaged          , none           , none    >,
-    Row < EngagedRemotely  , Release   , Idle             , none           , none    >
-    //  +------------------+-----------+------------------+----------------+---------+
+    //    Start              Event           Next State         Action           Guard
+    //  +------------------+-----------    +------------------+----------------+---------+
+    Row < Idle             , Enter         , Pending          , none           , none    >,
+    Row < Idle             , Push          , Engaged          , RecordAnchor   , none    >,
+    //  +------------------+-----------    +------------------+----------------+---------+
+    Row < Pending          , Leave         , Idle             , none           , none    >,
+    Row < Pending          , Push          , Engaged          , RecordAnchor   , none    >,
+    //  +------------------+-----------    +------------------+----------------+---------+
+    Row < Engaged          , Release       , Pending          , none           , none    >,
+    Row < Engaged          , EngagedEscape , EngagedRemotely  , none           , none    >,
+    //  +------------------+-----------    +------------------+----------------+---------+
+    Row < EngagedRemotely  , EngagedReturn , Engaged          , none           , none    >,
+    Row < EngagedRemotely  , Release       , Idle             , none           , none    >
+    //  +------------------+-----------    +------------------+----------------+---------+
     > {};
 
     // @formatter:on
@@ -237,6 +243,12 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
             break;
         case InputAction::Leave:
             stateMachine->process_event(SmSlider::Leave());
+            break;
+        case InputAction::EngagedEscape:
+            stateMachine->process_event(SmSlider::EngagedEscape());
+            break;
+        case InputAction::EngagedReturn:
+            stateMachine->process_event(SmSlider::EngagedReturn());
             break;
     }
 }

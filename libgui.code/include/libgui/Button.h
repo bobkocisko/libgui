@@ -18,10 +18,10 @@ namespace libgui
         // This enum must match the order of the states defined in the state machine table
         enum VisibleState
         {
-            Cold_Up,
-            Hot_Up,
-            Hot_Down,
-            Cold_Claimed
+            Idle,
+            Pending,
+            Engaged,
+            EngagedRemotely
         };
 
         VisibleState GetVisibleState();

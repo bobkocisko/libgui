@@ -10,25 +10,25 @@ using namespace std;
 using ::testing::Return;
 
 
-TEST(ButtonTests, WhenPointerEntering_StateIsHot)
+TEST(ButtonTests, WhenPointerEntering_StateIsPending)
 {
     auto btn = make_shared<Button>();
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
 
-    ASSERT_EQ(Button::VisibleState::Hot_Up, btn->GetVisibleState());
+    ASSERT_EQ(Button::VisibleState::Pending, btn->GetVisibleState());
 }
 
-TEST(ButtonTests, WhenPointerLeaving_StateIsColdUp)
+TEST(ButtonTests, WhenPointerLeaving_StateIsIdle)
 {
     auto btn = make_shared<Button>();
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Leave, Point(), updateScreen);
-    ASSERT_EQ(Button::VisibleState::Cold_Up, btn->GetVisibleState());
+    ASSERT_EQ(Button::VisibleState::Idle, btn->GetVisibleState());
 }
 
-TEST(ButtonTests, WhenPointerPushed_StateIsHotAndDown)
+TEST(ButtonTests, WhenPointerPushed_StateIsEngaged)
 {
     auto em  = make_shared<ElementManager>();
     auto btn = make_shared<Button>();
@@ -36,19 +36,19 @@ TEST(ButtonTests, WhenPointerPushed_StateIsHotAndDown)
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    ASSERT_EQ(Button::VisibleState::Hot_Down, btn->GetVisibleState());
+    ASSERT_EQ(Button::VisibleState::Engaged, btn->GetVisibleState());
 }
 
-TEST(ButtonTests, WhenPointerReleased_StateIsHotAndUp)
+TEST(ButtonTests, WhenPointerReleased_StateIsPending)
 {
     auto btn = make_shared<Button>();
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterPushed, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
-    ASSERT_EQ(Button::VisibleState::Hot_Up, btn->GetVisibleState());
+    ASSERT_EQ(Button::VisibleState::Pending, btn->GetVisibleState());
 }
 
-TEST(ButtonTests, WhenPointerPushedAndLeaving_StateIsColdClaimed)
+TEST(ButtonTests, WhenPointerPushedAndEscaping_StateIsEngagedRemotely)
 {
     auto em  = make_shared<ElementManager>();
     auto btn = make_shared<Button>();
@@ -56,11 +56,11 @@ TEST(ButtonTests, WhenPointerPushedAndLeaving_StateIsColdClaimed)
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Leave, Point(), updateScreen);
-    ASSERT_EQ(Button::VisibleState::Cold_Claimed, btn->GetVisibleState());
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point(), updateScreen);
+    ASSERT_EQ(Button::VisibleState::EngagedRemotely, btn->GetVisibleState());
 }
 
-TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsHotAndDown)
+TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsEngaged)
 {
     auto em  = make_shared<ElementManager>();
     auto btn = make_shared<Button>();
@@ -68,12 +68,12 @@ TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsHotAndDown)
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Leave, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterPushed, Point(), updateScreen);
-    ASSERT_EQ(Button::VisibleState::Hot_Down, btn->GetVisibleState());
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point(), updateScreen);
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedReturn, Point(), updateScreen);
+    ASSERT_EQ(Button::VisibleState::Engaged, btn->GetVisibleState());
 }
 
-TEST(ButtonTests, WhenPointerLeftAndReleasedOutside_StateIsColdAndUp)
+TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_StateIsIdle)
 {
     auto em  = make_shared<ElementManager>();
     auto btn = make_shared<Button>();
@@ -81,12 +81,12 @@ TEST(ButtonTests, WhenPointerLeftAndReleasedOutside_StateIsColdAndUp)
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Leave, Point(), updateScreen);
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
-    ASSERT_EQ(Button::VisibleState::Cold_Up, btn->GetVisibleState());
+    ASSERT_EQ(Button::VisibleState::Idle, btn->GetVisibleState());
 }
 
-TEST(ButtonTests, WhenPointerLeftAndReleasedOutside_NoClick)
+TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
 {
     auto em         = make_shared<ElementManager>();
     auto btn        = make_shared<Button>();
@@ -103,12 +103,12 @@ TEST(ButtonTests, WhenPointerLeftAndReleasedOutside_NoClick)
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Leave, Point(), updateScreen);
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
     ASSERT_EQ(false, is_clicked);
 }
 
-TEST(ButtonTests, AfterPointerClicked_StateIsHotAndUp)
+TEST(ButtonTests, AfterPointerClicked_StateIsPending)
 {
     auto em  = make_shared<ElementManager>();
     auto btn = make_shared<Button>();
@@ -117,7 +117,7 @@ TEST(ButtonTests, AfterPointerClicked_StateIsHotAndUp)
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
-    ASSERT_EQ(Button::VisibleState::Hot_Up, btn->GetVisibleState());
+    ASSERT_EQ(Button::VisibleState::Pending, btn->GetVisibleState());
 }
 
 TEST(ButtonTests, WhenTouchPushAndRelease_Click)
@@ -141,7 +141,7 @@ TEST(ButtonTests, WhenTouchPushAndRelease_Click)
     ASSERT_EQ(true, isClicked);
 }
 
-TEST(ButtonTests, WhenTouchDownLeaveReturnAndUp_StateIsHotAndUp)
+TEST(ButtonTests, WhenTouchDownEscapeReturnAndUp_StateIsPending)
 {
     auto em  = make_shared<ElementManager>();
     auto btn = make_shared<Button>();
@@ -150,11 +150,11 @@ TEST(ButtonTests, WhenTouchDownLeaveReturnAndUp_StateIsHotAndUp)
     bool updateScreen;
     btn->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Touch, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Touch, InputAction::Leave, Point(), updateScreen);
-    btn->NotifyInput(InputType::Touch, InputAction::EnterPushed, Point(), updateScreen);
+    btn->NotifyInput(InputType::Touch, InputAction::EngagedEscape, Point(), updateScreen);
+    btn->NotifyInput(InputType::Touch, InputAction::EngagedReturn, Point(), updateScreen);
     btn->NotifyInput(InputType::Touch, InputAction::Release, Point(), updateScreen);
 
-    ASSERT_EQ(Button::VisibleState::Hot_Up, btn->GetVisibleState());
+    ASSERT_EQ(Button::VisibleState::Pending, btn->GetVisibleState());
 }
 
 TEST(ButtonTests, WhenMultiplePushAndRelease_MultipleOutputEvents)

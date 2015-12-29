@@ -38,6 +38,12 @@ struct Push
 struct Release
 {
 };
+struct EngagedEscape
+{
+};
+struct EngagedReturn
+{
+};
 
 class StateMachineFrontEnd: public state_machine_def<StateMachineFrontEnd>
 {
@@ -49,16 +55,16 @@ public:
     }
 
     // states
-    struct Cold_Up: public state<>
+    struct Idle: public state<>
     {
     };
-    struct Hot_Up: public state<>
+    struct Pending: public state<>
     {
     };
-    struct Hot_Down: public state<>
+    struct Engaged: public state<>
     {
     };
-    struct Cold_Claimed: public state<>
+    struct EngagedRemotely: public state<>
     {
     };
 
@@ -97,7 +103,7 @@ public:
     }
 
     // Set up the starting state of the state machine
-    typedef Cold_Up initial_state;
+    typedef Idle initial_state;
 
 
     // Transition table for state machine
@@ -106,19 +112,19 @@ public:
 
     // NOTE: The order of the states listed in this table must match the order in the VisualState enum
     struct transition_table : boost::mpl::vector<
-    //    Start              Event       Next State         Action                 Guard
-    //  +------------------+-----------+------------------+------------------------+-------------+
-    Row < Cold_Up          , Enter     , Hot_Up           , none                   , none        >,
-    //  +------------------+-----------+------------------+------------------------+-------------+
-    Row < Hot_Up           , Leave     , Cold_Up          , none                   , none        >,
-    Row < Hot_Up           , Push      , Hot_Down         , NotifyPushed           , none        >,
-    //  +------------------+-----------+------------------+------------------------+-------------+
-    Row < Hot_Down         , Release   , Hot_Up           , NotifyReleased         , none        >,
-    Row < Hot_Down         , Leave     , Cold_Claimed     , none                   , none        >,
-    //  +------------------+-----------+------------------+------------------------+-------------+
-    Row < Cold_Claimed     , Enter     , Hot_Down         , none                   , none        >,
-    Row < Cold_Claimed     , Release   , Cold_Up          , NotifyReleasedOutside  , none        >
-    //  +------------------+-----------+------------------+------------------------+-------------+
+    //    Start              Event           Next State         Action                Guard
+    //  +------------------+-----------    +-----------------+-----------------------+-------------+
+    Row < Idle             , Enter         , Pending         , none                  , none        >,
+    //  +------------------+-----------    +-----------------+-----------------------+-------------+
+    Row < Pending          , Leave         , Idle            , none                  , none        >,
+    Row < Pending          , Push          , Engaged         , NotifyPushed          , none        >,
+    //  +------------------+-----------    +-----------------+-----------------------+-------------+
+    Row < Engaged          , Release       , Pending         , NotifyReleased        , none        >,
+    Row < Engaged          , EngagedEscape , EngagedRemotely , none                  , none        >,
+    //  +------------------+-----------    +-----------------+-----------------------+-------------+
+    Row < EngagedRemotely  , EngagedReturn , Engaged         , none                  , none        >,
+    Row < EngagedRemotely  , Release       , Idle            , NotifyReleasedOutside , none        >
+    //  +------------------+-----------    +-----------------+-----------------------+-------------+
     > {};
     // @formatter:on
 
@@ -174,6 +180,12 @@ void Button::NotifyInput(InputType inputType, InputAction inputAction, Point poi
             break;
         case InputAction::Leave:
             stateMachine->process_event(SmButton::Leave());
+            break;
+        case InputAction::EngagedEscape:
+            stateMachine->process_event(SmButton::EngagedEscape());
+            break;
+        case InputAction::EngagedReturn:
+            stateMachine->process_event(SmButton::EngagedReturn());
             break;
     }
 
