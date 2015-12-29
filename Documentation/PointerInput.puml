@@ -1,0 +1,40 @@
+@startuml
+
+[*] --> Idle
+
+Idle --> Pending: MoveAtopAvailableControl / \n EnterControl
+
+Pending -left-> Pending: Move / \n NotifyMove
+Pending --> Idle: MoveAtopNothing /\n LeaveControl
+
+Idle -> Ignored: MoveAtopBusyControl
+
+Ignored -> Idle: MoveAtopNothing
+
+Pending --> Engaged: Down / \n SaveEngaged \n && NotifyDown
+
+Engaged --> Pending: Up / \n NotifyUp
+
+Pending --> SwitchingToIgnored: MoveAtopBusyControl / \n LeaveControl
+
+Pending --> SwitchingToPending: MoveAtopAvailableControl / \n LeaveControl
+
+SwitchingToPending -> Pending: / EnterControl
+
+SwitchingToIgnored --> Ignored
+
+Ignored --> SwitchingToPending: MoveAtopAvailableControl
+
+Engaged --> EngagedRemotely: MoveAtopAvailableControl || \n MoveAtopEngagedControl || \n MoveAtopNothing / \n NotifyEngagedEscape
+Engaged --> Engaged: Move / \n NotifyMove
+
+EngagedRemotely --> Engaged: MoveAtopEngagedControl / \n NotifyEngagedReturn
+
+EngagedRemotely --> EngagedRemotely: Move / \n NotifyMove
+
+EngagedRemotely --> Idle: Up [IsAtopNothing] / \n NotifyUp && \n LeaveControl
+EngagedRemotely --> SwitchingToIgnored: Up [IsAtopBusy] / \n NotifyUp && \n LeaveControl
+EngagedRemotely --> SwitchingToPending: Up [IsAtopAvailable] / \n NotifyUp && \n LeaveControl
+
+
+@enduml

@@ -1,13 +1,13 @@
 @startuml
-[*] --> Cold_Up
+[*] --> Idle
 
-Cold_Up --> Hot_Up: Enter
-Hot_Up --> Cold_Up: Leave
-Hot_Up -left-> Hot_Down: Push / Notify:Pushed
-Hot_Down --> Hot_Up: Release / Notify:Released
-Hot_Down --> Cold_Claimed: Leave
-Cold_Claimed --> Hot_Down: Enter
-Cold_Claimed -> Cold_Up: Release / \n Notify:ReleasedOutside
+Idle --> Pending: Enter
+Pending --> Idle: Leave
+Pending -left-> Engaged: Push / Notify:Pushed
+Engaged --> Pending: Release / Notify:Released
+Engaged --> EngagedRemotely: EngagedEscape
+EngagedRemotely --> Engaged: EngagedReturn
+EngagedRemotely -> Idle: Release / \n Notify:ReleasedOutside
 
 
 @enduml

@@ -16,29 +16,40 @@ class Input
 {
 public:
     Input(const InputId& inputId);
+    virtual ~Input();
 
-    bool NotifyNewPoint(Point point, Element* overElement);
+    bool NotifyNewPoint(Point point, Element* atopElement);
     bool NotifyDown();
     bool NotifyUp();
+
+    // The following are to be used only internally
+    bool IsAtopBusy();
+    bool IsAtopAvailable();
+    bool IsAtopNothing();
+    void EnterControl();
+    void LeaveControl();
+    void SaveEngaged();
+    void SendNotifyMove();
+    void SendNotifyDown();
+    void SendNotifyUp();
+    void SendNotifyEngagedEscape();
+    void SendNotifyEngagedReturn();
 
 private:
     InputId _inputId;
 
+    void   * _stateMachine;
+    Control* _atopControl;
     Control* _activeControl;
-    Control* _ignoredByControl;
+
     bool      _isDown;
-    bool      _isOverActiveControl;
-    bool      _isCapturedByActiveControl;
+    bool      _isActiveControlEngaged;
+    bool      _shouldUpdateScreen;
     Point     _point;
     InputType _inputType;
-    Point     _simulationOffset;
 
-    bool LeaveActiveControl(Point point);
-    bool ActiveControlMove(Point point);
-    bool EnterControl(Point point, Control* control);
-    bool ActiveControlDown(Point point);
-    bool ActiveControlUp(Point point);
-    void LeaveIgnoredControl();
+    template<class Event>
+    void ProcessEvent(Event const& evt);
 };
 
 }

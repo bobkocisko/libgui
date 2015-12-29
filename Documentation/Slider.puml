@@ -2,12 +2,11 @@
 [*] --> Idle
 
 Idle --> Pending: Enter
-Idle --> Engaged: Push / RecordAnchor
 Pending --> Idle: Leave
 Pending -left-> Engaged: Push / RecordAnchor
 Engaged --> Pending: Release
-Engaged --> EngagedRemotely: Leave
-EngagedRemotely --> Engaged: Enter
+Engaged --> EngagedRemotely: EngagedEscape
+EngagedRemotely --> Engaged: EngagedReturn
 EngagedRemotely -> Idle: Release
 
 

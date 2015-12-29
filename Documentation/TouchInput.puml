@@ -1,0 +1,22 @@
+@startuml
+
+[*] --> Idle
+
+Idle --> Engaged: Down [IsAtopAvailable] / \n EnterControl && \n SaveEngaged && \n NotifyDown
+
+Idle --> Ignored: Down [IsAtopBusy] || \n Down [IsAtopNothing]
+
+Ignored --> Idle: Up
+
+Engaged --> EngagedRemotely: MoveAtopAvailableControl || \n MoveAtopEngagedControl || \n MoveAtopNothing / \n NotifyEngagedEscape
+Engaged --> Engaged: Move / \n NotifyMove
+Engaged -> Idle: Up / \n NotifyUp && \n LeaveControl
+
+EngagedRemotely --> Engaged: MoveAtopEngagedControl / \n NotifyEngagedReturn
+
+EngagedRemotely --> EngagedRemotely: Move / \n NotifyMove
+
+EngagedRemotely --> Idle: Up / \n NotifyUp && \n LeaveControl
+
+
+@enduml

@@ -12,4 +12,6 @@ enum class InputAction
     Push,
     Release,
     Leave,
+    EngagedEscape,
+    EngagedReturn
 };
