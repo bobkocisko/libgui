@@ -69,6 +69,17 @@ public:
     // states
     struct Idle: public state<>
     {
+        template<class Event, class Fsm>
+        void on_entry(Event const& evt, Fsm& fsm)
+        {
+            fsm._parent->SetIsActive(false);
+        }
+
+        template<class Event, class Fsm>
+        void on_exit(Event const& evt, Fsm& fsm)
+        {
+            fsm._parent->SetIsActive(true);
+        }
     };
     struct Pending: public state<>
     {
@@ -251,6 +262,17 @@ public:
     // states
     struct Idle: public state<>
     {
+        template<class Event, class Fsm>
+        void on_entry(Event const& evt, Fsm& fsm)
+        {
+            fsm._parent->SetIsActive(false);
+        }
+
+        template<class Event, class Fsm>
+        void on_exit(Event const& evt, Fsm& fsm)
+        {
+            fsm._parent->SetIsActive(true);
+        }
     };
     struct Engaged: public state<>
     {
@@ -411,6 +433,7 @@ Input::Input(const InputId& inputId)
     _atopElement            = nullptr;
     _activeControl          = nullptr;
     _isActiveControlEngaged = false;
+    _isDebugLoggingEnabled  = false;
 
     if (_inputId.IsPointer())
     {
@@ -488,6 +511,11 @@ bool Input::NotifyNewPoint(Point point, Element* atopElement)
     {
         // The atop element hasn't changed
         ProcessEvent(SmInput::Move());
+    }
+
+    if (_isDebugLoggingEnabled)
+    {
+        _debugLogEntries.push_back(LogEntry{_point, _isActive});
     }
 
     return _shouldUpdateScreen;
@@ -675,7 +703,6 @@ void Input::ProcessEvent(const Event& evt)
     {
         ((SmInput::TouchStateMachine*) _stateMachine)->process_event(evt);
     }
-
 }
 
 const Point& Input::GetPoint() const
@@ -691,17 +718,45 @@ const InputType& Input::GetInputType() const
 bool Input::GetIsActive() const
 {
 
-    int currentState;
-    if (InputType::Pointer == _inputType)
-    {
-        currentState = ((SmInput::PointerStateMachine*) _stateMachine)->current_state()[0];
-    }
-    else
-    {
-        currentState = ((SmInput::TouchStateMachine*) _stateMachine)->current_state()[0];
-    }
+//    int currentState;
+//    if (InputType::Pointer == _inputType)
+//    {
+//        currentState = ((SmInput::PointerStateMachine*) _stateMachine)->current_state()[0];
+//    }
+//    else
+//    {
+//        currentState = ((SmInput::TouchStateMachine*) _stateMachine)->current_state()[0];
+//    }
 
-    const auto IdleStateIndex = 0;
-    return (IdleStateIndex != currentState);
+//    const auto IdleStateIndex = 0;
+//    return (IdleStateIndex != currentState);
+
+    return _isActive;
+}
+
+void Input::EnableDebugLogging()
+{
+    _isDebugLoggingEnabled = true;
+}
+
+std::list<Input::LogEntry> Input::GetRecentDebugLogEntries()
+{
+    auto listToReturn = _debugLogEntries;
+
+    // Clear the list for next time
+    _debugLogEntries.clear();
+
+    // Return the stored log entries since last time it was requested
+    return listToReturn;
+}
+
+void Input::SetIsActive(bool isActive)
+{
+    _isActive = isActive;
+
+    if (_isDebugLoggingEnabled)
+    {
+        _debugLogEntries.push_back(LogEntry{_point, isActive});
+    }
 }
 }
