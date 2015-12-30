@@ -20,7 +20,10 @@ namespace libgui
 		const function<void(bool)>& GetSystemCaptureCallback() const;
 		void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
 
-	private:
+        // For debugging purposes
+        const vector<Input*>& GetActiveInputs() const;
+
+    private:
 		std::vector<Input*> _activeInputs;
 
 		shared_ptr<Element>  _root = nullptr;

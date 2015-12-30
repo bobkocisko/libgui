@@ -65,4 +65,9 @@ Input* ElementManager::GetInput(const InputId& inputId)
 
     return result;
 }
+
+const vector<Input*>& ElementManager::GetActiveInputs() const
+{
+    return _activeInputs;
+}
 }
