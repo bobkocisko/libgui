@@ -25,6 +25,7 @@ public:
     // Debugging
     const Point    & GetPoint() const;
     const InputType& GetInputType() const;
+    bool GetIsActive() const;
 
 // The following are to be used only internally
     bool IsAtopBusy();

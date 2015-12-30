@@ -196,7 +196,7 @@ public:
     // @formatter:off
 
 
-    // NOTE: The order of the states listed in this table must match the order in the State enum
+    // NOTE: Idle must be the first state listed in this table
     struct transition_table : boost::mpl::vector<
     //    Start                Event                       Next State           Action                         Guard
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
@@ -370,7 +370,7 @@ public:
     // @formatter:off
 
 
-    // NOTE: The order of the states listed in this table must match the order in the State enum
+    // NOTE: Idle must be the first state listed in this table
     struct transition_table : boost::mpl::vector<
     //    Start                Event                       Next State           Action                         Guard
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
@@ -675,5 +675,22 @@ const Point& Input::GetPoint() const
 const InputType& Input::GetInputType() const
 {
     return _inputType;
+}
+
+bool Input::GetIsActive() const
+{
+
+    int currentState;
+    if (InputType::Pointer == _inputType)
+    {
+        currentState = ((SmInput::PointerStateMachine*) _stateMachine)->current_state()[0];
+    }
+    else
+    {
+        currentState = ((SmInput::TouchStateMachine*) _stateMachine)->current_state()[0];
+    }
+
+    const auto IdleStateIndex = 0;
+    return (IdleStateIndex != currentState);
 }
 }
