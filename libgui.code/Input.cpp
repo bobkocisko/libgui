@@ -408,7 +408,7 @@ Input::Input(const InputId& inputId)
     : _inputId(inputId)
 {
     _isDown                 = false;
-    _atopControl            = nullptr;
+    _atopElement            = nullptr;
     _activeControl          = nullptr;
     _isActiveControlEngaged = false;
 
@@ -455,13 +455,14 @@ bool Input::NotifyNewPoint(Point point, Element* atopElement)
 
     _point = point;
 
-    if (atopElement != _atopControl)
+    if (atopElement != _atopElement)
     {
-        auto atopNewControl = dynamic_cast<Control*>(atopElement);
-        if (atopNewControl && atopNewControl->GetIsEnabled())
-        {
-            _atopControl = atopNewControl;
+        // We've changed to be atop a new element
+        _atopElement = atopElement;
 
+        auto atopNewControl = GetAtopEnabledControl();
+        if (atopNewControl)
+        {
             if (_activeControl == atopNewControl)
             {
                 if (_isActiveControlEngaged)
@@ -480,14 +481,12 @@ bool Input::NotifyNewPoint(Point point, Element* atopElement)
         }
         else
         {
-            _atopControl = nullptr;
-
             ProcessEvent(SmInput::MoveAtopNothing());
         }
     }
     else
     {
-        // The atop control hasn't changed
+        // The atop element hasn't changed
         ProcessEvent(SmInput::Move());
     }
 
@@ -516,24 +515,41 @@ bool Input::NotifyUp()
     return _shouldUpdateScreen;
 }
 
+Control* Input::GetAtopEnabledControl()
+{
+    auto atopControl = dynamic_cast<Control*>(_atopElement);
+    if (atopControl && atopControl->GetIsEnabled())
+    {
+        return atopControl;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
 bool Input::IsAtopBusy()
 {
-    return (_atopControl && _atopControl->HasActiveInput());
+    auto atopControl = GetAtopEnabledControl();
+    return (atopControl && atopControl->HasActiveInput());
 }
 
 bool Input::IsAtopAvailable()
 {
-    return (_atopControl && !_atopControl->HasActiveInput());
+    auto atopControl = GetAtopEnabledControl();
+    return (atopControl && !atopControl->HasActiveInput());
 }
 
 bool Input::IsAtopNothing()
 {
-    return (nullptr == _atopControl);
+    auto atopControl = GetAtopEnabledControl();
+    return (nullptr == atopControl);
 }
 
 void Input::EnterControl()
 {
-    _activeControl          = _atopControl;
+    auto atopControl = GetAtopEnabledControl();
+    _activeControl          = atopControl;
     _isActiveControlEngaged = false;
 
     // Lock this control so it is not used by another input

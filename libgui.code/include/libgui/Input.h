@@ -39,7 +39,7 @@ private:
     InputId _inputId;
 
     void   * _stateMachine;
-    Control* _atopControl;
+    Element* _atopElement;
     Control* _activeControl;
 
     bool      _isDown;
@@ -50,6 +50,7 @@ private:
 
     template<class Event>
     void ProcessEvent(Event const& evt);
+    Control* GetAtopEnabledControl();
 };
 
 }
