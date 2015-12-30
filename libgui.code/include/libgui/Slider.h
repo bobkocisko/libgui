@@ -44,12 +44,12 @@ public:
 
         // States
         // This enum must match the order of the states defined in the state machine table
-        // As well as the funky id logic in GetState()
         enum State
         {
             Idle,
             Pending,
-            Engaged
+            Engaged,
+            EngagedRemotely
         };
         State GetState() const;
 
@@ -63,9 +63,9 @@ public:
         weak_ptr<Slider> _slider;
         weak_ptr<Track>  _track;
         double           _anchorOffset;
-        Point            _pointer;
+        Point            _inputPoint;
 
-        void NotifyPointerMove(Point point, bool& updateScreen);
+        void NotifyMove(Point point, bool& updateScreen);
     };
 
 protected:

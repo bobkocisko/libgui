@@ -149,12 +149,10 @@ public:
 
 
     // NOTE: The order of the states listed in this table must match the order in the State enum
-    // as well as the funky logic in GetState().
     struct transition_table : boost::mpl::vector<
     //    Start              Event           Next State         Action           Guard
     //  +------------------+-----------    +------------------+----------------+---------+
     Row < Idle             , Enter         , Pending          , none           , none    >,
-    Row < Idle             , Push          , Engaged          , RecordAnchor   , none    >,
     //  +------------------+-----------    +------------------+----------------+---------+
     Row < Pending          , Leave         , Idle             , none           , none    >,
     Row < Pending          , Push          , Engaged          , RecordAnchor   , none    >,
@@ -229,7 +227,7 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
             break;
         case InputAction::Move:
             bool moveUpdateScreen;
-            NotifyPointerMove(point, moveUpdateScreen);
+            NotifyMove(point, moveUpdateScreen);
             if (moveUpdateScreen)
             {
                 updateScreen = true;
@@ -255,14 +253,16 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
 
 void Slider::Thumb::RecordAnchor()
 {
-    _anchorOffset = _pointer.Y - GetTop();
+    _anchorOffset = _inputPoint.Y - GetTop();
 }
 
-void Slider::Thumb::NotifyPointerMove(Point point, bool& updateScreen)
+void Slider::Thumb::NotifyMove(Point point, bool& updateScreen)
 {
     updateScreen = false;
-    _pointer     = point;
-    if (State::Engaged == GetState())
+    _inputPoint  = point;
+    auto state = GetState();
+    if (State::Engaged == state ||
+        State::EngagedRemotely == state)
     {
         auto slider = _slider.lock();
         auto track  = _track.lock();
@@ -307,11 +307,6 @@ void Slider::SetValueFromRaw(double raw)
 Slider::Thumb::State Slider::Thumb::GetState() const
 {
     auto stateMachine = (SmSlider::StateMachine*) _stateMachine;
-    auto currentState = stateMachine->current_state()[0];
-    if (3 == currentState) // Treat EngagedRemotely and Engaged as the same state
-    {
-        currentState = 2;
-    }
-    return (State) currentState;
+    return (State) stateMachine->current_state()[0];
 }
 }
