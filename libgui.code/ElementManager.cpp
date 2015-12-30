@@ -60,6 +60,12 @@ Input* ElementManager::GetInput(const InputId& inputId)
     if (nullptr == result)
     {
         result = new Input(inputId);
+
+        if (_isDebugLoggingEnabled)
+        {
+            result->EnableDebugLogging();
+        }
+
         _activeInputs[inputId] = result;
     }
 
@@ -69,5 +75,10 @@ Input* ElementManager::GetInput(const InputId& inputId)
 const vector<Input*>& ElementManager::GetActiveInputs() const
 {
     return _activeInputs;
+}
+
+void ElementManager::EnableDebugLogging()
+{
+    _isDebugLoggingEnabled = true;
 }
 }

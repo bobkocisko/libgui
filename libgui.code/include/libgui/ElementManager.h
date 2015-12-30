@@ -6,29 +6,32 @@
 
 namespace libgui
 {
-	class ElementManager : public std::enable_shared_from_this<ElementManager>
-	{
-	public:
-		void SetRoot(shared_ptr<Element>);
+class ElementManager: public std::enable_shared_from_this<ElementManager>
+{
+public:
+    void SetRoot(shared_ptr<Element>);
 
-		shared_ptr<Element> GetRoot();
+    shared_ptr<Element> GetRoot();
 
-        bool NotifyNewPoint(InputId inputId, Point point);
-        bool NotifyDown(InputId inputId);
-        bool NotifyUp(InputId inputId);
+    bool NotifyNewPoint(InputId inputId, Point point);
+    bool NotifyDown(InputId inputId);
+    bool NotifyUp(InputId inputId);
 
-		const function<void(bool)>& GetSystemCaptureCallback() const;
-		void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
+    const function<void(bool)>& GetSystemCaptureCallback() const;
+    void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
 
-        // For debugging purposes
-        const vector<Input*>& GetActiveInputs() const;
+    // For debugging purposes
+    const vector<Input*>& GetActiveInputs() const;
+    void EnableDebugLogging();
 
-    private:
-		std::vector<Input*> _activeInputs;
+private:
+    std::vector<Input*> _activeInputs;
 
-		shared_ptr<Element>  _root = nullptr;
+    shared_ptr<Element>  _root = nullptr;
 
-		function<void(bool)> _systemCaptureCallback;
-        Input* GetInput(const InputId& inputId);
-    };
+    function<void(bool)> _systemCaptureCallback;
+    Input* GetInput(const InputId& inputId);
+
+    bool _isDebugLoggingEnabled;
+};
 }
