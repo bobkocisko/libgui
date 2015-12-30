@@ -4,6 +4,10 @@
 
 #include "libgui/Input.h"
 
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+#define BOOST_MPL_LIMIT_VECTOR_SIZE 30
+#define BOOST_MPL_LIMIT_MAP_SIZE 30
+
 #include <boost/msm/front/states.hpp>
 #include <boost/msm/front/state_machine_def.hpp>
 #include <boost/msm/back/state_machine.hpp>
@@ -211,11 +215,9 @@ public:
     Row < Pending            , Down                      , Engaged            , AS2<SaveEngaged, NotifyDown> , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     Row < Engaged            , Up                        , Pending            , NotifyUp                     , none            >,
-    Row < Engaged            , Or_<
-                                MoveAtopAvailableControl
-                               ,Or_<
-                                MoveAtopEngagedControl
-                               ,MoveAtopNothing>>        , EngagedRemotely    , NotifyEngagedEscape          , none            >,
+    Row < Engaged            , MoveAtopAvailableControl  , EngagedRemotely    , NotifyEngagedEscape          , none            >,
+    Row < Engaged            , MoveAtopBusyControl       , EngagedRemotely    , NotifyEngagedEscape          , none            >,
+    Row < Engaged            , MoveAtopNothing           , EngagedRemotely    , NotifyEngagedEscape          , none            >,
     Row < Engaged            , Move                      , Engaged            , NotifyMove                   , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     Row < EngagedRemotely    , MoveAtopEngagedControl    , Engaged            , NotifyEngagedReturn          , none            >,
@@ -381,11 +383,9 @@ public:
     Row < Ignored            , Up                        , Idle               , none                         , none              >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-------------------+
     Row < Engaged            , Up                        , Idle               , AS2<NotifyUp, LeaveControl>  , none              >,
-    Row < Engaged            , Or_<
-                                MoveAtopAvailableControl
-                               ,Or_<
-                                MoveAtopEngagedControl
-                               ,MoveAtopNothing>>        , EngagedRemotely    , NotifyEngagedEscape          , none              >,
+    Row < Engaged            , MoveAtopAvailableControl  , EngagedRemotely    , NotifyEngagedEscape          , none              >,
+    Row < Engaged            , MoveAtopBusyControl       , EngagedRemotely    , NotifyEngagedEscape          , none              >,
+    Row < Engaged            , MoveAtopNothing           , EngagedRemotely    , NotifyEngagedEscape          , none              >,
     Row < Engaged            , Move                      , Engaged            , NotifyMove                   , none              >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-------------------+
     Row < EngagedRemotely    , MoveAtopEngagedControl    , Engaged            , NotifyEngagedReturn          , none              >,

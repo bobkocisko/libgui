@@ -9,39 +9,54 @@ using namespace libgui;
 class StubControl: public Control
 {
 public:
-    const bool& GetNotifyPointerPushCalled() const
+    bool GetNotifyPointerPushCalled() const
     {
-        return m_notifyPointerPushCalled;
+        return _notifyPointerPushCalled;
     }
 
-    const bool& GetNotifyPointerReleaseCalled() const
+    bool GetNotifyPointerReleaseCalled() const
     {
-        return m_notifyPointerReleaseCalled;
+        return _notifyPointerReleaseCalled;
     }
 
-    const bool& GetNotifyPointerMoveCalled() const
+    bool GetNotifyPointerMoveCalled() const
     {
-        return m_notifyPointerMoveCalled;
+        return _notifyPointerMoveCalled;
     }
 
-    const bool& GetNotifyTouchPushCalled() const
+    bool GetNotifyPointerEscapeCalled() const
     {
-        return m_notifyTouchPushCalled;
+        return _notifyPointerEscapeCalled;
     }
 
-    const bool& GetNotifyTouchReleaseCalled() const
+    bool GetNotifyPointerReturnCalled() const
     {
-        return m_notifyTouchReleaseCalled;
+        return _notifyPointerReturnCalled;
     }
 
-    const bool& GetNotifyTouchMoveCalled() const
+    bool GetNotifyPointerLeaveCalled() const
     {
-        return m_notifyTouchMoveCalled;
+        return _notifyPointerLeaveCalled;
     }
 
-    const bool& GetNotifyTouchEnterCalled() const
+    bool GetNotifyTouchPushCalled() const
     {
-        return m_notifyTouchEnterCalled;
+        return _notifyTouchPushCalled;
+    }
+
+    bool GetNotifyTouchReleaseCalled() const
+    {
+        return _notifyTouchReleaseCalled;
+    }
+
+    bool GetNotifyTouchMoveCalled() const
+    {
+        return _notifyTouchMoveCalled;
+    }
+
+    bool GetNotifyTouchEnterCalled() const
+    {
+        return _notifyTouchEnterCalled;
     }
 
     void NotifyInput(InputType inputType,
@@ -59,15 +74,22 @@ public:
                 case InputAction::EnterPushed:
                     break;
                 case InputAction::Move:
-                    m_notifyPointerMoveCalled = true;
+                    _notifyPointerMoveCalled = true;
                     break;
                 case InputAction::Push:
-                    m_notifyPointerPushCalled = true;
+                    _notifyPointerPushCalled = true;
                     break;
                 case InputAction::Release:
-                    m_notifyPointerReleaseCalled = true;
+                    _notifyPointerReleaseCalled = true;
                     break;
                 case InputAction::Leave:
+                    _notifyPointerLeaveCalled = true;
+                    break;
+                case InputAction::EngagedEscape:
+                    _notifyPointerEscapeCalled = true;
+                    break;
+                case InputAction::EngagedReturn:
+                    _notifyPointerReturnCalled = true;
                     break;
             }
         }
@@ -76,21 +98,25 @@ public:
             switch (inputAction)
             {
                 case InputAction::EnterReleased:
-                    m_notifyTouchEnterCalled = true;
+                    _notifyTouchEnterCalled = true;
                     break;
                 case InputAction::EnterPushed:
-                    m_notifyTouchEnterCalled = true;
+                    _notifyTouchEnterCalled = true;
                     break;
                 case InputAction::Move:
-                    m_notifyTouchMoveCalled = true;
+                    _notifyTouchMoveCalled = true;
                     break;
                 case InputAction::Push:
-                    m_notifyTouchPushCalled = true;
+                    _notifyTouchPushCalled = true;
                     break;
                 case InputAction::Release:
-                    m_notifyTouchReleaseCalled = true;
+                    _notifyTouchReleaseCalled = true;
                     break;
                 case InputAction::Leave:
+                    break;
+                case InputAction::EngagedEscape:
+                    break;
+                case InputAction::EngagedReturn:
                     break;
             }
         }
@@ -98,25 +124,31 @@ public:
 
     void ResetNotifications()
     {
-        m_notifyPointerPushCalled    = false;
-        m_notifyPointerMoveCalled    = false;
-        m_notifyPointerReleaseCalled = false;
+        _notifyPointerPushCalled    = false;
+        _notifyPointerMoveCalled    = false;
+        _notifyPointerReleaseCalled = false;
+        _notifyPointerEscapeCalled  = false;
+        _notifyPointerReturnCalled  = false;
+        _notifyPointerLeaveCalled   = false;
 
-        m_notifyTouchEnterCalled   = false;
-        m_notifyTouchReleaseCalled = false;
-        m_notifyTouchPushCalled    = false;
-        m_notifyTouchMoveCalled    = false;
+        _notifyTouchEnterCalled   = false;
+        _notifyTouchReleaseCalled = false;
+        _notifyTouchPushCalled    = false;
+        _notifyTouchMoveCalled    = false;
     }
 
 private:
-    bool m_notifyPointerPushCalled    = false;
-    bool m_notifyPointerMoveCalled    = false;
-    bool m_notifyPointerReleaseCalled = false;
+    bool _notifyPointerPushCalled    = false;
+    bool _notifyPointerMoveCalled    = false;
+    bool _notifyPointerReleaseCalled = false;
+    bool _notifyPointerEscapeCalled  = false;
+    bool _notifyPointerReturnCalled  = false;
+    bool _notifyPointerLeaveCalled   = false;
 
-    bool m_notifyTouchPushCalled    = false;
-    bool m_notifyTouchReleaseCalled = false;
-    bool m_notifyTouchMoveCalled    = false;
-    bool m_notifyTouchEnterCalled   = false;
+    bool _notifyTouchPushCalled    = false;
+    bool _notifyTouchReleaseCalled = false;
+    bool _notifyTouchMoveCalled    = false;
+    bool _notifyTouchEnterCalled   = false;
 };
 
 TEST(ElementManagerTests, WhenControlIsCaptured_ItReceivesNotifyUp)
@@ -253,21 +285,44 @@ TEST(ElementManagerTests, WhenControlIsDownAndUpMultipleTimes_ItReceivesNotifica
     sc->SetTop(1);
     sc->SetBottom(2);
 
-    auto touchInput = InputId(PointerInputId);
-    em->NotifyNewPoint(touchInput, Point{1, 1});
-    em->NotifyDown(touchInput);
-    em->NotifyUp(touchInput);
+    auto pointerInput = InputId(PointerInputId);
+    em->NotifyNewPoint(pointerInput, Point{1, 1});
+    em->NotifyDown(pointerInput);
+    em->NotifyUp(pointerInput);
 
     ASSERT_EQ(true, sc->GetNotifyPointerPushCalled());
     ASSERT_EQ(true, sc->GetNotifyPointerReleaseCalled());
 
     sc->ResetNotifications();
 
-    em->NotifyDown(touchInput);
-    em->NotifyUp(touchInput);
+    em->NotifyDown(pointerInput);
+    em->NotifyUp(pointerInput);
 
     ASSERT_EQ(true, sc->GetNotifyPointerPushCalled());
     ASSERT_EQ(true, sc->GetNotifyPointerReleaseCalled());
 
 }
 
+TEST(ElementManagerTests, WhenDownEscapeRelease_NotificationsAreSent)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+    em->SetRoot(sc);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
+
+    auto pointerInput = InputId(PointerInputId);
+    em->NotifyNewPoint(pointerInput, Point{1, 1});
+    em->NotifyDown(pointerInput);
+    em->NotifyNewPoint(pointerInput, Point{0, 0});
+    em->NotifyUp(pointerInput);
+
+    ASSERT_EQ(true, sc->GetNotifyPointerPushCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerEscapeCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerEscapeCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerReleaseCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerLeaveCalled());
+
+}
