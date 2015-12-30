@@ -557,13 +557,24 @@ void Input::EnterControl()
 
     // Notify the control that we've entered
     InputAction inputAction;
-    if (_isDown)
+    if (InputType::Touch == _inputType)
     {
-        inputAction = InputAction::EnterPushed;
+        // For touch inputs we always send EnterReleased since EnterPushed has a specific Pointer
+        // meaning which doesn't apply to touch.
+        inputAction = InputAction::EnterReleased;
     }
     else
     {
-        inputAction = InputAction::EnterReleased;
+        // For the Pointer input we distinguish between entering already pushed
+        // or entering released.
+        if (_isDown)
+        {
+            inputAction = InputAction::EnterPushed;
+        }
+        else
+        {
+            inputAction = InputAction::EnterReleased;
+        }
     }
 
     bool shouldUpdateScreen;

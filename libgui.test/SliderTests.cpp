@@ -24,3 +24,35 @@ TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 
     ASSERT_EQ(Slider::Thumb::State::Engaged, thumb->GetState());
 }
+
+TEST(SliderTests, WhenTouchDown_StateIsEngaged)
+{
+    auto slider = make_shared<Slider>();
+    slider->Init();
+    auto thumb = slider->GetThumb();
+
+    bool updateScreen;
+    thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point(), updateScreen);
+    thumb->NotifyInput(InputType::Touch, InputAction::Push, Point(), updateScreen);
+
+    ASSERT_EQ(Slider::Thumb::State::Engaged, thumb->GetState());
+}
+
+TEST(SliderTests, WhenTouchDragged_ValueChanges)
+{
+    auto slider = make_shared<Slider>();
+    slider->Init();
+    auto thumb = slider->GetThumb();
+
+    auto originalValue = slider->GetValue();
+
+    bool updateScreen;
+    thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point{1, 1}, updateScreen);
+    thumb->NotifyInput(InputType::Touch, InputAction::Push, Point{1, 1}, updateScreen);
+
+    ASSERT_EQ(originalValue, slider->GetValue());
+
+    thumb->NotifyInput(InputType::Touch, InputAction::Move, Point{0, 1}, updateScreen);
+    ASSERT_NE(originalValue, slider->GetValue());
+
+}
