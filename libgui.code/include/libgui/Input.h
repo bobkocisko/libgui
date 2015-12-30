@@ -22,7 +22,11 @@ public:
     bool NotifyDown();
     bool NotifyUp();
 
-    // The following are to be used only internally
+    // Debugging
+    const Point    & GetPoint() const;
+    const InputType& GetInputType() const;
+
+// The following are to be used only internally
     bool IsAtopBusy();
     bool IsAtopAvailable();
     bool IsAtopNothing();

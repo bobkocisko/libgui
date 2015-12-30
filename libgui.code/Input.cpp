@@ -666,4 +666,14 @@ void Input::ProcessEvent(const Event& evt)
     }
 
 }
+
+const Point& Input::GetPoint() const
+{
+    return _point;
+}
+
+const InputType& Input::GetInputType() const
+{
+    return _inputType;
+}
 }
