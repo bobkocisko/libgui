@@ -215,6 +215,8 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
     // Apply the default screen update logic
     Control::NotifyInput(inputType, inputAction, point, updateScreen);
 
+    _inputPoint = point;
+
     auto stateMachine = (SmSlider::StateMachine*) _stateMachine;
 
     switch (inputAction)
@@ -259,7 +261,6 @@ void Slider::Thumb::RecordAnchor()
 void Slider::Thumb::NotifyMove(Point point, bool& updateScreen)
 {
     updateScreen = false;
-    _inputPoint  = point;
     auto state = GetState();
     if (State::Engaged == state ||
         State::EngagedRemotely == state)
