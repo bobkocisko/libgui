@@ -313,11 +313,11 @@ Slider::Thumb::State Slider::Thumb::GetState() const
 
 const inches Slider::GetThumbHeightInches() const
 {
-    return libgui::inches(GetThumbHeight() / GetElementManager()->GetDpi());
+    return libgui::inches(GetThumbHeight() / GetElementManager()->GetDpiY());
 }
 
 void Slider::SetThumbHeight(inches thumbHeight)
 {
-    SetThumbHeight(double(thumbHeight) * GetElementManager()->GetDpi());
+    SetThumbHeight(double(thumbHeight) * GetElementManager()->GetDpiY());
 }
 }

@@ -82,13 +82,23 @@ void ElementManager::EnableDebugLogging()
     _isDebugLoggingEnabled = true;
 }
 
-double ElementManager::GetDpi() const
+double ElementManager::GetDpiX() const
 {
-    return _dpi;
+    return _dpiX;
 }
 
-void ElementManager::SetDpi(double dpi)
+void ElementManager::SetDpiX(double dpi)
 {
-    _dpi = dpi;
+    _dpiX = dpi;
+}
+
+double ElementManager::GetDpiY() const
+{
+    return _dpiY;
+}
+
+void ElementManager::SetDpiY(double dpiY)
+{
+    _dpiY = dpiY;
 }
 }

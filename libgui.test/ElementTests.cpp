@@ -59,7 +59,7 @@ TEST(ElementTests, InchesArithmetic)
     auto root = make_shared<Element>();
     auto em   = make_shared<ElementManager>();
     em->SetRoot(root);
-    em->SetDpi(100.0);
+    em->SetDpiX(100.0);
 
     int    index = 3;
     inches buffer(5.0);

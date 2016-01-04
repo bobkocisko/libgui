@@ -512,42 +512,42 @@ Element::~Element()
 
 void Element::SetLeft(inches left)
 {
-    SetLeft(double(left) * _elementManager->GetDpi());
+    SetLeft(double(left) * _elementManager->GetDpiX());
 }
 
 void Element::SetTop(inches top)
 {
-    SetTop(double(top) * _elementManager->GetDpi());
+    SetTop(double(top) * _elementManager->GetDpiY());
 }
 
 void Element::SetRight(inches right)
 {
-    SetRight(double(right) * _elementManager->GetDpi());
+    SetRight(double(right) * _elementManager->GetDpiX());
 }
 
 void Element::SetBottom(inches bottom)
 {
-    SetBottom(double(bottom) * _elementManager->GetDpi());
+    SetBottom(double(bottom) * _elementManager->GetDpiY());
 }
 
 void Element::SetCenterX(inches centerX)
 {
-    SetCenterX(double(centerX) * _elementManager->GetDpi());
+    SetCenterX(double(centerX) * _elementManager->GetDpiX());
 }
 
 void Element::SetCenterY(inches centerY)
 {
-    SetCenterY(double(centerY) * _elementManager->GetDpi());
+    SetCenterY(double(centerY) * _elementManager->GetDpiY());
 }
 
 void Element::SetWidth(inches width)
 {
-    SetWidth(double(width) * _elementManager->GetDpi());
+    SetWidth(double(width) * _elementManager->GetDpiX());
 }
 
 void Element::SetHeight(inches height)
 {
-    SetHeight(double(height) * _elementManager->GetDpi());
+    SetHeight(double(height) * _elementManager->GetDpiY());
 }
 
 inches::inches(double value)
@@ -562,42 +562,42 @@ inches::operator double() const
 
 inches Element::GetLeftInches()
 {
-    return libgui::inches(GetLeft() / _elementManager->GetDpi());
+    return libgui::inches(GetLeft() / _elementManager->GetDpiX());
 }
 
 inches Element::GetTopInches()
 {
-    return libgui::inches(GetTop() / _elementManager->GetDpi());
+    return libgui::inches(GetTop() / _elementManager->GetDpiY());
 }
 
 inches Element::GetRightInches()
 {
-    return libgui::inches(GetRight() / _elementManager->GetDpi());
+    return libgui::inches(GetRight() / _elementManager->GetDpiX());
 }
 
 inches Element::GetBottomInches()
 {
-    return libgui::inches(GetBottom() / _elementManager->GetDpi());
+    return libgui::inches(GetBottom() / _elementManager->GetDpiY());
 }
 
 inches Element::GetCenterXInches()
 {
-    return libgui::inches(GetCenterX() / _elementManager->GetDpi());
+    return libgui::inches(GetCenterX() / _elementManager->GetDpiX());
 }
 
 inches Element::GetCenterYInches()
 {
-    return libgui::inches(GetCenterY() / _elementManager->GetDpi());
+    return libgui::inches(GetCenterY() / _elementManager->GetDpiY());
 }
 
 inches Element::GetWidthInches()
 {
-    return libgui::inches(GetWidth() / _elementManager->GetDpi());
+    return libgui::inches(GetWidth() / _elementManager->GetDpiX());
 }
 
 inches Element::GetHeightInches()
 {
-    return libgui::inches(GetHeight() / _elementManager->GetDpi());
+    return libgui::inches(GetHeight() / _elementManager->GetDpiY());
 }
 
 inches& inches::operator+=(const inches& other)
