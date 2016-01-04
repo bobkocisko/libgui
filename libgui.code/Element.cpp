@@ -555,7 +555,7 @@ inches::inches(double value)
 {
 }
 
-inches::operator double()
+inches::operator double() const
 {
     return value;
 }

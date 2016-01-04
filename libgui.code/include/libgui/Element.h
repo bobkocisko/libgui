@@ -16,7 +16,7 @@ struct inches
 {
     explicit inches(double value);
 
-    operator double();
+    operator double() const;
     inches operator+(inches& other);
     inches operator-(inches& other);
     inches operator*(inches& other);
