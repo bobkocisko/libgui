@@ -16,7 +16,7 @@ struct inches
 {
     explicit inches(double value);
 
-    explicit operator double();
+    operator double();
 
 private:
     double value;
