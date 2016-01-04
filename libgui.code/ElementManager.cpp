@@ -81,4 +81,14 @@ void ElementManager::EnableDebugLogging()
 {
     _isDebugLoggingEnabled = true;
 }
+
+double ElementManager::GetDpi() const
+{
+    return _dpi;
+}
+
+void ElementManager::SetDpi(double dpi)
+{
+    _dpi = dpi;
+}
 }

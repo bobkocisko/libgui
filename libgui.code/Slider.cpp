@@ -310,4 +310,14 @@ Slider::Thumb::State Slider::Thumb::GetState() const
     auto stateMachine = (SmSlider::StateMachine*) _stateMachine;
     return (State) stateMachine->current_state()[0];
 }
+
+const inches Slider::GetThumbHeightInches() const
+{
+    return libgui::inches(GetThumbHeight() / GetElementManager()->GetDpi());
+}
+
+void Slider::SetThumbHeight(inches thumbHeight)
+{
+    SetThumbHeight(double(thumbHeight) * GetElementManager()->GetDpi());
+}
 }

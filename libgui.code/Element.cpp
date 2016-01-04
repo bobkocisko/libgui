@@ -12,7 +12,7 @@ void Element::SetElementManager(ElementManager* elementManager)
     _elementManager = elementManager;
 }
 
-ElementManager* Element::GetElementManager()
+ElementManager* Element::GetElementManager() const
 {
     return _elementManager;
 }
@@ -508,5 +508,95 @@ Element* Element::GetElementAtPoint(Point point)
 
 Element::~Element()
 {
+}
+
+void Element::SetLeft(inches left)
+{
+    SetLeft(double(left) * _elementManager->GetDpi());
+}
+
+void Element::SetTop(inches top)
+{
+    SetTop(double(top) * _elementManager->GetDpi());
+}
+
+void Element::SetRight(inches right)
+{
+    SetRight(double(right) * _elementManager->GetDpi());
+}
+
+void Element::SetBottom(inches bottom)
+{
+    SetBottom(double(bottom) * _elementManager->GetDpi());
+}
+
+void Element::SetCenterX(inches centerX)
+{
+    SetCenterX(double(centerX) * _elementManager->GetDpi());
+}
+
+void Element::SetCenterY(inches centerY)
+{
+    SetCenterY(double(centerY) * _elementManager->GetDpi());
+}
+
+void Element::SetWidth(inches width)
+{
+    SetWidth(double(width) * _elementManager->GetDpi());
+}
+
+void Element::SetHeight(inches height)
+{
+    SetHeight(double(height) * _elementManager->GetDpi());
+}
+
+inches::inches(double value)
+    : value(value)
+{
+}
+
+inches::operator double()
+{
+    return value;
+}
+
+inches Element::GetLeftInches()
+{
+    return libgui::inches(GetLeft() / _elementManager->GetDpi());
+}
+
+inches Element::GetTopInches()
+{
+    return libgui::inches(GetTop() / _elementManager->GetDpi());
+}
+
+inches Element::GetRightInches()
+{
+    return libgui::inches(GetRight() / _elementManager->GetDpi());
+}
+
+inches Element::GetBottomInches()
+{
+    return libgui::inches(GetBottom() / _elementManager->GetDpi());
+}
+
+inches Element::GetCenterXInches()
+{
+    return libgui::inches(GetCenterX() / _elementManager->GetDpi());
+}
+
+inches Element::GetCenterYInches()
+{
+    return libgui::inches(GetCenterY() / _elementManager->GetDpi());
+}
+
+inches Element::GetWidthInches()
+{
+    return libgui::inches(GetWidth() / _elementManager->GetDpi());
+}
+
+inches Element::GetHeightInches()
+{
+    return libgui::inches(GetHeight() / _elementManager->GetDpi());
 }
 }

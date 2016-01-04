@@ -20,7 +20,13 @@ public:
     const function<void(bool)>& GetSystemCaptureCallback() const;
     void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
 
-    // For debugging purposes
+    // DPI: The number of pixels per inch, used to support setting element values in inches
+    double GetDpi() const;
+    // DPI: The number of pixels per inch, used to support setting element values in inches.
+    // If you need a per-monitor DPI setting you need to create a separate ElementManager for each monitor.
+    void   SetDpi(double dpi);
+
+// For debugging purposes
     const vector<Input*>& GetActiveInputs() const;
     void EnableDebugLogging();
 
@@ -33,5 +39,7 @@ private:
     Input* GetInput(const InputId& inputId);
 
     bool _isDebugLoggingEnabled;
+
+    double _dpi = 96.0;
 };
 }
