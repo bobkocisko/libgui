@@ -17,6 +17,10 @@ struct inches
     explicit inches(double value);
 
     operator double();
+    inches operator+(inches& other);
+    inches operator-(inches& other);
+    inches operator*(inches& other);
+    inches operator/(inches& other);
 
 private:
     double value;

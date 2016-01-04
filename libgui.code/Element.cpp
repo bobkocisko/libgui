@@ -599,4 +599,24 @@ inches Element::GetHeightInches()
 {
     return libgui::inches(GetHeight() / _elementManager->GetDpi());
 }
+
+inches inches::operator+(inches& other)
+{
+    return inches(value + other.value);
+}
+
+inches inches::operator-(inches& other)
+{
+    return inches(value - other.value);
+}
+
+inches inches::operator*(inches& other)
+{
+    return inches(value * other.value);
+}
+
+inches inches::operator/(inches& other)
+{
+    return inches(value / other.value);
+}
 }
