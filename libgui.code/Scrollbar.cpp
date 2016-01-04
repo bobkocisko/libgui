@@ -203,6 +203,8 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
     // Apply the default screen update logic
     Control::NotifyInput(inputType, inputAction, point, updateScreen);
 
+    _pointer = point;
+
     auto stateMachine = (SmScrollbar::StateMachine*) _stateMachine;
 
     switch (inputAction)
@@ -249,8 +251,9 @@ void Scrollbar::Thumb::RecordAnchor()
 void Scrollbar::Thumb::NotifyPointerMove(Point point, bool& updateScreen)
 {
     updateScreen = false;
-    _pointer     = point;
-    if (State::Engaged == GetState())
+    auto state = GetState();
+    if (State::Engaged == state ||
+        State::EngagedRemotely == state)
     {
         auto sb    = _scrollbar.lock();
         auto track = _track.lock();
@@ -276,11 +279,6 @@ const weak_ptr<Scrollbar>& Scrollbar::Thumb::GetScrollbar() const
 Scrollbar::Thumb::State Scrollbar::Thumb::GetState() const
 {
     auto stateMachine = (SmScrollbar::StateMachine*) _stateMachine;
-    auto currentState = stateMachine->current_state()[0];
-    if (3 == currentState) // Treat EngagedRemotely and Engaged as the same state
-    {
-        currentState = 2;
-    }
-    return (State) currentState;
+    return (State) stateMachine->current_state()[0];
 }
 }

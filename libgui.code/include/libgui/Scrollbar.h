@@ -44,7 +44,8 @@ public:
         {
             Idle,
             Pending,
-            Engaged
+            Engaged,
+            EngagedRemotely
         };
         State GetState() const;
 
