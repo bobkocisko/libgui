@@ -600,23 +600,33 @@ inches Element::GetHeightInches()
     return libgui::inches(GetHeight() / _elementManager->GetDpi());
 }
 
-inches inches::operator+(inches& other)
+inches& inches::operator+=(const inches& other)
 {
-    return inches(value + other.value);
+    value += other.value;
+    return *this;
 }
 
-inches inches::operator-(inches& other)
+inches& inches::operator-=(const inches& other)
 {
-    return inches(value - other.value);
+    value -= other.value;
+    return *this;
 }
 
-inches inches::operator*(inches& other)
+inches& inches::operator*=(const inches& other)
 {
-    return inches(value * other.value);
+    value *= other.value;
+    return *this;
 }
 
-inches inches::operator/(inches& other)
+inches& inches::operator/=(const inches& other)
 {
-    return inches(value / other.value);
+    value /= other.value;
+    return *this;
+}
+
+inches& inches::operator*=(const int multiplier)
+{
+    value *= multiplier;
+    return *this;
 }
 }

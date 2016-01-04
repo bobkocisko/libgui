@@ -3,6 +3,8 @@
 #include "Location.h"
 #include "Point.h"
 
+#include <boost/operators.hpp>
+
 using namespace std;
 
 namespace libgui
@@ -12,19 +14,26 @@ namespace libgui
 #undef GetPrevSibling
 #undef GetNextSibling
 
-struct inches
+// @formatter:off
+class inches:
+    boost::additive<inches,
+    boost::multiplicative<inches,
+    boost::multipliable<inches, int>>>
 {
+public:
     explicit inches(double value);
+    explicit operator double() const;
 
-    operator double() const;
-    inches operator+(inches& other);
-    inches operator-(inches& other);
-    inches operator*(inches& other);
-    inches operator/(inches& other);
+    inches& operator+=(const inches& other);
+    inches& operator-=(const inches& other);
+    inches& operator*=(const inches& other);
+    inches& operator/=(const inches& other);
+    inches& operator*=(const int multiplier);
 
 private:
     double value;
 };
+// @formatter:on
 
 class ElementManager;
 

@@ -54,5 +54,19 @@ TEST(ElementTests, WhenRemovingChildren_AllReferencesAreCleaned)
     ASSERT_EQ(true, wasDestructed);
 }
 
+TEST(ElementTests, InchesArithmetic)
+{
+    auto root = make_shared<Element>();
+    auto em   = make_shared<ElementManager>();
+    em->SetRoot(root);
+    em->SetDpi(100.0);
 
+    int    index = 3;
+    inches buffer(5.0);
+    inches l(1.0);
+
+    root->SetLeft(l + buffer * index);
+
+    ASSERT_EQ(1600, root->GetLeft());
+}
 
