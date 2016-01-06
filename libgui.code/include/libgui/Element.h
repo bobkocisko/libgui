@@ -73,6 +73,9 @@ public:
     void SetSetViewModelCallback(function<void(shared_ptr<Element>)>);
     void SetArrangeCallback(function<void(shared_ptr<Element>)>);
 
+    // Optional post-construction initialization pass that some elements require
+    virtual void Initialize();
+
     void SetIsVisible(bool isVisible);
     bool GetIsVisible();
     void SetClipToBounds(bool clipToBounds);

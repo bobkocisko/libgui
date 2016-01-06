@@ -163,7 +163,7 @@ namespace libgui_sample_windows2
 		auto grid_scroll = make_shared<Scrollbar>(grid);
 		{
 			root->AddChild(grid_scroll);
-			grid_scroll->Init();
+			grid_scroll->Initialize();
 			grid_scroll->SetArrangeCallback([=](shared_ptr<Element> e)
 			{
 				auto p = e->GetParent();
@@ -213,7 +213,7 @@ namespace libgui_sample_windows2
 		auto slider = make_shared<Slider>();
 		{
 			root->AddChild(slider);
-			slider->Init();
+			slider->Initialize();
 			slider->SetThumbHeight(50);
 			slider->SetArrangeCallback([=](shared_ptr<Element> e)
 			{

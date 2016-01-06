@@ -15,7 +15,7 @@ using ::testing::Return;
 TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 {
     auto slider = make_shared<Slider>();
-    slider->Init();
+    slider->Initialize();
     auto thumb = slider->GetThumb();
 
     bool updateScreen;
@@ -28,7 +28,7 @@ TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 {
     auto slider = make_shared<Slider>();
-    slider->Init();
+    slider->Initialize();
     auto thumb = slider->GetThumb();
 
     bool updateScreen;
@@ -41,7 +41,7 @@ TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 TEST(SliderTests, WhenTouchDragged_ValueChanges)
 {
     auto slider = make_shared<Slider>();
-    slider->Init();
+    slider->Initialize();
     auto thumb = slider->GetThumb();
 
     auto originalValue = slider->GetValue();

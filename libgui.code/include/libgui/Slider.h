@@ -10,7 +10,7 @@ namespace libgui
 class Slider: public libgui::Element
 {
 public:
-    virtual void Init();
+    void Initialize() override;
 
     const double& GetValue() const;
     void SetValue(double value);

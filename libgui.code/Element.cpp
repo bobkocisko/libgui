@@ -248,6 +248,11 @@ void Element::ArrangeAndDraw(bool draw)
     }
 }
 
+void Element::Initialize()
+{
+    // Default behavior: nothing
+}
+
 void Element::SetIsVisible(bool isVisible)
 {
     _isVisible = isVisible;
