@@ -14,7 +14,7 @@ public:
     {
     }
 
-    Size(Length width, Length height)
+    Size(Length& width, Length& height)
         : width(width), height(height)
     {
     }

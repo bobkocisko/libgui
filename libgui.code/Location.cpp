@@ -8,7 +8,8 @@ Location::Location()
     : Location(0.0, 0.0)
 {
 }
-Location::Location(const Length &x, const Length &y)
+
+Location::Location(Length& x, Length& y)
     : x(x), y(y)
 {
 }
