@@ -13,6 +13,28 @@ using namespace std;
 
 using ::testing::Return;
 
+TEST(TypesTest, InchesArithmetic)
+{
+    auto root = make_shared<Element>();
+    auto em   = make_shared<ElementManager>();
+    em->SetRoot(root);
+    em->SetDpiX(100.0);
+    em->SetDpiY(100.0);
+
+    int    index = 3;
+    Inches buffer(5.0);
+    Inches l(1.0);
+
+    root->SetLeft(l + buffer * index);
+
+    ASSERT_EQ(1600, root->GetLeft());
+
+    auto top = 1.0 * inches;
+    root->SetTop(top / 2);
+
+    ASSERT_EQ(50, root->GetTop());
+}
+
 TEST(TypesTest, ConvertInchesToPixels)
 {
     auto em      = make_shared<ElementManager>();

@@ -42,6 +42,12 @@ Inches& Inches::operator*=(const double multiplier)
     return *this;
 }
 
+Inches& Inches::operator/=(const double divisor)
+{
+    value /= divisor;
+    return *this;
+}
+
 HPixels::HPixels(Inches in, double dpiX)
     : pixels(double(in) * dpiX), dpiX(dpiX)
 {

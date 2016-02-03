@@ -27,6 +27,7 @@ public:
     Inches& operator*=(const Inches& other);
     Inches& operator/=(const Inches& other);
     Inches& operator*=(const double multiplier);
+    Inches& operator/=(const double divisor);
 
 private:
     double value;
