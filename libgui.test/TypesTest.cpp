@@ -61,4 +61,18 @@ TEST(TypesTest, LocationConversions)
 
     ASSERT_EQ(50, location.x);
     ASSERT_EQ(20, location.y);
+
+    auto em      = make_shared<ElementManager>();
+    auto element = std::make_shared<Element>();
+    em->SetDpiX(100.0);
+    em->SetDpiY(200.0);
+    element->SetElementManager(em.get());
+
+    element->SetLeft(500);
+
+    element->SetTop(200);
+
+    Location l2(element->GetLeft(), element->GetTop());
+    ASSERT_EQ(500, l2.x);
+    ASSERT_EQ(200, l2.y);
 }

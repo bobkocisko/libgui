@@ -14,7 +14,19 @@ Length::Length(libgui::HPixels& hPixels)
 {
 }
 
+Length::Length(const libgui::HPixels& hPixels)
+    : Length(double(hPixels))
+{
+
+}
+
 Length::Length(libgui::VPixels& vPixels)
     : Length(double(vPixels))
 {
+}
+
+Length::Length(const libgui::VPixels& vPixels)
+    : Length(double(vPixels))
+{
+
 }
