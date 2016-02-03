@@ -143,12 +143,6 @@ void Element::ClearElementCache(int cacheLevel)
 // Arrangement
 void Element::ResetArrangement()
 {
-    if (_parent)
-    {
-        // Copy the element manager from the parent
-        _elementManager = _parent->_elementManager;
-    }
-
     _isVisible = true;
 
     _left    = 0;
@@ -248,9 +242,32 @@ void Element::ArrangeAndDraw(bool draw)
     }
 }
 
-void Element::Initialize()
+void Element::InitializeAll()
 {
-    // Default behavior: nothing
+    // Pre-initialization
+    if (_parent)
+    {
+        // Copy the element manager from the parent
+        _elementManager = _parent->_elementManager;
+    }
+
+    // Initialize the current element
+    InitializeThis();
+
+    // Then initialize all children
+    if (_firstChild)
+    {
+        for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
+        {
+            e->InitializeAll();
+        }
+    }
+
+}
+
+void Element::InitializeThis()
+{
+    // Default behavior: Do nothing
 }
 
 void Element::SetIsVisible(bool isVisible)
@@ -564,6 +581,5 @@ VPixels Element::GetVPixels(Inches in)
 {
     return VPixels(in, _elementManager->GetDpiY());
 }
-
 }
 

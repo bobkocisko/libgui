@@ -20,7 +20,7 @@ using boost::msm::TerminateFlag;
 
 namespace libgui
 {
-void Slider::Initialize()
+void Slider::InitializeThis()
 {
     _track = make_shared<Track>();
     this->AddChild(_track);

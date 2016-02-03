@@ -12,7 +12,7 @@ class Scrollbar: public libgui::Element
 public:
     explicit Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate);
 
-    void Initialize() override;
+    void InitializeThis() override;
 
     class Thumb;
     class Track;

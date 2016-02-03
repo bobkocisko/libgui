@@ -17,10 +17,8 @@ TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 {
     auto slider = make_shared<Slider>();
     auto em     = make_shared<ElementManager>();
-    slider->Initialize();
-    slider->SetElementManager(em.get());
-    slider->GetTrack()->SetElementManager(em.get());
-    slider->GetThumb()->SetElementManager(em.get());
+    em->SetRoot(slider);
+    slider->InitializeAll();
 
     auto thumb = slider->GetThumb();
 
@@ -35,10 +33,8 @@ TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 {
     auto slider = make_shared<Slider>();
     auto em     = make_shared<ElementManager>();
-    slider->Initialize();
-    slider->SetElementManager(em.get());
-    slider->GetTrack()->SetElementManager(em.get());
-    slider->GetThumb()->SetElementManager(em.get());
+    em->SetRoot(slider);
+    slider->InitializeAll();
 
     auto thumb = slider->GetThumb();
 
@@ -53,10 +49,8 @@ TEST(SliderTests, WhenTouchDragged_ValueChanges)
 {
     auto slider = make_shared<Slider>();
     auto em     = make_shared<ElementManager>();
-    slider->Initialize();
-    slider->SetElementManager(em.get());
-    slider->GetTrack()->SetElementManager(em.get());
-    slider->GetThumb()->SetElementManager(em.get());
+    em->SetRoot(slider);
+    slider->InitializeAll();
 
     auto thumb = slider->GetThumb();
 

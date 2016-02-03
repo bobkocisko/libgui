@@ -52,7 +52,8 @@ public:
     void SetArrangeCallback(function<void(shared_ptr<Element>)>);
 
     // Optional post-construction initialization pass that some elements require
-    virtual void Initialize();
+    virtual void InitializeAll();
+    virtual void InitializeThis();
 
     void SetIsVisible(bool isVisible);
     bool GetIsVisible();
