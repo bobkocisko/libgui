@@ -9,15 +9,11 @@
 class Size
 {
 public:
-    Size()
-        : width(0), height(0)
-    {
-    }
+    Size();
 
-    Size(Length& width, Length& height)
-        : width(width), height(height)
-    {
-    }
+    Size(const Length& width, const Length& height);
+
+    Size(Length& width, Length& height);
 
     Length width;
     Length height;

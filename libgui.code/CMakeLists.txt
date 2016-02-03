@@ -52,6 +52,6 @@ set(SOURCE_FILES
     include/libgui/InputIdentifier.h
     InputIdentifier.cpp
     Input.cpp
-    include/libgui/Input.h include/libgui/Types.h Types.cpp)
+    include/libgui/Input.h include/libgui/Types.h Types.cpp Size.cpp)
 
 add_library(libgui ${SOURCE_FILES})

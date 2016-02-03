@@ -12,6 +12,7 @@ public:
 
     Location();
 
+    Location(const Length& x, const Length& y);
     Location(Length& x, Length& y);
 
     Length x;

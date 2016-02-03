@@ -9,6 +9,10 @@ Location::Location()
 {
 }
 
+Location::Location(const Length& x, const Length& y)
+    : x(x), y(y)
+{
+}
 Location::Location(Length& x, Length& y)
     : x(x), y(y)
 {
