@@ -48,4 +48,17 @@ TEST(TypesTest, CombineInchPixelMath)
 
     ASSERT_EQ(200, element->GetHPixels(2 * inches));
     ASSERT_EQ(400, element->GetVPixels(2 * inches));
+
+    ASSERT_EQ(25, element->GetLeft() - 0.25 * inches);
+}
+
+TEST(TypesTest, LocationConversions)
+{
+    HPixels x(50, 500);
+    VPixels y(20, 200);
+
+    Location location(x, y);
+
+    ASSERT_EQ(50, location.x);
+    ASSERT_EQ(20, location.y);
 }

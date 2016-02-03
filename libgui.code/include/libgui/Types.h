@@ -13,7 +13,8 @@ namespace libgui
 class Inches:
     boost::additive<Inches,
     boost::multiplicative<Inches,
-    boost::multipliable<Inches, double>>>
+    boost::multipliable<Inches, double,
+    boost::dividable<Inches, double>>>>
 {
 public:
     explicit constexpr Inches(double value)
@@ -36,7 +37,9 @@ constexpr Inches inches(1.0);
 
 class HPixels:
     boost::addable<HPixels, Inches,
-    boost::multipliable<HPixels, Inches>>
+    boost::subtractable<HPixels, Inches,
+    boost::multipliable<HPixels, Inches,
+    boost::dividable<HPixels, Inches>>>>
 {
 public:
     HPixels(double pixels, double dpiX);
@@ -57,7 +60,9 @@ private:
 
 class VPixels:
     boost::addable<VPixels, Inches,
-    boost::multipliable<VPixels, Inches>>
+    boost::subtractable<VPixels, Inches,
+    boost::multipliable<VPixels, Inches,
+    boost::dividable<VPixels, Inches>>>>
 {
 public:
     VPixels(double pixels, double dpiY);

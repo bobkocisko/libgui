@@ -13,3 +13,8 @@ Length::Length(libgui::HPixels& hPixels)
     : Length(double(hPixels))
 {
 }
+
+Length::Length(libgui::VPixels& vPixels)
+    : Length(double(vPixels))
+{
+}

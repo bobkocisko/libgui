@@ -13,6 +13,7 @@ class Length: public AnimatableValue
 public:
     Length(double value);
     Length(libgui::HPixels& hPixels);
+    Length(libgui::VPixels& vPixels);
 };
 
 
