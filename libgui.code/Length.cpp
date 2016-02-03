@@ -8,3 +8,8 @@ Length::Length(double value)
     : AnimatableValue(value)
 {
 }
+
+Length::Length(libgui::HPixels& hPixels)
+    : Length(double(hPixels))
+{
+}
