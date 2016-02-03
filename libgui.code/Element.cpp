@@ -244,13 +244,6 @@ void Element::ArrangeAndDraw(bool draw)
 
 void Element::InitializeAll()
 {
-    // Pre-initialization
-    if (_parent)
-    {
-        // Copy the element manager from the parent
-        _elementManager = _parent->_elementManager;
-    }
-
     // Initialize the current element
     InitializeThis();
 
@@ -267,7 +260,12 @@ void Element::InitializeAll()
 
 void Element::InitializeThis()
 {
-    // Default behavior: Do nothing
+    // Default behavior
+    if (_parent)
+    {
+        // Copy the element manager from the parent
+        _elementManager = _parent->_elementManager;
+    }
 }
 
 void Element::SetIsVisible(bool isVisible)

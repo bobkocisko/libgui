@@ -22,6 +22,8 @@ namespace libgui
 {
 void Slider::InitializeThis()
 {
+    Element::InitializeThis();
+
     _track = make_shared<Track>();
     this->AddChild(_track);
 

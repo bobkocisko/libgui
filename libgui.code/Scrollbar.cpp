@@ -28,6 +28,8 @@ Scrollbar::Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate)
 
 void Scrollbar::InitializeThis()
 {
+    Element::InitializeThis();
+
     _track = make_shared<Track>();
     this->AddChild(_track);
 
