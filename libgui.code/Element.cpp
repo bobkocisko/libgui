@@ -321,7 +321,7 @@ void Element::SetHeight(double height)
     _height      = height;
 }
 
-double Element::GetLeft()
+HPixels Element::GetLeft()
 {
     if (!_isLeftSet)
     {
@@ -338,10 +338,10 @@ double Element::GetLeft()
         }
         _isLeftSet = true;
     }
-    return _left;
+    return HPixels(_left, _elementManager->GetDpiX());
 }
 
-double Element::GetTop()
+VPixels Element::GetTop()
 {
     if (!_isTopSet)
     {
@@ -358,10 +358,10 @@ double Element::GetTop()
         }
         _isTopSet = true;
     }
-    return _top;
+    return VPixels(_top, _elementManager->GetDpiY());
 }
 
-double Element::GetRight()
+HPixels Element::GetRight()
 {
     if (!_isRightSet)
     {
@@ -378,10 +378,10 @@ double Element::GetRight()
         }
         _isRightSet = true;
     }
-    return _right;
+    return HPixels(_right, _elementManager->GetDpiX());
 }
 
-double Element::GetBottom()
+VPixels Element::GetBottom()
 {
     if (!_isBottomSet)
     {
@@ -398,10 +398,10 @@ double Element::GetBottom()
         }
         _isBottomSet = true;
     }
-    return _bottom;
+    return VPixels(_bottom, _elementManager->GetDpiY());
 }
 
-double Element::GetCenterX()
+HPixels Element::GetCenterX()
 {
     if (!_isCenterXSet)
     {
@@ -419,10 +419,10 @@ double Element::GetCenterX()
         }
         _isCenterXSet = true;
     }
-    return _centerX;
+    return HPixels(_centerX, _elementManager->GetDpiX());
 }
 
-double Element::GetCenterY()
+VPixels Element::GetCenterY()
 {
     if (!_isCenterYSet)
     {
@@ -440,10 +440,10 @@ double Element::GetCenterY()
         }
         _isCenterYSet = true;
     }
-    return _centerY;
+    return VPixels(_centerY, _elementManager->GetDpiY());
 }
 
-double Element::GetWidth()
+HPixels Element::GetWidth()
 {
     if (!_isWidthSet)
     {
@@ -453,10 +453,10 @@ double Element::GetWidth()
         }
         _isWidthSet = true;
     }
-    return _width;
+    return HPixels(_width, _elementManager->GetDpiX());
 }
 
-double Element::GetHeight()
+VPixels Element::GetHeight()
 {
     if (!_isHeightSet)
     {
@@ -466,7 +466,7 @@ double Element::GetHeight()
         }
         _isHeightSet = true;
     }
-    return _height;
+    return VPixels(_height, _elementManager->GetDpiY());
 }
 
 // Drawing
@@ -515,123 +515,55 @@ Element::~Element()
 {
 }
 
-void Element::SetLeft(inches left)
+void Element::SetLeft(Inches left)
 {
     SetLeft(double(left) * _elementManager->GetDpiX());
 }
 
-void Element::SetTop(inches top)
+void Element::SetTop(Inches top)
 {
     SetTop(double(top) * _elementManager->GetDpiY());
 }
 
-void Element::SetRight(inches right)
+void Element::SetRight(Inches right)
 {
     SetRight(double(right) * _elementManager->GetDpiX());
 }
 
-void Element::SetBottom(inches bottom)
+void Element::SetBottom(Inches bottom)
 {
     SetBottom(double(bottom) * _elementManager->GetDpiY());
 }
 
-void Element::SetCenterX(inches centerX)
+void Element::SetCenterX(Inches centerX)
 {
     SetCenterX(double(centerX) * _elementManager->GetDpiX());
 }
 
-void Element::SetCenterY(inches centerY)
+void Element::SetCenterY(Inches centerY)
 {
     SetCenterY(double(centerY) * _elementManager->GetDpiY());
 }
 
-void Element::SetWidth(inches width)
+void Element::SetWidth(Inches width)
 {
     SetWidth(double(width) * _elementManager->GetDpiX());
 }
 
-void Element::SetHeight(inches height)
+void Element::SetHeight(Inches height)
 {
     SetHeight(double(height) * _elementManager->GetDpiY());
 }
 
-inches::inches(double value)
-    : value(value)
+HPixels Element::GetHPixels(Inches in)
 {
+    return HPixels(in, _elementManager->GetDpiX());
 }
 
-inches::operator double() const
+VPixels Element::GetVPixels(Inches in)
 {
-    return value;
+    return VPixels(in, _elementManager->GetDpiY());
 }
 
-inches Element::GetLeftInches()
-{
-    return libgui::inches(GetLeft() / _elementManager->GetDpiX());
 }
 
-inches Element::GetTopInches()
-{
-    return libgui::inches(GetTop() / _elementManager->GetDpiY());
-}
-
-inches Element::GetRightInches()
-{
-    return libgui::inches(GetRight() / _elementManager->GetDpiX());
-}
-
-inches Element::GetBottomInches()
-{
-    return libgui::inches(GetBottom() / _elementManager->GetDpiY());
-}
-
-inches Element::GetCenterXInches()
-{
-    return libgui::inches(GetCenterX() / _elementManager->GetDpiX());
-}
-
-inches Element::GetCenterYInches()
-{
-    return libgui::inches(GetCenterY() / _elementManager->GetDpiY());
-}
-
-inches Element::GetWidthInches()
-{
-    return libgui::inches(GetWidth() / _elementManager->GetDpiX());
-}
-
-inches Element::GetHeightInches()
-{
-    return libgui::inches(GetHeight() / _elementManager->GetDpiY());
-}
-
-inches& inches::operator+=(const inches& other)
-{
-    value += other.value;
-    return *this;
-}
-
-inches& inches::operator-=(const inches& other)
-{
-    value -= other.value;
-    return *this;
-}
-
-inches& inches::operator*=(const inches& other)
-{
-    value *= other.value;
-    return *this;
-}
-
-inches& inches::operator/=(const inches& other)
-{
-    value /= other.value;
-    return *this;
-}
-
-inches& inches::operator*=(const int multiplier)
-{
-    value *= multiplier;
-    return *this;
-}
-}

@@ -2,8 +2,7 @@
 #include "ViewModelBase.h"
 #include "Location.h"
 #include "Point.h"
-
-#include <boost/operators.hpp>
+#include "Types.h"
 
 using namespace std;
 
@@ -13,27 +12,6 @@ namespace libgui
 #undef GetFirstChild
 #undef GetPrevSibling
 #undef GetNextSibling
-
-// @formatter:off
-class inches:
-    boost::additive<inches,
-    boost::multiplicative<inches,
-    boost::multipliable<inches, int>>>
-{
-public:
-    explicit inches(double value);
-    explicit operator double() const;
-
-    inches& operator+=(const inches& other);
-    inches& operator-=(const inches& other);
-    inches& operator*=(const inches& other);
-    inches& operator/=(const inches& other);
-    inches& operator*=(const int multiplier);
-
-private:
-    double value;
-};
-// @formatter:on
 
 class ElementManager;
 
@@ -90,32 +68,26 @@ public:
     void SetWidth(double width);
     void SetHeight(double height);
 
-    void SetLeft(inches left);
-    void SetTop(inches top);
-    void SetRight(inches right);
-    void SetBottom(inches bottom);
-    void SetCenterX(inches centerX);
-    void SetCenterY(inches centerY);
-    void SetWidth(inches width);
-    void SetHeight(inches height);
+    void SetLeft(Inches left);
+    void SetTop(Inches top);
+    void SetRight(Inches right);
+    void SetBottom(Inches bottom);
+    void SetCenterX(Inches centerX);
+    void SetCenterY(Inches centerY);
+    void SetWidth(Inches width);
+    void SetHeight(Inches height);
 
-    double GetLeft();
-    double GetTop();
-    double GetRight();
-    double GetBottom();
-    double GetCenterX();
-    double GetCenterY();
-    double GetWidth();
-    double GetHeight();
+    HPixels GetLeft();
+    VPixels GetTop();
+    HPixels GetRight();
+    VPixels GetBottom();
+    HPixels GetCenterX();
+    VPixels GetCenterY();
+    HPixels GetWidth();
+    VPixels GetHeight();
 
-    inches GetLeftInches();
-    inches GetTopInches();
-    inches GetRightInches();
-    inches GetBottomInches();
-    inches GetCenterXInches();
-    inches GetCenterYInches();
-    inches GetWidthInches();
-    inches GetHeightInches();
+    HPixels GetHPixels(Inches in);
+    VPixels GetVPixels(Inches in);
 
     // Drawing
     virtual void Draw();

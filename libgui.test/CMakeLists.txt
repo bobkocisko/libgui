@@ -8,7 +8,7 @@ set(SOURCE_FILES
     ButtonTests.cpp
     ElementManagerTests.cpp
     ElementTests.cpp
-    main.cpp SliderTests.cpp)
+    main.cpp SliderTests.cpp TypesTest.cpp)
 
 # External projects Google Test & Google Mock
 

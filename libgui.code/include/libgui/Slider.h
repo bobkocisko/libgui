@@ -18,8 +18,8 @@ public:
     const double& GetThumbHeight() const;
     void SetThumbHeight(double thumbHeight);
 
-    const inches GetThumbHeightInches() const;
-    void         SetThumbHeight(inches thumbHeight);
+    const Inches GetThumbHeightInches() const;
+    void         SetThumbHeight(Inches thumbHeight);
 
     const function<void(shared_ptr<Slider>)>& GetValueChangedCallback() const;
     void SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback);

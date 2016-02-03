@@ -62,8 +62,8 @@ TEST(ElementTests, InchesArithmetic)
     em->SetDpiX(100.0);
 
     int    index = 3;
-    inches buffer(5.0);
-    inches l(1.0);
+    Inches buffer(5.0);
+    Inches l(1.0);
 
     root->SetLeft(l + buffer * index);
 
