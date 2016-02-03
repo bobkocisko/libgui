@@ -14,6 +14,25 @@ namespace libgui
 #undef GetNextSibling
 
 class ElementManager;
+class Element;
+
+struct ElementQueryInfo
+{
+    // This constructor is used when nothing is found
+    ElementQueryInfo();
+
+    // This constructor is used when an element is found
+    ElementQueryInfo(Element* ElementAtPoint, bool HasDisabledAncestor);
+
+    // The element, if any, under the specified point
+    Element* ElementAtPoint;
+
+    // Whether any element was found under the specified point
+    bool FoundElement();
+
+    // Whether any ancestor is set as disabled
+    bool HasDisabledAncestor;
+};
 
 class Element: public enable_shared_from_this<Element>
 {
@@ -57,6 +76,8 @@ public:
 
     void SetIsVisible(bool isVisible);
     bool GetIsVisible();
+    void SetIsEnabled(bool isEnabled);
+    bool GetIsEnabled();
     void SetClipToBounds(bool clipToBounds);
     bool GetClipToBounds();
 
@@ -95,7 +116,8 @@ public:
     void         SetDrawCallback(function<void(shared_ptr<Element>)>);
 
     // Hit testing
-    Element* GetElementAtPoint(Point);
+    ElementQueryInfo GetElementAtPoint(Point);
+
 
     virtual ~Element();
 
@@ -121,6 +143,7 @@ private:
 
     bool _clipToBounds = false;
     bool _isVisible    = true;
+    bool _isEnabled    = true;
 
     double _left    = 0;
     double _top     = 0;
@@ -143,5 +166,8 @@ private:
     // Drawing
     function<void(shared_ptr<Element>)>
          _drawCallback;
+
+    // Hit Testing
+    ElementQueryInfo GetElementAtPointHelper(Point point, bool hasDisabledAncestor);
 };
 }

@@ -19,7 +19,7 @@ public:
     Input(const InputId& inputId);
     virtual ~Input();
 
-    bool NotifyNewPoint(Point point, Element* atopElement);
+    bool NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo);
     bool NotifyDown();
     bool NotifyUp();
 
@@ -52,8 +52,8 @@ public:
 private:
     InputId _inputId;
 
-    void   * _stateMachine;
-    Element* _atopElement;
+    void* _stateMachine;
+    ElementQueryInfo _atopElementInfo;
     Control* _activeControl;
 
     bool      _isDown;

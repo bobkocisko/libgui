@@ -53,3 +53,31 @@ TEST(ElementTests, WhenRemovingChildren_AllReferencesAreCleaned)
 
     ASSERT_EQ(true, wasDestructed);
 }
+
+TEST(ElementTests, WhenElementDisabled_ChildControlsDisabledAlso)
+{
+    auto root = make_shared<Element>();
+    auto em   = make_shared<ElementManager>();
+    em->SetRoot(root);
+
+    root->SetTop(5);
+    root->SetLeft(5);
+    root->SetWidth(50);
+    root->SetHeight(50);
+    root->SetIsEnabled(false);
+
+    auto child = make_shared<Element>();
+    root->AddChild(child);
+    child->SetTop(10);
+    child->SetLeft(10);
+    child->SetWidth(5);
+    child->SetHeight(5);
+
+    root->InitializeAll();
+
+    auto queryInfo = root->GetElementAtPoint(Point{11, 11});
+
+    ASSERT_EQ(child.get(), queryInfo.ElementAtPoint);
+    ASSERT_EQ(true, queryInfo.HasDisabledAncestor);
+
+}

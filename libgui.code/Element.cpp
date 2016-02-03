@@ -144,6 +144,7 @@ void Element::ClearElementCache(int cacheLevel)
 void Element::ResetArrangement()
 {
     _isVisible = true;
+    _isEnabled = true;
 
     _left    = 0;
     _top     = 0;
@@ -276,6 +277,16 @@ void Element::SetIsVisible(bool isVisible)
 bool Element::GetIsVisible()
 {
     return _isVisible;
+}
+
+void Element::SetIsEnabled(bool isEnabled)
+{
+    _isEnabled = isEnabled;
+}
+
+bool Element::GetIsEnabled()
+{
+    return _isEnabled;
 }
 
 void Element::SetClipToBounds(bool clipToBounds)
@@ -503,27 +514,38 @@ void Element::SetDrawCallback(function<void(shared_ptr<Element>)> drawCallback)
 }
 
 // Hit testing
-Element* Element::GetElementAtPoint(Point point)
+ElementQueryInfo Element::GetElementAtPoint(Point point)
 {
+    return GetElementAtPointHelper(point, false);
+}
+
+ElementQueryInfo Element::GetElementAtPointHelper(Point point, bool hasDisabledAncestor)
+{
+    if (!GetIsVisible())
+    {
+        return ElementQueryInfo();
+    }
+
     if (_firstChild)
     {
+        auto childrenHaveDisabledAncestor = hasDisabledAncestor || !GetIsEnabled();
+
         for (auto e = _lastChild; e != nullptr; e = e->_prevsibling)
         {
-            auto elementAtPoint = e->GetElementAtPoint(point);
-            if (elementAtPoint)
+            auto elementQueryInfo = e->GetElementAtPointHelper(point, childrenHaveDisabledAncestor);
+            if (elementQueryInfo.FoundElement())
             {
-                return elementAtPoint;
+                return elementQueryInfo;
             }
         }
     }
 
-    if (GetIsVisible() &&
-        point.X >= GetLeft() && point.X <= GetRight() &&
+    if (point.X >= GetLeft() && point.X <= GetRight() &&
         point.Y >= GetTop() && point.Y <= GetBottom())
     {
-        return this;
+        return ElementQueryInfo(this, hasDisabledAncestor);
     }
-    return nullptr;
+    return ElementQueryInfo();
 }
 
 Element::~Element()
@@ -578,6 +600,21 @@ HPixels Element::GetHPixels(Inches in)
 VPixels Element::GetVPixels(Inches in)
 {
     return VPixels(in, _elementManager->GetDpiY());
+}
+
+ElementQueryInfo::ElementQueryInfo(Element* ElementAtPoint, bool HasDisabledAncestor)
+    : ElementAtPoint(ElementAtPoint), HasDisabledAncestor(HasDisabledAncestor)
+{
+}
+
+ElementQueryInfo::ElementQueryInfo()
+    : ElementAtPoint(nullptr), HasDisabledAncestor(false)
+{
+}
+
+bool ElementQueryInfo::FoundElement()
+{
+    return bool(ElementAtPoint);
 }
 }
 

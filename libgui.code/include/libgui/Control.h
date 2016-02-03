@@ -14,30 +14,23 @@ class Control: public Element
 {
 public:
     // Called before NotifyInput and can optionally prevent the sending of NotifyInput event
-    virtual void PreNotifyInput(InputAction
-                                inputAction,
+    virtual void PreNotifyInput(InputAction inputAction,
                                 InputType inputType,
                                 Point point,
                                 bool& updateScreen,
                                 bool& notify);
 
     // Called when an input action occurs.  See ElementManager for details of when this is called.
-    virtual void NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen);
-
-    // State
-    const bool& GetIsEnabled() const;
-    void SetIsEnabled(bool isEnabled);
+    virtual void NotifyInput(InputType inputType,
+                             InputAction inputAction,
+                             Point point,
+                             bool& updateScreen);
 
     // Input Management
-
     bool HasActiveInput() const;
     void SetHasActiveInput(bool hasActiveInput);
 
-// Implementation
-    void ResetArrangement() override;
-
 private:
-    bool _isEnabled      = true;
     bool _hasActiveInput = false;
 
 };

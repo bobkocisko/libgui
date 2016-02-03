@@ -429,8 +429,9 @@ typedef state_machine<TouchStateMachineFrontEnd> TouchStateMachine;
 Input::Input(const InputId& inputId)
     : _inputId(inputId)
 {
+    _atopElementInfo.ElementAtPoint      = nullptr;
+    _atopElementInfo.HasDisabledAncestor = false;
     _isDown                 = false;
-    _atopElement            = nullptr;
     _activeControl          = nullptr;
     _isActiveControlEngaged = false;
     _isDebugLoggingEnabled  = false;
@@ -472,16 +473,16 @@ Input::~Input()
     _stateMachine = nullptr;
 }
 
-bool Input::NotifyNewPoint(Point point, Element* atopElement)
+bool Input::NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo)
 {
     _shouldUpdateScreen = false;
 
     _point = point;
 
-    if (atopElement != _atopElement)
+    if (elementQueryInfo.ElementAtPoint != _atopElementInfo.ElementAtPoint)
     {
         // We've changed to be atop a new element
-        _atopElement = atopElement;
+        _atopElementInfo = elementQueryInfo;
 
         auto atopNewControl = GetAtopEnabledControl();
         if (atopNewControl)
@@ -545,8 +546,8 @@ bool Input::NotifyUp()
 
 Control* Input::GetAtopEnabledControl()
 {
-    auto atopControl = dynamic_cast<Control*>(_atopElement);
-    if (atopControl && atopControl->GetIsEnabled())
+    auto atopControl = dynamic_cast<Control*>(_atopElementInfo.ElementAtPoint);
+    if (atopControl && atopControl->GetIsEnabled() && !_atopElementInfo.HasDisabledAncestor)
     {
         return atopControl;
     }

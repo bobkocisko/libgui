@@ -31,9 +31,9 @@ bool ElementManager::NotifyNewPoint(InputId inputId, Point point)
 {
     auto input = GetInput(inputId);
 
-    auto elementAtPoint = _root->GetElementAtPoint(point);
+    auto elementelementQueryInfo = _root->GetElementAtPoint(point);
 
-    return input->NotifyNewPoint(point, elementAtPoint);
+    return input->NotifyNewPoint(point, elementelementQueryInfo);
 
 }
 
