@@ -69,6 +69,7 @@ private:
     template<class Event>
     void ProcessEvent(Event const& evt);
     Control* GetAtopEnabledControl();
+    void CheckIfActiveControlBecameDisabled();
 };
 
 }

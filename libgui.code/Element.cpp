@@ -616,5 +616,23 @@ bool ElementQueryInfo::FoundElement()
 {
     return bool(ElementAtPoint);
 }
+
+bool Element::ThisOrAncestors(const std::function<bool(Element*)>& predicate)
+{
+    Element* current = this;
+    do
+    {
+        if (predicate(current))
+        {
+            return true;
+        }
+
+        // Move to the next ancestor
+        current = current->_parent.get();
+    }
+    while (current);
+
+    return false;
+}
 }
 

@@ -5,15 +5,16 @@
 Idle --> Pending: MoveAtopAvailableControl / \n EnterControl
 
 Pending -left-> Pending: Move / \n NotifyMove
-Pending --> Idle: MoveAtopNothing /\n LeaveControl
+Pending --> Idle: MoveAtopNothing || \n ControlBecameDisabled /\n LeaveControl
 
 Idle -> Ignored: MoveAtopBusyControl
 
-Ignored -> Idle: MoveAtopNothing
+Ignored -> Idle: MoveAtopNothing || \n ControlBecameDisabled
 
 Pending --> Engaged: Down / \n SaveEngaged \n && NotifyDown
 
 Engaged --> Pending: Up / \n NotifyUp
+Engaged --> Idle:  ControlBecameDisabled /\n LeaveControl
 
 Pending --> SwitchingToIgnored: MoveAtopBusyControl / \n LeaveControl
 
@@ -33,8 +34,9 @@ EngagedRemotely --> Engaged: MoveAtopEngagedControl / \n NotifyEngagedReturn
 EngagedRemotely --> EngagedRemotely: Move / \n NotifyMove
 
 EngagedRemotely --> Idle: Up [IsAtopNothing] / \n NotifyUp && \n LeaveControl
+EngagedRemotely --> Idle:  ControlBecameDisabled /\n LeaveControl
+
 EngagedRemotely --> SwitchingToIgnored: Up [IsAtopBusy] / \n NotifyUp && \n LeaveControl
 EngagedRemotely --> SwitchingToPending: Up [IsAtopAvailable] / \n NotifyUp && \n LeaveControl
-
 
 @enduml

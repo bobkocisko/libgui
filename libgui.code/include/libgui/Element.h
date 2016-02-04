@@ -118,6 +118,9 @@ public:
     // Hit testing
     ElementQueryInfo GetElementAtPoint(Point);
 
+    // Queries
+    bool ThisOrAncestors(const std::function<bool(Element*)>& predicate);
+
 
     virtual ~Element();
 

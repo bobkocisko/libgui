@@ -6,17 +6,19 @@ Idle --> Engaged: Down [IsAtopAvailable] / \n EnterControl && \n SaveEngaged && 
 
 Idle --> Ignored: Down [IsAtopBusy] || \n Down [IsAtopNothing]
 
-Ignored --> Idle: Up
+Ignored --> Idle: Up || ControlBecameDisabled
 
 Engaged --> EngagedRemotely: MoveAtopAvailableControl || \n MoveAtopBusyControl || \n MoveAtopNothing / \n NotifyEngagedEscape
 Engaged --> Engaged: Move / \n NotifyMove
 Engaged -> Idle: Up / \n NotifyUp && \n LeaveControl
+Engaged --> Idle: ControlBecameDisabled / \n LeaveControl
 
 EngagedRemotely --> Engaged: MoveAtopEngagedControl / \n NotifyEngagedReturn
 
 EngagedRemotely --> EngagedRemotely: Move / \n NotifyMove
 
 EngagedRemotely --> Idle: Up / \n NotifyUp && \n LeaveControl
+EngagedRemotely --> Idle: ControlBecameDisabled / \n LeaveControl
 
 
 @enduml

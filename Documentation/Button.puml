@@ -3,11 +3,13 @@
 
 Idle --> Pending: Enter
 Pending --> Idle: Leave
+Engaged --> Idle: Leave
 Pending -left-> Engaged: Push / Notify:Pushed
 Engaged --> Pending: Release / Notify:Released
 Engaged --> EngagedRemotely: EngagedEscape
 EngagedRemotely --> Engaged: EngagedReturn
 EngagedRemotely -> Idle: Release / \n Notify:ReleasedOutside
+EngagedRemotely -> Idle: Leave
 
 
 @enduml

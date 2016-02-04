@@ -3,6 +3,7 @@
 //
 
 #include "libgui/Input.h"
+#include "libgui/Element.h"
 
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 #define BOOST_MPL_LIMIT_VECTOR_SIZE 30
@@ -54,6 +55,9 @@ struct Up
 {
 };
 struct Down
+{
+};
+struct ControlBecameDisabled
 {
 };
 
@@ -215,6 +219,7 @@ public:
     Row < Idle               , MoveAtopBusyControl       , Ignored            , none                         , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     Row < Ignored            , MoveAtopNothing           , Idle               , none                         , none            >,
+    Row < Ignored            , ControlBecameDisabled     , Idle               , none                         , none            >,
     Row < Ignored            , MoveAtopAvailableControl  , SwitchingToPending , none                         , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     Row < SwitchingToPending , none                      , Pending            , EnterControl                 , none            >,
@@ -222,6 +227,7 @@ public:
     Row < Pending            , MoveAtopAvailableControl  , SwitchingToPending , LeaveControl                 , none            >,
     Row < Pending            , MoveAtopBusyControl       , SwitchingToIgnored , LeaveControl                 , none            >,
     Row < Pending            , MoveAtopNothing           , Idle               , LeaveControl                 , none            >,
+    Row < Pending            , ControlBecameDisabled     , Idle               , LeaveControl                 , none            >,
     Row < Pending            , Move                      , Pending            , NotifyMove                   , none            >,
     Row < Pending            , Down                      , Engaged            , AS2<SaveEngaged, NotifyDown> , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
@@ -230,12 +236,14 @@ public:
     Row < Engaged            , MoveAtopBusyControl       , EngagedRemotely    , NotifyEngagedEscape          , none            >,
     Row < Engaged            , MoveAtopNothing           , EngagedRemotely    , NotifyEngagedEscape          , none            >,
     Row < Engaged            , Move                      , Engaged            , NotifyMove                   , none            >,
+    Row < Engaged            , ControlBecameDisabled     , Idle               , LeaveControl                 , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     Row < EngagedRemotely    , MoveAtopEngagedControl    , Engaged            , NotifyEngagedReturn          , none            >,
     Row < EngagedRemotely    , Up                        , Idle               , AS2<NotifyUp, LeaveControl>  , IsAtopNothing   >,
     Row < EngagedRemotely    , Up                        , SwitchingToIgnored , AS2<NotifyUp, LeaveControl>  , IsAtopBusy      >,
     Row < EngagedRemotely    , Up                        , SwitchingToPending , AS2<NotifyUp, LeaveControl>  , IsAtopAvailable >,
     Row < EngagedRemotely    , Move                      , EngagedRemotely    , NotifyMove                   , none            >,
+    Row < EngagedRemotely    , ControlBecameDisabled     , Idle               , LeaveControl                 , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     Row < SwitchingToIgnored , none                      , Ignored            , none                         , none            >
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
@@ -403,16 +411,19 @@ public:
                                                                                                                    IsAtopNothing>>,
     //  +--------------------+---------------------------+------------------  +------------------------------+-------------------+
     Row < Ignored            , Up                        , Idle               , none                         , none              >,
+    Row < Ignored            , ControlBecameDisabled     , Idle               , none                         , none              >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-------------------+
     Row < Engaged            , Up                        , Idle               , AS2<NotifyUp, LeaveControl>  , none              >,
     Row < Engaged            , MoveAtopAvailableControl  , EngagedRemotely    , NotifyEngagedEscape          , none              >,
     Row < Engaged            , MoveAtopBusyControl       , EngagedRemotely    , NotifyEngagedEscape          , none              >,
     Row < Engaged            , MoveAtopNothing           , EngagedRemotely    , NotifyEngagedEscape          , none              >,
     Row < Engaged            , Move                      , Engaged            , NotifyMove                   , none              >,
+    Row < Engaged            , ControlBecameDisabled     , Idle               , LeaveControl                 , none              >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-------------------+
     Row < EngagedRemotely    , MoveAtopEngagedControl    , Engaged            , NotifyEngagedReturn          , none              >,
     Row < EngagedRemotely    , Up                        , Idle               , AS2<NotifyUp, LeaveControl>  , none              >,
-    Row < EngagedRemotely    , Move                      , EngagedRemotely    , NotifyMove                   , none              >
+    Row < EngagedRemotely    , Move                      , EngagedRemotely    , NotifyMove                   , none              >,
+    Row < EngagedRemotely    , ControlBecameDisabled     , Idle               , LeaveControl                 , none              >
     //  +--------------------+---------------------------+------------------  +------------------------------+-------------------+
     > {};
 
@@ -510,7 +521,22 @@ bool Input::NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo)
     }
     else
     {
-        // The atop element hasn't changed
+        // Check if the active control has become disabled.
+        if (elementQueryInfo.ElementAtPoint == _activeControl)
+        {
+            // If we are above the active control then we can increase performance a bit
+            // by using the ancestor disabled information already provided for us.
+            if (!GetAtopEnabledControl())
+            {
+                ProcessEvent(SmInput::ControlBecameDisabled());
+            }
+        }
+        else
+        {
+            // Otherwise we need to check ancestor disabled information the hard way
+            CheckIfActiveControlBecameDisabled();
+        }
+
         ProcessEvent(SmInput::Move());
     }
 
@@ -528,6 +554,8 @@ bool Input::NotifyDown()
 
     _isDown = true;
 
+    CheckIfActiveControlBecameDisabled();
+
     ProcessEvent(SmInput::Down());
 
     return _shouldUpdateScreen;
@@ -538,6 +566,8 @@ bool Input::NotifyUp()
     _shouldUpdateScreen = false;
 
     _isDown = false;
+
+    CheckIfActiveControlBecameDisabled();
 
     ProcessEvent(SmInput::Up());
 
@@ -554,6 +584,15 @@ Control* Input::GetAtopEnabledControl()
     else
     {
         return nullptr;
+    }
+}
+
+void Input::CheckIfActiveControlBecameDisabled()
+{
+    if (_activeControl && _activeControl->ThisOrAncestors([](Element* e)
+                                                          { return !e->GetIsEnabled(); }))
+    {
+        ProcessEvent(SmInput::ControlBecameDisabled());
     }
 }
 

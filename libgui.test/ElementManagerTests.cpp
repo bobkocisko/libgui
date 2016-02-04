@@ -267,6 +267,42 @@ TEST(ElementManagerTests, WhenControlIsDisabled_ItDoesNotReceiveNotifications)
     ASSERT_EQ(false, sc->GetNotifyTouchMoveCalled());
 }
 
+TEST(ElementManagerTests, WhenActiveControlBecomesDisabled_ItReceivesLeaveNotification)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+
+    em->SetRoot(sc);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
+
+    auto pointerInput = InputId(PointerInputId);
+    em->NotifyNewPoint(pointerInput, Point{1, 1});
+    em->NotifyDown(pointerInput);
+    em->NotifyNewPoint(pointerInput, Point{1.5, 1.5});
+    em->NotifyUp(pointerInput);
+
+    ASSERT_EQ(true, sc->GetNotifyPointerPushCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerReleaseCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerMoveCalled());
+
+    sc->ResetNotifications();
+
+    // The control is still 'active' at this point because the pointer has not left its bounds yet
+
+    sc->SetIsEnabled(false);
+
+    em->NotifyDown(pointerInput);
+
+    ASSERT_EQ(false, sc->GetNotifyPointerPushCalled());
+    ASSERT_EQ(false, sc->GetNotifyPointerReleaseCalled());
+    ASSERT_EQ(false, sc->GetNotifyPointerMoveCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerLeaveCalled());
+
+}
+
 TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
 {
     auto em = make_shared<ElementManager>();

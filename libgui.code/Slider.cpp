@@ -161,9 +161,11 @@ public:
     //  +------------------+-----------    +------------------+----------------+---------+
     Row < Engaged          , Release       , Pending          , none           , none    >,
     Row < Engaged          , EngagedEscape , EngagedRemotely  , none           , none    >,
+    Row < Engaged          , Leave         , Idle             , none           , none    >,
     //  +------------------+-----------    +------------------+----------------+---------+
     Row < EngagedRemotely  , EngagedReturn , Engaged          , none           , none    >,
-    Row < EngagedRemotely  , Release       , Idle             , none           , none    >
+    Row < EngagedRemotely  , Release       , Idle             , none           , none    >,
+    Row < EngagedRemotely  , Leave         , Idle             , none           , none    >
     //  +------------------+-----------    +------------------+----------------+---------+
     > {};
 
