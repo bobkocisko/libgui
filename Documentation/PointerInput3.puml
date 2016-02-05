@@ -1,0 +1,30 @@
+@startuml
+
+[*] --> Idle
+
+Atop --> Engaged: Down / \n NotifyDown
+
+Atop -> Idle: Move [!AtopControl]
+
+Idle -> Atop: Move [AtopControl]
+
+state Atop {
+    [*] --> Abc
+}
+
+Engaged --> Idle: Up [!AtopControl] / \n NotifyLeaveControl
+Engaged --> Atop: Up [AtopControl] / \n NotifyUp
+
+state Engaged {
+    [*] -> SubEngaged
+
+    SubEngaged --> SubEngaged: Move / NotifyMove
+    --
+    [*] -> EngagedAtop
+    EngagedAtop --> EngagedRemotely: Move [!AtopEngaged] / \n NotifyEngagedEscape
+
+    EngagedRemotely -> EngagedAtop: Move [AtopEngaged] / \n NotifyEngagedReturn
+
+}
+
+@enduml

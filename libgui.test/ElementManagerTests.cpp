@@ -39,6 +39,11 @@ public:
         return _notifyPointerLeaveCalled;
     }
 
+    bool GetNotifyPointerEnterCalled() const
+    {
+        return _notifyPointerEnterCalled;
+    }
+
     bool GetNotifyTouchPushCalled() const
     {
         return _notifyTouchPushCalled;
@@ -90,8 +95,10 @@ public:
             switch (inputAction)
             {
                 case InputAction::EnterReleased:
+                    _notifyPointerEnterCalled = true;
                     break;
                 case InputAction::EnterPushed:
+                    _notifyPointerEnterCalled = true;
                     break;
                 case InputAction::Move:
                     _notifyPointerMoveCalled = true;
@@ -153,6 +160,7 @@ public:
         _notifyPointerEscapeCalled  = false;
         _notifyPointerReturnCalled  = false;
         _notifyPointerLeaveCalled   = false;
+        _notifyPointerEnterCalled   = false;
 
         _notifyTouchEnterPushedCalled   = false;
         _notifyTouchEnterReleasedCalled = false;
@@ -170,8 +178,9 @@ private:
     bool _notifyPointerReleaseCalled = false;
     bool _notifyPointerEscapeCalled  = false;
     bool _notifyPointerReturnCalled  = false;
-    bool _notifyPointerLeaveCalled   = false;
+    bool _notifyPointerEnterCalled   = false;
 
+    bool _notifyPointerLeaveCalled       = false;
     bool _notifyTouchPushCalled          = false;
     bool _notifyTouchReleaseCalled       = false;
     bool _notifyTouchMoveCalled          = false;
@@ -341,6 +350,15 @@ TEST(ElementManagerTests, WhenActiveControlParentBecomesDisabled_ItReceivesLeave
     ASSERT_EQ(false, sc->GetNotifyPointerReleaseCalled());
     ASSERT_EQ(false, sc->GetNotifyPointerMoveCalled());
     ASSERT_EQ(true, sc->GetNotifyPointerLeaveCalled());
+
+    // Now enable the control and move the pointer
+
+    root->SetIsEnabled(true);
+
+    em->NotifyNewPoint(pointerInput, Point{1.5, 1.5});
+
+    ASSERT_EQ(true, sc->GetNotifyPointerEnterCalled());
+    ASSERT_EQ(true, sc->GetNotifyPointerMoveCalled());
 
 }
 

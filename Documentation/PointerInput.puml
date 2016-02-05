@@ -3,31 +3,37 @@
 [*] --> Idle
 
 Idle --> Pending: MoveAtopAvailableControl / \n EnterControl
-Idle -> Ignored: MoveAtopBusyControl
+Idle -> AtopBusy: MoveAtopBusyControl
+Idle --> AtopDisabled: MoveAtopDisabled
 
-Ignored -> Idle: MoveAtopNothing || \n ControlBecameDisabled
-Ignored --> SwitchingToPending: MoveAtopAvailableControl
+AtopDisabled -> Pending: ControlBecameEnabled [IsAtopAvailable] / \n EnterControl
+AtopDisabled --> AtopBusy: ControlBecameEnabled [IsAtopBusy] / \n EnterControl
+AtopDisabled --> Idle: MoveAtopNothing
+
+AtopBusy -> Idle: MoveAtopNothing || \n ControlBecameDisabled
+AtopBusy --> SwitchingToPending: MoveAtopAvailableControl
 
 SwitchingToPending -> Pending: / EnterControl
 
 Pending --> SwitchingToPending: MoveAtopAvailableControl / \n LeaveControl
-Pending --> SwitchingToIgnored: MoveAtopBusyControl / \n LeaveControl
-Pending --> Idle: MoveAtopNothing || \n ControlBecameDisabled /\n LeaveControl
+Pending --> SwitchingToAtopBusy: MoveAtopBusyControl / \n LeaveControl
+Pending --> Idle: MoveAtopNothing /\n LeaveControl
 Pending -left-> Pending: Move / \n NotifyMove
 Pending --> Engaged: Down / \n SaveEngaged \n && NotifyDown
+Pending -left-> AtopDisabled: ControlBecameDisabled /\n LeaveControl
 
-Engaged --> Pending: Up / \n NotifyUp
+Engaged ---> Pending: Up / \n NotifyUp
 Engaged --> EngagedRemotely: MoveAtopAvailableControl || \n MoveAtopBusyControl || \n MoveAtopNothing / \n NotifyEngagedEscape
 Engaged --> Engaged: Move / \n NotifyMove
 Engaged --> Idle:  ControlBecameDisabled /\n LeaveControl
 
-EngagedRemotely --> Engaged: MoveAtopEngagedControl / \n NotifyEngagedReturn
+EngagedRemotely ---> Engaged: MoveAtopEngagedControl / \n NotifyEngagedReturn
 EngagedRemotely --> Idle: Up [IsAtopNothing] / \n NotifyUp && \n LeaveControl
-EngagedRemotely --> SwitchingToIgnored: Up [IsAtopBusy] / \n NotifyUp && \n LeaveControl
+EngagedRemotely --> SwitchingToAtopBusy: Up [IsAtopBusy] / \n NotifyUp && \n LeaveControl
 EngagedRemotely --> SwitchingToPending: Up [IsAtopAvailable] / \n NotifyUp && \n LeaveControl
 EngagedRemotely --> EngagedRemotely: Move / \n NotifyMove
 EngagedRemotely --> Idle:  ControlBecameDisabled /\n LeaveControl
 
-SwitchingToIgnored --> Ignored
+SwitchingToAtopBusy --> AtopBusy
 
 @enduml

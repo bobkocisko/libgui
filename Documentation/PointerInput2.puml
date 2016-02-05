@@ -1,0 +1,73 @@
+
+
+*****  NOTE   ****** 
+
+
+This diagram requires plantUML version 8032 or higher
+because of this issue: http://plantuml.sourceforge.net/qa/?qa=3890/concurrent-state-nesting-limit
+      
+      
+*****  NOTE   ******      
+
+@startuml
+
+
+[*] --> Idle
+
+Idle --> HasTarget: *Any* [AtopControl]
+
+Retarget --> HasTarget: *Any* [AtopControl]
+Retarget --> Idle: *Any* [!AtopControl]
+
+state HasTarget {
+    [*] -> HasEnabled : [TargetIsEnabled]
+    [*] -> HasDisabled: [!TargetIsEnabled]
+
+    state HasEnabled {
+        [*] -> SubHasEnabled
+        
+        SubHasEnabled -> ToHasDisabled: *Any* [!TargetIsEnabled]
+        
+        state ToHasDisabled: exit state
+    
+        --
+        
+        [*] -> HasAvailable: [!TargetIsBusy]
+        [*] --> HasBusy: [TargetIsBusy]
+
+        state HasAvailable {
+            [*] -> Pending
+
+            state ToRetarget: exit state
+
+            Pending --> ToRetarget: Move [!AtopTarget]
+            Pending --> Pending: Move [AtopTarget] / \n NotifyMove
+            Pending --> Engaged: Down / \n NotifyDown
+
+            Engaged --> Pending: Up / \n NotifyUp
+            Engaged --> EngagedRemotely: Move [!AtopTarget] / \n NotifyEngagedEscape
+            Engaged --> Engaged: Move [AtopTarget]  / \n NotifyMove
+
+            EngagedRemotely --> Engaged: Move [AtopTarget] / \n NotifyEngagedReturn
+            EngagedRemotely --> EngagedRemotely: Move [!AtopTarget] / \n NotifyMove
+            EngagedRemotely -l-> ToRetarget: Up [!AtopTarget] / \n NotifyMove
+        }
+
+        HasBusy --> HasAvailable: *Any* [!TargetIsBusy]
+
+        state ToRetarget3: exit state
+        HasBusy -> ToRetarget3: Move [!AtopTarget]
+    }
+
+    HasDisabled -> HasEnabled: *Any* [TargetIsEnabled]
+
+    HasDisabled --> ToRetarget2: Move [!AtopTarget]
+
+    state ToRetarget2:exit state
+    
+    
+}
+
+
+
+@enduml
