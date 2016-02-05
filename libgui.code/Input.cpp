@@ -521,6 +521,9 @@ bool Input::NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo)
     }
     else
     {
+        // Update the ancestor disabled information for the atop element
+        _atopElementInfo.HasDisabledAncestor = elementQueryInfo.HasDisabledAncestor;
+
         // Check if the active control has become disabled.
         if (elementQueryInfo.ElementAtPoint == _activeControl)
         {
