@@ -36,19 +36,7 @@ namespace libgui
 namespace SmInput
 {
 // events
-struct MoveAtopNothing
-{
-};
-struct MoveAtopAvailableControl
-{
-};
-struct MoveAtopBusyControl
-{
-};
-struct MoveAtopEngagedControl
-{
-};
-struct Move // Moving that doesn't cause any of the previous events
+struct Move
 {
 };
 struct Up
@@ -57,7 +45,10 @@ struct Up
 struct Down
 {
 };
-struct ControlBecameDisabled
+struct TargetBecameDisabled
+{
+};
+struct TargetBecameEnabled
 {
 };
 
@@ -94,65 +85,59 @@ public:
     struct EngagedRemotely: public state<>
     {
     };
-    struct Ignored: public state<>
-    {
-    };
-    struct SwitchingToPending: public state<>
-    {
-    };
-    struct SwitchingToIgnored: public state<>
+    struct HasBusy: public state<>
     {
     };
 
     // guards
-    struct IsAtopBusy
+    struct IsAtopControl
     {
         template<class EVT, class FSM, class SourceState, class TargetState>
         bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
         {
-            return fsm._parent->IsAtopBusy();
+            return fsm._parent->IsAtopControl();
         }
     };
-    struct IsAtopAvailable
+    struct IsAtopTarget
     {
         template<class EVT, class FSM, class SourceState, class TargetState>
         bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
         {
-            return fsm._parent->IsAtopAvailable();
+            return fsm._parent->IsAtopTarget();
         }
     };
-    struct IsAtopNothing
+    struct TargetIsBusy
     {
         template<class EVT, class FSM, class SourceState, class TargetState>
         bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
         {
-            return fsm._parent->IsAtopNothing();
+            return fsm._parent->TargetIsBusy();
+        }
+    };
+    struct TargetIsEnabled
+    {
+        template<class EVT, class FSM, class SourceState, class TargetState>
+        bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+        {
+            return fsm._parent->TargetIsEnabled();
         }
     };
 
     // actions
-    struct EnterControl
+    struct NotifyEnter
     {
         template<class EVT, class FSM, class SourceState, class TargetState>
         void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
         {
-            fsm._parent->EnterControl();
+            fsm._parent->SendNotifyEnter();
         }
     };
-    struct LeaveControl
+    struct NotifyLeave
     {
         template<class EVT, class FSM, class SourceState, class TargetState>
         void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
         {
-            fsm._parent->LeaveControl();
-        }
-    };
-    struct SaveEngaged
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
-        {
-            fsm._parent->SaveEngaged();
+            fsm._parent->SendNotifyLeave();
         }
     };
     struct NotifyMove
@@ -216,11 +201,11 @@ public:
     //    Start                Event                       Next State           Action                         Guard
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     Row < Idle               , MoveAtopAvailableControl  , Pending            , EnterControl                 , none            >,
-    Row < Idle               , MoveAtopBusyControl       , Ignored            , none                         , none            >,
+    Row < Idle               , MoveAtopBusyControl       , HasBusy            , none                         , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < Ignored            , MoveAtopNothing           , Idle               , none                         , none            >,
-    Row < Ignored            , ControlBecameDisabled     , Idle               , none                         , none            >,
-    Row < Ignored            , MoveAtopAvailableControl  , SwitchingToPending , none                         , none            >,
+    Row < HasBusy            , MoveAtopNothing           , Idle               , none                         , none            >,
+    Row < HasBusy            , ControlBecameDisabled     , Idle               , none                         , none            >,
+    Row < HasBusy            , MoveAtopAvailableControl  , SwitchingToPending , none                         , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     Row < SwitchingToPending , none                      , Pending            , EnterControl                 , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
@@ -245,7 +230,7 @@ public:
     Row < EngagedRemotely    , Move                      , EngagedRemotely    , NotifyMove                   , none            >,
     Row < EngagedRemotely    , ControlBecameDisabled     , Idle               , LeaveControl                 , none            >,
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < SwitchingToIgnored , none                      , Ignored            , none                         , none            >
+    Row < SwitchingToIgnored , none                      , HasBusy            , none                         , none            >
     //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
     > {};
 
@@ -438,15 +423,15 @@ typedef state_machine<TouchStateMachineFrontEnd> TouchStateMachine;
 }
 
 Input::Input(const InputId& inputId)
-    : _inputId(inputId)
+    : _inputId(inputId),
+      _atopControl(nullptr),
+      _target(nullptr),
+      _atopElementInfo({}),
+      _targetEnabledState(false),
+      _isDown(false),
+      _isDebugLoggingEnabled(false),
+      _isActive(false)
 {
-    _atopElementInfo.ElementAtPoint      = nullptr;
-    _atopElementInfo.HasDisabledAncestor = false;
-    _isDown                 = false;
-    _activeControl          = nullptr;
-    _isActiveControlEngaged = false;
-    _isDebugLoggingEnabled  = false;
-
     if (_inputId.IsPointer())
     {
         _inputType = InputType::Pointer;
@@ -490,58 +475,17 @@ bool Input::NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo)
 
     _point = point;
 
-    if (elementQueryInfo.ElementAtPoint != _atopElementInfo.ElementAtPoint)
+    _atopElementInfo = elementQueryInfo;
+
+    if (_atopControl != elementQueryInfo.ElementAtPoint)
     {
-        // We've changed to be atop a new element
-        _atopElementInfo = elementQueryInfo;
-
-        auto atopNewControl = GetAtopEnabledControl();
-        if (atopNewControl)
-        {
-            if (_activeControl == atopNewControl)
-            {
-                if (_isActiveControlEngaged)
-                {
-                    ProcessEvent(SmInput::MoveAtopEngagedControl());
-                }
-            }
-            else if (atopNewControl->HasActiveInput())
-            {
-                ProcessEvent(SmInput::MoveAtopBusyControl());
-            }
-            else
-            {
-                ProcessEvent(SmInput::MoveAtopAvailableControl());
-            }
-        }
-        else
-        {
-            ProcessEvent(SmInput::MoveAtopNothing());
-        }
+        // We need to update the atop control
+        _atopControl = dynamic_cast<Control*>(elementQueryInfo.ElementAtPoint);
     }
-    else
-    {
-        // Update the ancestor disabled information for the atop element
-        _atopElementInfo.HasDisabledAncestor = elementQueryInfo.HasDisabledAncestor;
 
-        // Check if the active control has become disabled.
-        if (elementQueryInfo.ElementAtPoint == _activeControl)
-        {
-            // If we are above the active control then we can increase performance a bit
-            // by using the ancestor disabled information already provided for us.
-            if (!GetAtopEnabledControl())
-            {
-                ProcessEvent(SmInput::ControlBecameDisabled());
-            }
-        }
-        else
-        {
-            // Otherwise we need to check ancestor disabled information the hard way
-            CheckIfActiveControlBecameDisabled();
-        }
+    CheckTargetEnabledStatus();
 
-        ProcessEvent(SmInput::Move());
-    }
+    ProcessEvent(SmInput::Move());
 
     if (_isDebugLoggingEnabled)
     {
@@ -557,7 +501,7 @@ bool Input::NotifyDown()
 
     _isDown = true;
 
-    CheckIfActiveControlBecameDisabled();
+    CheckTargetEnabledStatus();
 
     ProcessEvent(SmInput::Down());
 
@@ -570,62 +514,92 @@ bool Input::NotifyUp()
 
     _isDown = false;
 
-    CheckIfActiveControlBecameDisabled();
+    CheckTargetEnabledStatus();
 
     ProcessEvent(SmInput::Up());
 
     return _shouldUpdateScreen;
 }
 
-Control* Input::GetAtopEnabledControl()
+bool Input::IsAtopControl()
 {
-    auto atopControl = dynamic_cast<Control*>(_atopElementInfo.ElementAtPoint);
-    if (atopControl && atopControl->GetIsEnabled() && !_atopElementInfo.HasDisabledAncestor)
+    return bool(_atopControl);
+}
+
+bool Input::IsAtopTarget()
+{
+    return _target && (_atopControl == _target);
+}
+
+void Input::SetTargetToAtopControl()
+{
+    _target = _atopControl;
+
+    // We need to check this now since the target has just changed
+    _targetEnabledState = CheckTargetEnabledStatusHelper();
+}
+
+void Input::SetTargetToNothing()
+{
+    _target = nullptr;
+}
+
+void Input::CheckTargetEnabledStatus()
+{
+    if (!_target)
     {
-        return atopControl;
+        return;
     }
-    else
+
+    bool isEnabled = CheckTargetEnabledStatusHelper();
+
+    if (isEnabled != _targetEnabledState)
     {
-        return nullptr;
+        // The state has changed since the last time we checked
+        if (isEnabled)
+        {
+            ProcessEvent(SmInput::TargetBecameEnabled());
+        }
+        else
+        {
+            ProcessEvent(SmInput::TargetBecameDisabled());
+        }
     }
 }
 
-void Input::CheckIfActiveControlBecameDisabled()
+bool Input::CheckTargetEnabledStatusHelper() const
 {
-    if (_activeControl && _activeControl->ThisOrAncestors([](Element* e)
-                                                          { return !e->GetIsEnabled(); }))
-    {
-        ProcessEvent(SmInput::ControlBecameDisabled());
-    }
+    auto isDisabled = _target->ThisOrAncestors([](Element* e)
+                                               { return !e->GetIsEnabled(); });
+
+    auto isEnabled = !isDisabled;
+    return isEnabled;
 }
 
-bool Input::IsAtopBusy()
+bool Input::TargetIsEnabled()
 {
-    auto atopControl = GetAtopEnabledControl();
-    return (atopControl && atopControl->HasActiveInput());
+    return _targetEnabledState;
 }
 
-bool Input::IsAtopAvailable()
+bool Input::TargetIsBusy()
 {
-    auto atopControl = GetAtopEnabledControl();
-    return (atopControl && !atopControl->HasActiveInput());
+    return _target->HasActiveInput();
 }
 
-bool Input::IsAtopNothing()
+void Input::SendNotifyBusy()
 {
-    auto atopControl = GetAtopEnabledControl();
-    return (nullptr == atopControl);
-}
-
-void Input::EnterControl()
-{
-    auto atopControl = GetAtopEnabledControl();
-    _activeControl          = atopControl;
-    _isActiveControlEngaged = false;
-
     // Lock this control so it is not used by another input
-    _activeControl->SetHasActiveInput(true);
+    _target->SetHasActiveInput(true);
+}
 
+void Input::SendNotifyAvailable()
+{
+    // Free this control to be used by another input
+    _target->SetHasActiveInput(false);
+}
+
+void Input::SendNotifyEnter()
+{
     // Notify the control that we've entered
     InputAction inputAction;
     if (InputType::Touch == _inputType)
@@ -649,7 +623,7 @@ void Input::EnterControl()
     }
 
     bool shouldUpdateScreen;
-    _activeControl->NotifyInput(_inputType, inputAction, _point, shouldUpdateScreen);
+    _target->NotifyInput(_inputType, inputAction, _point, shouldUpdateScreen);
 
     if (shouldUpdateScreen)
     {
@@ -657,33 +631,22 @@ void Input::EnterControl()
     }
 }
 
-void Input::LeaveControl()
+void Input::SendNotifyLeave()
 {
 
     // Notify the control that we've left
     bool shouldUpdateScreen;
-    _activeControl->NotifyInput(_inputType, InputAction::Leave, _point, shouldUpdateScreen);
+    _target->NotifyInput(_inputType, InputAction::Leave, _point, shouldUpdateScreen);
     if (shouldUpdateScreen)
     {
         _shouldUpdateScreen = true;
     }
-
-    // Free this control to be used by another input
-    _activeControl->SetHasActiveInput(false);
-
-    _activeControl          = nullptr;
-    _isActiveControlEngaged = false;
-}
-
-void Input::SaveEngaged()
-{
-    _isActiveControlEngaged = true;
 }
 
 void Input::SendNotifyMove()
 {
     bool shouldUpdateScreen;
-    _activeControl->NotifyInput(_inputType, InputAction::Move, _point, shouldUpdateScreen);
+    _target->NotifyInput(_inputType, InputAction::Move, _point, shouldUpdateScreen);
 
     if (shouldUpdateScreen)
     {
@@ -694,7 +657,7 @@ void Input::SendNotifyMove()
 void Input::SendNotifyDown()
 {
     bool shouldUpdateScreen;
-    _activeControl->NotifyInput(_inputType, InputAction::Push, _point, shouldUpdateScreen);
+    _target->NotifyInput(_inputType, InputAction::Push, _point, shouldUpdateScreen);
 
     if (shouldUpdateScreen)
     {
@@ -705,7 +668,7 @@ void Input::SendNotifyDown()
 void Input::SendNotifyUp()
 {
     bool shouldUpdateScreen;
-    _activeControl->NotifyInput(_inputType, InputAction::Release, _point, shouldUpdateScreen);
+    _target->NotifyInput(_inputType, InputAction::Release, _point, shouldUpdateScreen);
 
     if (shouldUpdateScreen)
     {
@@ -716,7 +679,7 @@ void Input::SendNotifyUp()
 void Input::SendNotifyEngagedEscape()
 {
     bool shouldUpdateScreen;
-    _activeControl->NotifyInput(_inputType, InputAction::EngagedEscape, _point, shouldUpdateScreen);
+    _target->NotifyInput(_inputType, InputAction::EngagedEscape, _point, shouldUpdateScreen);
 
     if (shouldUpdateScreen)
     {
@@ -727,7 +690,7 @@ void Input::SendNotifyEngagedEscape()
 void Input::SendNotifyEngagedReturn()
 {
     bool shouldUpdateScreen;
-    _activeControl->NotifyInput(_inputType, InputAction::EngagedReturn, _point, shouldUpdateScreen);
+    _target->NotifyInput(_inputType, InputAction::EngagedReturn, _point, shouldUpdateScreen);
 
     if (shouldUpdateScreen)
     {
@@ -760,20 +723,6 @@ const InputType& Input::GetInputType() const
 
 bool Input::GetIsActive() const
 {
-
-//    int currentState;
-//    if (InputType::Pointer == _inputType)
-//    {
-//        currentState = ((SmInput::PointerStateMachine*) _stateMachine)->current_state()[0];
-//    }
-//    else
-//    {
-//        currentState = ((SmInput::TouchStateMachine*) _stateMachine)->current_state()[0];
-//    }
-
-//    const auto IdleStateIndex = 0;
-//    return (IdleStateIndex != currentState);
-
     return _isActive;
 }
 

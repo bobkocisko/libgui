@@ -1,76 +1,45 @@
-
-
-*****  NOTE   ****** 
-
-
-This diagram requires plantUML version 8032 or higher
-because of this issue: http://plantuml.sourceforge.net/qa/?qa=3890/concurrent-state-nesting-limit
-      
-      
-*****  NOTE   ******      
-
 @startuml
 
+note "This state machine takes advantage of the UML state machine rules regarding\nsubmachines and transition priorities. For more details: \n http://www.boost.org/doc/libs/1_55_0/libs/msm/doc/HTML/ch02s02.html#d0e226 \n\nAlso observe the output of running StateMachineTests and StateMachine2Tests\nto gain a better understanding of these rules" as N1
 
 [*] --> Idle
 
-Idle --> HasTarget: *Any* [AtopControl]
+Idle --> HasTarget: *Any* [IsAtopControl]
 
-Retarget --> HasTarget: *Any* [AtopControl]
-Retarget --> Idle: *Any* [!AtopControl]
+Retarget --> HasTarget: [IsAtopControl]
+Retarget --> Idle: [!IsAtopControl]
+HasTarget -u-> Retarget: *Any* [!IsAtopTarget]
 
-state HasTarget: enter: SetTargetToAtop
+state HasTarget: enter: SetTargetToAtopControl
 state HasTarget: leave: SetTargetToNothing
 
 state HasTarget {
-    [*] -> HasEnabled : [TargetIsEnabled]
-    [*] -> HasDisabled: [!TargetIsEnabled]
+    [*] --> HasEnabled : [TargetIsEnabled]
+    [*] --> HasDisabled: [!TargetIsEnabled]
 
     state HasEnabled {
-        [*] -> SubHasEnabled
-        
-        SubHasEnabled -> ToHasDisabled: *Any* [!TargetIsEnabled]
-        
-        state ToHasDisabled: exit state
-    
-        --
-        
-        [*] -> HasAvailable: [!TargetIsBusy]
+        [*] --> HasAvailable: [!TargetIsBusy]
         [*] --> HasBusy: [TargetIsBusy]
 
-        state HasAvailable: enter: NotifyEnter
-        state HasAvailable: leave: NotifyLeave
+        state HasAvailable: enter: NotifyBusy && NotifyEnter
+        state HasAvailable: leave: NotifyLeave && NotifyAvailable
         state HasAvailable {
-            [*] -> Pending: [Concurrent]
+            [*] -> Pending
 
-            state ToRetarget: exit state
-
-            Pending --> ToRetarget: Move [!AtopTarget]
+            Pending --> Pending: Move [IsAtopTarget] / NotifyMove
             Pending --> Engaged: Down / \n NotifyDown
 
+            Engaged --> Engaged: Move [IsAtopTarget] / NotifyMove
             Engaged --> Pending: Up / \n NotifyUp
-            Engaged --> EngagedRemotely: Move [!AtopTarget] / \n NotifyEngagedEscape
+            Engaged --> EngagedRemotely: Move [!IsAtopTarget] / \n NotifyEngagedEscape
 
-            EngagedRemotely --> Engaged: Move [AtopTarget] / \n NotifyEngagedReturn
-            EngagedRemotely -l-> ToRetarget: Up
-
-            [*] --> SubHasAvailable: [Concurrent]
-            SubHasAvailable -> SubHasAvailable: Move / NotifyMove
+            EngagedRemotely --> Engaged: Move [IsAtopTarget] / \n NotifyEngagedReturn
+            EngagedRemotely --> EngagedRemotely: Move [!IsAtopTarget] / NotifyMove
         }
-
-        HasBusy --> HasAvailable: *Any* [!TargetIsBusy]
-
-        state ToRetarget3: exit state
-        HasBusy -> ToRetarget3: Move [!AtopTarget]
     }
 
-    HasDisabled -> HasEnabled: *Any* [TargetIsEnabled]
-
-    HasDisabled --> ToRetarget2: Move [!AtopTarget]
-
-    state ToRetarget2:exit state
-    
-    
+    HasDisabled --> HasEnabled: TargetBecameEnabled
+    HasEnabled -l-> HasDisabled: TargetBecameDisabled
 }
 
 

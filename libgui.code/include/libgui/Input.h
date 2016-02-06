@@ -13,8 +13,18 @@
 
 namespace libgui
 {
+
+namespace SmInput
+{
+class PointerStateMachineFrontEnd;
+class TouchStateMachineFrontEnd;
+}
+
 class Input
 {
+    friend class SmInput::PointerStateMachineFrontEnd;
+    friend class SmInput::TouchStateMachineFrontEnd;
+
 public:
     Input(const InputId& inputId);
     virtual ~Input();
@@ -35,41 +45,45 @@ public:
     void                EnableDebugLogging();
     std::list<LogEntry> GetRecentDebugLogEntries();
 
-    // The following are to be used only internally
-    bool IsAtopBusy();
-    void SetIsActive(bool isActive);
-    bool IsAtopAvailable();
-    bool IsAtopNothing();
-    void EnterControl();
-    void LeaveControl();
-    void SaveEngaged();
-    void SendNotifyMove();
-    void SendNotifyDown();
-    void SendNotifyUp();
-    void SendNotifyEngagedEscape();
-    void SendNotifyEngagedReturn();
-
 private:
     InputId _inputId;
 
-    void* _stateMachine;
-    ElementQueryInfo _atopElementInfo;
-    Control* _activeControl;
+    void   * _stateMachine;
+    Control* _atopControl;
+    Control* _target;
 
-    bool      _isDown;
-    bool      _isActiveControlEngaged;
-    bool      _shouldUpdateScreen;
-    Point     _point;
-    InputType _inputType;
-    bool      _isDebugLoggingEnabled;
-    bool      _isActive;
+    ElementQueryInfo _atopElementInfo;
+    bool             _targetEnabledState;
+    bool             _isDown;
+    bool             _shouldUpdateScreen;
+    Point            _point;
+    InputType        _inputType;
+    bool             _isDebugLoggingEnabled;
+    bool             _isActive;
 
     std::list<LogEntry> _debugLogEntries;
 
     template<class Event>
     void ProcessEvent(Event const& evt);
-    Control* GetAtopEnabledControl();
-    void CheckIfActiveControlBecameDisabled();
+    void CheckTargetEnabledStatus();
+    void SetIsActive(bool isActive);
+    void SendNotifyMove();
+    void SendNotifyDown();
+    void SendNotifyUp();
+    void SendNotifyEngagedEscape();
+    void SendNotifyEngagedReturn();
+    void SendNotifyEnter();
+    void SendNotifyLeave();
+    void SendNotifyBusy();
+    void SendNotifyAvailable();
+
+    void SetTargetToAtopControl();
+    void SetTargetToNothing();
+    bool CheckTargetEnabledStatusHelper() const;
+    bool IsAtopControl();
+    bool TargetIsEnabled();
+    bool TargetIsBusy();
+    bool IsAtopTarget();
 };
 
 }
