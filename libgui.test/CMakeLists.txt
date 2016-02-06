@@ -8,7 +8,8 @@ set(SOURCE_FILES
     ButtonTests.cpp
     ElementManagerTests.cpp
     ElementTests.cpp
-    main.cpp SliderTests.cpp TypesTest.cpp)
+    main.cpp SliderTests.cpp TypesTest.cpp StateMachineTests.cpp
+    StateMachine2Tests.cpp)
 
 # External projects Google Test & Google Mock
 
@@ -40,6 +41,14 @@ set_target_properties(libgooglemock PROPERTIES
     IMPORTED_LINK_INTERFACE_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}"
 )
 include_directories("${SOURCE_DIR}/googlemock/include")
+
+
+# We need Boost MSM (meta state machine)
+find_package(Boost
+    1.54.0
+    REQUIRED
+    )
+include_directories(${Boost_INCLUDE_DIRS})
 
 
 # Set up the src test runner executable

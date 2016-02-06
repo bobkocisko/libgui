@@ -19,6 +19,9 @@ Idle --> HasTarget: *Any* [AtopControl]
 Retarget --> HasTarget: *Any* [AtopControl]
 Retarget --> Idle: *Any* [!AtopControl]
 
+state HasTarget: enter: SetTargetToAtop
+state HasTarget: leave: SetTargetToNothing
+
 state HasTarget {
     [*] -> HasEnabled : [TargetIsEnabled]
     [*] -> HasDisabled: [!TargetIsEnabled]
@@ -35,22 +38,24 @@ state HasTarget {
         [*] -> HasAvailable: [!TargetIsBusy]
         [*] --> HasBusy: [TargetIsBusy]
 
+        state HasAvailable: enter: NotifyEnter
+        state HasAvailable: leave: NotifyLeave
         state HasAvailable {
-            [*] -> Pending
+            [*] -> Pending: [Concurrent]
 
             state ToRetarget: exit state
 
             Pending --> ToRetarget: Move [!AtopTarget]
-            Pending --> Pending: Move [AtopTarget] / \n NotifyMove
             Pending --> Engaged: Down / \n NotifyDown
 
             Engaged --> Pending: Up / \n NotifyUp
             Engaged --> EngagedRemotely: Move [!AtopTarget] / \n NotifyEngagedEscape
-            Engaged --> Engaged: Move [AtopTarget]  / \n NotifyMove
 
             EngagedRemotely --> Engaged: Move [AtopTarget] / \n NotifyEngagedReturn
-            EngagedRemotely --> EngagedRemotely: Move [!AtopTarget] / \n NotifyMove
-            EngagedRemotely -l-> ToRetarget: Up [!AtopTarget] / \n NotifyMove
+            EngagedRemotely -l-> ToRetarget: Up
+
+            [*] --> SubHasAvailable: [Concurrent]
+            SubHasAvailable -> SubHasAvailable: Move / NotifyMove
         }
 
         HasBusy --> HasAvailable: *Any* [!TargetIsBusy]

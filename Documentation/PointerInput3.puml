@@ -2,20 +2,32 @@
 
 [*] --> Idle
 
-Atop --> Engaged: Down / \n NotifyDown
+AtopEnabled --> Engaged: Down / \n NotifyDown
 
-Atop -> Idle: Move [!AtopControl]
+AtopEnabled -> Idle: Move [!AtopControl]
 
-Idle -> Atop: Move [AtopControl]
+Idle -> AtopEnabled: Move [AtopControl]
 
-state Atop {
+state AtopEnabled {
     [*] --> Abc
 }
 
+state AtopDisabled {
+    [*] --> Def
+}
+
 Engaged --> Idle: Up [!AtopControl] / \n NotifyLeaveControl
-Engaged --> Atop: Up [AtopControl] / \n NotifyUp
+Engaged --> AtopEnabled: Up [AtopControl] / \n NotifyUp
 
 state Engaged {
+    [*] -> SubHasEnabled
+    
+    SubHasEnabled -> ToAtopDisabled: *Any* [!TargetIsEnabled]
+
+    state ToAtopDisabled: exit state
+
+    --
+
     [*] -> SubEngaged
 
     SubEngaged --> SubEngaged: Move / NotifyMove

@@ -1,0 +1,22 @@
+@startuml
+[*] --> Enabled
+
+state Enabled: enter: "EnterEnabled"
+state Enabled: leave: "LeaveEnabled"
+state Enabled {
+    [*] -> CheckIsEnabled
+
+    state ToDisabled: exit state
+    CheckIsEnabled -> ToDisabled: *Any* [AtopDisabled]
+
+    --
+    [*] -> Pending
+    Pending -> Engaged: Down / "Down"
+    Engaged -> Pending: Up / "Up"
+
+    state Engaged: enter: "EnterEngaged"
+    state Engaged: leave: "LeaveEngaged"
+}
+
+Enabled -> Disabled: ExitToDisabled
+@enduml
