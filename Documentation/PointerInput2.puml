@@ -14,12 +14,14 @@ state HasTarget: enter: SetTargetToAtopControl
 state HasTarget: leave: SetTargetToNothing
 
 state HasTarget {
-    [*] --> HasEnabled : [TargetIsEnabled]
-    [*] --> HasDisabled: [!TargetIsEnabled]
+    [*] -> DecideTargetIsEnabled
+    DecideTargetIsEnabled --> HasEnabled : [TargetIsEnabled]
+    DecideTargetIsEnabled --> HasDisabled: [!TargetIsEnabled]
 
     state HasEnabled {
-        [*] --> HasAvailable: [!TargetIsBusy]
-        [*] --> HasBusy: [TargetIsBusy]
+        [*] -> DecideTargetIsBusy
+        DecideTargetIsBusy --> HasAvailable: [!TargetIsBusy]
+        DecideTargetIsBusy --> HasBusy: [TargetIsBusy]
 
         state HasAvailable: enter: NotifyBusy && NotifyEnter
         state HasAvailable: leave: NotifyLeave && NotifyAvailable

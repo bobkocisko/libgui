@@ -15,7 +15,7 @@
 #include <boost/msm/front/euml/euml.hpp>
 
 using namespace boost::msm::front;
-using namespace boost::msm::back;
+namespace back = boost::msm::back;
 using boost::msm::front::euml::func_state;
 using emptyvector = boost::fusion::vector<>;
 using boost::mpl::vector1;
@@ -23,6 +23,7 @@ using boost::mpl::vector2;
 using boost::mpl::vector3;
 using boost::msm::TerminateFlag;
 using boost::msm::front::euml::Or_;
+using boost::msm::front::euml::Not_;
 
 template<class A1, class A2>
 using AS2 = ActionSequence_<vector2<A1, A2>>;
@@ -61,34 +62,6 @@ public:
     {
     }
 
-    // states
-    struct Idle: public state<>
-    {
-        template<class Event, class Fsm>
-        void on_entry(Event const& evt, Fsm& fsm)
-        {
-            fsm._parent->SetIsActive(false);
-        }
-
-        template<class Event, class Fsm>
-        void on_exit(Event const& evt, Fsm& fsm)
-        {
-            fsm._parent->SetIsActive(true);
-        }
-    };
-    struct Pending: public state<>
-    {
-    };
-    struct Engaged: public state<>
-    {
-    };
-    struct EngagedRemotely: public state<>
-    {
-    };
-    struct HasBusy: public state<>
-    {
-    };
-
     // guards
     struct IsAtopControl
     {
@@ -106,80 +79,256 @@ public:
             return fsm._parent->IsAtopTarget();
         }
     };
-    struct TargetIsBusy
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
-        {
-            return fsm._parent->TargetIsBusy();
-        }
-    };
-    struct TargetIsEnabled
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
-        {
-            return fsm._parent->TargetIsEnabled();
-        }
-    };
 
-    // actions
-    struct NotifyEnter
+    // states
+    struct Idle: public state<>
     {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+        template<class Event, class Fsm>
+        void on_entry(Event const& evt, Fsm& fsm)
         {
-            fsm._parent->SendNotifyEnter();
+            fsm._parent->SetIsActive(false);
+        }
+
+        template<class Event, class Fsm>
+        void on_exit(Event const& evt, Fsm& fsm)
+        {
+            fsm._parent->SetIsActive(true);
         }
     };
-    struct NotifyLeave
+    struct Retarget: public state<>
     {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
-        {
-            fsm._parent->SendNotifyLeave();
-        }
     };
-    struct NotifyMove
+    struct HasTarget_: public state_machine_def<HasTarget_>
     {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+        void SetParent(Input* parent)
         {
-            fsm._parent->SendNotifyMove();
+            _parent = parent;
         }
-    };
-    struct NotifyDown
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+
+        template<class Event, class Fsm>
+        void on_entry(Event const& evt, Fsm& fsm)
         {
-            fsm._parent->SendNotifyDown();
+            fsm._parent->SetTargetToAtopControl();
         }
-    };
-    struct NotifyUp
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+
+        template<class Event, class Fsm>
+        void on_exit(Event const& evt, Fsm& fsm)
         {
-            fsm._parent->SendNotifyUp();
+            fsm._parent->SetTargetToNothing();
         }
-    };
-    struct NotifyEngagedEscape
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+
+        // states
+        struct DecideTargetIsEnabled: public state<>
         {
-            fsm._parent->SendNotifyEngagedEscape();
-        }
-    };
-    struct NotifyEngagedReturn
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+        };
+        struct HasDisabled: public state<>
         {
-            fsm._parent->SendNotifyEngagedReturn();
+        };
+        struct HasEnabled_: public state_machine_def<HasEnabled_>
+        {
+            void SetParent(Input* parent)
+            {
+                _parent = parent;
+            }
+
+            // states
+            struct DecideTargetIsBusy: public state<>
+            {
+            };
+            struct HasBusy: public state<>
+            {
+            };
+
+            struct HasAvailable_: public state_machine_def<HasAvailable_>
+            {
+                void SetParent(Input* parent)
+                {
+                    _parent = parent;
+                }
+
+                template<class Event, class Fsm>
+                void on_entry(Event const& evt, Fsm& fsm)
+                {
+                    fsm._parent->SendNotifyBusy();
+                    fsm._parent->SendNotifyEnter();
+                }
+
+                template<class Event, class Fsm>
+                void on_exit(Event const& evt, Fsm& fsm)
+                {
+                    fsm._parent->SendNotifyLeave();
+                    fsm._parent->SendNotifyAvailable();
+                }
+
+                // states
+                struct Pending: public state<>
+                {
+                };
+                struct Engaged: public state<>
+                {
+                };
+                struct EngagedRemotely: public state<>
+                {
+                };
+
+                // actions
+                struct NotifyMove
+                {
+                    template<class EVT, class FSM, class SourceState, class TargetState>
+                    void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+                    {
+                        fsm._parent->SendNotifyMove();
+                    }
+                };
+                struct NotifyDown
+                {
+                    template<class EVT, class FSM, class SourceState, class TargetState>
+                    void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+                    {
+                        fsm._parent->SendNotifyDown();
+                    }
+                };
+                struct NotifyUp
+                {
+                    template<class EVT, class FSM, class SourceState, class TargetState>
+                    void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+                    {
+                        fsm._parent->SendNotifyUp();
+                    }
+                };
+                struct NotifyEngagedEscape
+                {
+                    template<class EVT, class FSM, class SourceState, class TargetState>
+                    void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+                    {
+                        fsm._parent->SendNotifyEngagedEscape();
+                    }
+                };
+                struct NotifyEngagedReturn
+                {
+                    template<class EVT, class FSM, class SourceState, class TargetState>
+                    void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+                    {
+                        fsm._parent->SendNotifyEngagedReturn();
+                    }
+                };
+
+                // Replaces the default no-transition response.
+                template<class FSM, class Event>
+                void no_transition(Event const& e, FSM&, int state)
+                {
+                    // Simply ignore any event that doesn't generate a transition
+                }
+
+                // Set up the starting state of the state machine
+                typedef Pending initial_state;
+
+                // Transition table for state machine
+                // @formatter:off
+
+                struct transition_table : boost::mpl::vector<
+                //    Start             Event     Next State         Action                  Guard
+                //  +------------------+--------+------------------+-----------------------+--------------------+
+                Row < Pending          , Move   , Pending          , NotifyMove            , IsAtopTarget       >,
+                Row < Pending          , Down   , Engaged          , NotifyDown            , none               >,
+                //  +------------------+--------+------------------+-----------------------+--------------------+
+                Row < Engaged          , Up     , Pending          , NotifyUp              , none               >,
+                Row < Engaged          , Move   , EngagedRemotely  , NotifyEngagedEscape   , Not_<IsAtopTarget> >,
+                Row < Engaged          , Move   , Engaged          , NotifyMove            , IsAtopTarget       >,
+                //  +------------------+--------+------------------+-----------------------+--------------------+
+                Row < EngagedRemotely  , Move   , Engaged          , NotifyEngagedReturn   , IsAtopTarget       >,
+                Row < EngagedRemotely  , Move   , EngagedRemotely  , NotifyMove            , Not_<IsAtopTarget> >
+                //  +------------------+--------+------------------+-----------------------+--------------------+
+                > {};
+
+            // @formatter:on
+
+            private:
+                Input* _parent;
+
+            };
+            typedef back::state_machine<HasAvailable_> HasAvailable;
+
+            // guards
+            struct TargetIsBusy
+            {
+                template<class EVT, class FSM, class SourceState, class TargetState>
+                bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+                {
+                    return fsm._parent->TargetIsBusy();
+                }
+            };
+
+            // Replaces the default no-transition response.
+            template<class FSM, class Event>
+            void no_transition(Event const& e, FSM&, int state)
+            {
+                // Simply ignore any event that doesn't generate a transition
+            }
+
+            // Set up the starting state of the state machine
+            typedef DecideTargetIsBusy initial_state;
+
+            // Transition table for state machine
+            // @formatter:off
+
+            struct transition_table : boost::mpl::vector<
+            //    Start                    Event                   Next State      Action    Guard
+            //  +------------------------+-----------------------+---------------+---------+------------------------+
+            Row < DecideTargetIsBusy     , none                  , HasBusy       , none    , TargetIsBusy           >,
+            Row < DecideTargetIsBusy     , none                  , HasAvailable  , none    , Not_<TargetIsBusy>     >
+            > {};
+
+            // @formatter:on
+
+        private:
+            Input* _parent;
+
+        };
+        typedef back::state_machine<HasEnabled_> HasEnabled;
+
+        // guards
+        struct TargetIsEnabled
+        {
+            template<class EVT, class FSM, class SourceState, class TargetState>
+            bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+            {
+                return fsm._parent->TargetIsEnabled();
+            }
+        };
+
+        // Replaces the default no-transition response.
+        template<class FSM, class Event>
+        void no_transition(Event const& e, FSM&, int state)
+        {
+            // Simply ignore any event that doesn't generate a transition
         }
+
+        // Set up the starting state of the state machine
+        typedef DecideTargetIsEnabled initial_state;
+
+        // Transition table for state machine
+        // @formatter:off
+
+        struct transition_table : boost::mpl::vector<
+        //    Start                    Event                   Next State      Action    Guard
+        //  +------------------------+-----------------------+---------------+---------+------------------------+
+        Row < DecideTargetIsEnabled  , none                  , HasDisabled   , none    , Not_<TargetIsEnabled>  >,
+        Row < DecideTargetIsEnabled  , none                  , HasEnabled    , none    , TargetIsEnabled        >,
+        //  +------------------------+-----------------------+---------------+---------+------------------------+
+        Row < HasDisabled            , TargetBecameEnabled   , HasEnabled    , none    , none                   >,
+        //  +------------------------+-----------------------+---------------+---------+------------------------+
+        Row < HasEnabled             , TargetBecameDisabled  , HasDisabled   , none    , none                   >
+        //  +------------------------+-----------------------+---------------+---------+------------------------+
+        > {};
+
+        // @formatter:on
+
+    private:
+        Input* _parent;
+
     };
+    typedef back::state_machine<HasTarget_> HasTarget;
 
     // Replaces the default no-transition response.
     template<class FSM, class Event>
@@ -198,40 +347,15 @@ public:
 
     // NOTE: Idle must be the first state listed in this table
     struct transition_table : boost::mpl::vector<
-    //    Start                Event                       Next State           Action                         Guard
-    //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < Idle               , MoveAtopAvailableControl  , Pending            , EnterControl                 , none            >,
-    Row < Idle               , MoveAtopBusyControl       , HasBusy            , none                         , none            >,
-    //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < HasBusy            , MoveAtopNothing           , Idle               , none                         , none            >,
-    Row < HasBusy            , ControlBecameDisabled     , Idle               , none                         , none            >,
-    Row < HasBusy            , MoveAtopAvailableControl  , SwitchingToPending , none                         , none            >,
-    //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < SwitchingToPending , none                      , Pending            , EnterControl                 , none            >,
-    //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < Pending            , MoveAtopAvailableControl  , SwitchingToPending , LeaveControl                 , none            >,
-    Row < Pending            , MoveAtopBusyControl       , SwitchingToIgnored , LeaveControl                 , none            >,
-    Row < Pending            , MoveAtopNothing           , Idle               , LeaveControl                 , none            >,
-    Row < Pending            , ControlBecameDisabled     , Idle               , LeaveControl                 , none            >,
-    Row < Pending            , Move                      , Pending            , NotifyMove                   , none            >,
-    Row < Pending            , Down                      , Engaged            , AS2<SaveEngaged, NotifyDown> , none            >,
-    //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < Engaged            , Up                        , Pending            , NotifyUp                     , none            >,
-    Row < Engaged            , MoveAtopAvailableControl  , EngagedRemotely    , NotifyEngagedEscape          , none            >,
-    Row < Engaged            , MoveAtopBusyControl       , EngagedRemotely    , NotifyEngagedEscape          , none            >,
-    Row < Engaged            , MoveAtopNothing           , EngagedRemotely    , NotifyEngagedEscape          , none            >,
-    Row < Engaged            , Move                      , Engaged            , NotifyMove                   , none            >,
-    Row < Engaged            , ControlBecameDisabled     , Idle               , LeaveControl                 , none            >,
-    //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < EngagedRemotely    , MoveAtopEngagedControl    , Engaged            , NotifyEngagedReturn          , none            >,
-    Row < EngagedRemotely    , Up                        , Idle               , AS2<NotifyUp, LeaveControl>  , IsAtopNothing   >,
-    Row < EngagedRemotely    , Up                        , SwitchingToIgnored , AS2<NotifyUp, LeaveControl>  , IsAtopBusy      >,
-    Row < EngagedRemotely    , Up                        , SwitchingToPending , AS2<NotifyUp, LeaveControl>  , IsAtopAvailable >,
-    Row < EngagedRemotely    , Move                      , EngagedRemotely    , NotifyMove                   , none            >,
-    Row < EngagedRemotely    , ControlBecameDisabled     , Idle               , LeaveControl                 , none            >,
-    //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
-    Row < SwitchingToIgnored , none                      , HasBusy            , none                         , none            >
-    //  +--------------------+---------------------------+------------------  +------------------------------+-----------------+
+    //    Start           Event          Next State     Action   Guard
+    //  +---------------+--------------+--------------+--------+----------------------+
+    Row < Idle          , boost::any   , HasTarget    , none   , IsAtopControl        >,
+    //  +---------------+--------------+--------------+--------+----------------------+
+    Row < HasTarget     , boost::any   , Retarget     , none   , Not_<IsAtopTarget>   >,
+    //  +---------------+--------------+--------------+--------+----------------------+
+    Row < Retarget      , none         , Idle         , none   , Not_<IsAtopControl>  >,
+    Row < Retarget      , none         , HasTarget    , none   , IsAtopControl        >
+    //  +---------------+--------------+--------------+--------+----------------------+
     > {};
 
     // @formatter:on
@@ -241,7 +365,7 @@ private:
 
 };
 
-typedef state_machine<PointerStateMachineFrontEnd> PointerStateMachine;
+typedef back::state_machine<PointerStateMachineFrontEnd> PointerStateMachine;
 
 class TouchStateMachineFrontEnd: public state_machine_def<TouchStateMachineFrontEnd>
 {
@@ -419,7 +543,7 @@ private:
 
 };
 
-typedef state_machine<TouchStateMachineFrontEnd> TouchStateMachine;
+typedef back::state_machine<TouchStateMachineFrontEnd> TouchStateMachine;
 }
 
 Input::Input(const InputId& inputId)
@@ -438,6 +562,16 @@ Input::Input(const InputId& inputId)
 
         // Create state machine
         auto stateMachine = new SmInput::PointerStateMachine(this);
+
+        // Set submachine links back to the parent class instance
+        auto& hasTarget = stateMachine->get_state<SmInput::PointerStateMachineFrontEnd::HasTarget&>();
+        hasTarget.SetParent(this);
+        auto& hasEnabled = hasTarget.get_state<SmInput::PointerStateMachineFrontEnd::HasTarget_::HasEnabled&>();
+        hasEnabled.SetParent(this);
+        auto& hasAvailable =
+                hasEnabled.get_state<SmInput::PointerStateMachineFrontEnd::HasTarget_::HasEnabled_::HasAvailable&>();
+        hasAvailable.SetParent(this);
+
         stateMachine->start();
         _stateMachine = stateMachine;
     }
