@@ -8,7 +8,9 @@ Idle --> HasTarget: *Any* [IsAtopControl]
 
 Retarget --> HasTarget: [IsAtopControl]
 Retarget --> Idle: [!IsAtopControl]
-HasTarget -u-> Retarget: *Any* [!IsAtopTarget]
+HasTarget -u-> Retarget: *Any* [IsPointer && !IsAtopTarget]
+HasTarget -u-> Retarget: Move [IsTouch && !IsAtopTarget]
+HasTarget -u-> Idle: Up [IsTouch]
 
 state HasTarget: enter: SetTargetToAtopControl
 state HasTarget: leave: SetTargetToNothing
@@ -23,25 +25,28 @@ state HasTarget {
         DecideTargetIsBusy --> HasAvailable: [!TargetIsBusy]
         DecideTargetIsBusy --> HasBusy: [TargetIsBusy]
 
-        state HasAvailable: enter: NotifyBusy && NotifyEnter
-        state HasAvailable: leave: NotifyLeave && NotifyAvailable
+        state HasAvailable: enter: NotifyBusy; NotifyEnter
+        state HasAvailable: leave: (evt is Up ? NotifyUp); NotifyLeave; NotifyAvailable
         state HasAvailable {
-            [*] -> Pending
+            [*] -> DecideEventType
+                DecideEventType -> Pending: [!EventTypeIsDown]
+                DecideEventType --> Engaged: [EventTypeIsDown] / \n NotifyDown
 
-            Pending --> Pending: Move [IsAtopTarget] / NotifyMove
-            Pending --> Engaged: Down / \n NotifyDown
+                Pending --> Pending: Move [IsAtopTarget] / NotifyMove
+                Pending --> Engaged: Down / \n NotifyDown
 
-            Engaged --> Engaged: Move [IsAtopTarget] / NotifyMove
-            Engaged --> Pending: Up / \n NotifyUp
-            Engaged --> EngagedRemotely: Move [!IsAtopTarget] / \n NotifyEngagedEscape
+                Engaged --> Engaged: Move [IsAtopTarget] / NotifyMove
+                Engaged --> Pending: Up / \n NotifyUp
+                Engaged --> EngagedRemotely: Move [!IsAtopTarget] / \n NotifyEngagedEscape
 
-            EngagedRemotely --> Engaged: Move [IsAtopTarget] / \n NotifyEngagedReturn
-            EngagedRemotely --> EngagedRemotely: Move [!IsAtopTarget] / NotifyMove
+                EngagedRemotely --> Engaged: Move [IsAtopTarget] / \n NotifyEngagedReturn
+                EngagedRemotely --> EngagedRemotely: Move [!IsAtopTarget] / NotifyMove
+            }
         }
     }
 
     HasDisabled --> HasEnabled: TargetBecameEnabled
-    HasEnabled -l-> HasDisabled: TargetBecameDisabled
+    HasEnabled -l-> HasDisabled: TargetBecameDisabled \n [IsAtopTarget]
 }
 
 

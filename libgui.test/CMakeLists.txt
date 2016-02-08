@@ -9,7 +9,9 @@ set(SOURCE_FILES
     ElementManagerTests.cpp
     ElementTests.cpp
     main.cpp SliderTests.cpp TypesTest.cpp StateMachineTests.cpp
-    StateMachine2Tests.cpp)
+    StateMachine2Tests.cpp
+    StateMachine3Tests.cpp
+    )
 
 # External projects Google Test & Google Mock
 

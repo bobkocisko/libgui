@@ -10,21 +10,13 @@
 #include "Element.h"
 #include "InputIdentifier.h"
 #include <list>
+#include <boost/any.hpp>
 
 namespace libgui
 {
 
-namespace SmInput
-{
-class PointerStateMachineFrontEnd;
-class TouchStateMachineFrontEnd;
-}
-
 class Input
 {
-    friend class SmInput::PointerStateMachineFrontEnd;
-    friend class SmInput::TouchStateMachineFrontEnd;
-
 public:
     Input(const InputId& inputId);
     virtual ~Input();
@@ -45,6 +37,27 @@ public:
     void                EnableDebugLogging();
     std::list<LogEntry> GetRecentDebugLogEntries();
 
+    // Internal use only
+    void SetIsActive(bool isActive);
+    void SendNotifyMove();
+    void SendNotifyDown();
+    void SendNotifyUp();
+    void SendNotifyEngagedEscape();
+    void SendNotifyEngagedReturn();
+    void SendNotifyEnter();
+    void SendNotifyLeave();
+    void SendNotifyBusy();
+    void SendNotifyAvailable();
+    void SetTargetToAtopControl();
+    void SetTargetToNothing();
+    bool IsAtopControl();
+    bool TargetIsEnabled();
+    bool TargetIsBusy();
+    bool IsAtopTarget();
+    bool IsPointer();
+    bool IsTouch();
+    boost::any& GetActiveEvent();
+
 private:
     InputId _inputId;
 
@@ -60,30 +73,14 @@ private:
     InputType        _inputType;
     bool             _isDebugLoggingEnabled;
     bool             _isActive;
+    boost::any       _activeEvent;
 
     std::list<LogEntry> _debugLogEntries;
-
     template<class Event>
-    void ProcessEvent(Event const& evt);
-    void CheckTargetEnabledStatus();
-    void SetIsActive(bool isActive);
-    void SendNotifyMove();
-    void SendNotifyDown();
-    void SendNotifyUp();
-    void SendNotifyEngagedEscape();
-    void SendNotifyEngagedReturn();
-    void SendNotifyEnter();
-    void SendNotifyLeave();
-    void SendNotifyBusy();
-    void SendNotifyAvailable();
+    void                ProcessEvent(Event const& evt);
 
-    void SetTargetToAtopControl();
-    void SetTargetToNothing();
+    void CheckTargetEnabledStatus();
     bool CheckTargetEnabledStatusHelper() const;
-    bool IsAtopControl();
-    bool TargetIsEnabled();
-    bool TargetIsBusy();
-    bool IsAtopTarget();
 };
 
 }

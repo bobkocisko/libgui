@@ -1,0 +1,21 @@
+@startuml
+[*] --> Enabled
+
+state Enabled: enter: "EnterEnabled"
+state Enabled: leave: "LeaveEnabled"; (evt is Down ? "LeavingDuringDown")
+state Enabled {
+    [*] -> Pending
+    Pending -> Engaged: Down / "Down"
+    Engaged -> Pending: Up / "Up"
+
+    state Engaged: enter: "EnterEngaged"
+    state Engaged: leave: "LeaveEngaged"
+}
+
+Enabled -> Disabled: *Any*
+
+state Fallthrough: enter: "EnterFallthrough"
+state Fallthrough: leave: "LeaveFallthrough"
+Disabled -> Fallthrough
+
+@enduml
