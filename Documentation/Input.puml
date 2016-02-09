@@ -8,9 +8,7 @@ Idle --> HasTarget: *Any* [!EventTypeIsAnonymous && \n IsAtopControl]
 
 Retarget --> HasTarget: [IsAtopControl]
 Retarget --> Idle: [!IsAtopControl]
-HasTarget -u-> Retarget: *Any* [!EventTypeIsAnonymous && \n IsPointer && \n !IsAtopTarget]
-HasTarget -u-> Retarget: Move [IsTouch && \n !IsAtopTarget]
-HasTarget -u-> Idle: Up [IsTouch]
+HasTarget -u-> Retarget: *Any* [!EventTypeIsAnonymous && \n !IsAtopTarget]
 
 state HasTarget: enter: SetTargetToAtopControl
 state HasTarget: leave: SetTargetToNothing

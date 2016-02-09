@@ -485,3 +485,38 @@ TEST(ElementManagerTests, WhenControlIsTouchDragged_ItReceivesNotifications)
     ASSERT_EQ(true, sc->GetNotifyTouchLeaveCalled());
 
 }
+
+TEST(ElementManagerTests, WhenControlIsTouchEngagedRemotelyThenDisabled_ItStopsReceivingNotifications)
+{
+    auto em = make_shared<ElementManager>();
+    auto sc = make_shared<StubControl>();
+    em->SetRoot(sc);
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
+
+    auto touchInput = InputId(FirstTouchId);
+    em->NotifyNewPoint(touchInput, Point{1, 1});
+    em->NotifyDown(touchInput);
+    ASSERT_EQ(true, sc->GetNotifyTouchEnterPushedCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
+
+    em->NotifyNewPoint(touchInput, Point{1.1, 1.1});
+    ASSERT_EQ(true, sc->GetNotifyTouchMoveCalled());
+
+    em->NotifyNewPoint(touchInput, Point{0.1, 0.1});
+    ASSERT_EQ(true, sc->GetNotifyTouchEscapeCalled());
+
+    em->NotifyNewPoint(touchInput, Point{0, 0});
+    ASSERT_EQ(true, sc->GetNotifyTouchMoveCalled());
+
+    sc->SetIsEnabled(false);
+
+    sc->ResetNotifications();
+
+    em->NotifyNewPoint(touchInput, Point{0.1, 0.1});
+    ASSERT_EQ(false, sc->GetNotifyTouchMoveCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchLeaveCalled());
+
+}

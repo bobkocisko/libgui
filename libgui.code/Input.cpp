@@ -58,6 +58,27 @@ struct TargetBecameEnabled
 
 class StateMachineFrontEnd: public state_machine_def<StateMachineFrontEnd>
 {
+#define DBG
+
+#ifdef DBG
+#define DBG_PRINT(x) printf(x "\n"); fflush(stdout);
+#define DBG_ENTER_EXIT(x) \
+template<class Event, class Fsm> \
+void on_entry(Event const& evt, Fsm& fsm) \
+{ \
+    DBG_PRINT("Enter " x) \
+} \
+\
+template<class Event, class Fsm> \
+void on_exit(Event const& evt, Fsm& fsm) \
+{ \
+    DBG_PRINT("Exit " x) \
+} \
+
+#else
+#define DBG_PRINT(x) ;
+#endif
+
 
 public:
     StateMachineFrontEnd(Input* parent)
@@ -119,17 +140,20 @@ public:
         template<class Event, class Fsm>
         void on_entry(Event const& evt, Fsm& fsm)
         {
+            DBG_PRINT("Enter Idle")
             fsm._parent->SetIsActive(false);
         }
 
         template<class Event, class Fsm>
         void on_exit(Event const& evt, Fsm& fsm)
         {
+            DBG_PRINT("Exit Idle");
             fsm._parent->SetIsActive(true);
         }
     };
     struct Retarget: public state<>
     {
+        DBG_ENTER_EXIT("Retarget")
     };
     struct HasTarget_: public state_machine_def<HasTarget_>
     {
@@ -141,21 +165,25 @@ public:
         template<class Event, class Fsm>
         void on_entry(Event const& evt, Fsm& fsm)
         {
+            DBG_PRINT("Enter HasTarget")
             fsm._parent->SetTargetToAtopControl();
         }
 
         template<class Event, class Fsm>
         void on_exit(Event const& evt, Fsm& fsm)
         {
+            DBG_PRINT("Exit HasTarget")
             fsm._parent->SetTargetToNothing();
         }
 
         // states
         struct DecideTargetIsEnabled: public state<>
         {
+            DBG_ENTER_EXIT("DecideTargetIsEnabled")
         };
         struct HasDisabled: public state<>
         {
+            DBG_ENTER_EXIT("HasDisabled")
         };
         struct HasEnabled_: public state_machine_def<HasEnabled_>
         {
@@ -167,9 +195,11 @@ public:
             // states
             struct DecideTargetIsBusy: public state<>
             {
+                DBG_ENTER_EXIT("DecideTargetIsBusy")
             };
             struct HasBusy: public state<>
             {
+                DBG_ENTER_EXIT("HasBusy")
             };
 
             struct HasAvailable_: public state_machine_def<HasAvailable_>
@@ -182,6 +212,7 @@ public:
                 template<class Event, class Fsm>
                 void on_entry(Event const& evt, Fsm& fsm)
                 {
+                    DBG_PRINT("Enter HasAvailable")
                     fsm._parent->SendNotifyBusy();
                     fsm._parent->SendNotifyEnter();
                 }
@@ -189,6 +220,7 @@ public:
                 template<class Event, class Fsm>
                 void on_exit(Event const& evt, Fsm& fsm)
                 {
+                    DBG_PRINT("Exit HasAvailable")
                     if (fsm._parent->GetActiveEvent().type() == typeid(Up))
                     {
                         fsm._parent->SendNotifyUp();
@@ -252,15 +284,19 @@ public:
                 // states
                 struct DecideEventType: public state<>
                 {
+                    DBG_ENTER_EXIT("DecideEventType")
                 };
                 struct Pending: public state<>
                 {
+                    DBG_ENTER_EXIT("Pending")
                 };
                 struct Engaged: public state<>
                 {
+                    DBG_ENTER_EXIT("Engaged")
                 };
                 struct EngagedRemotely: public state<>
                 {
+                    DBG_ENTER_EXIT("EngagedRemotely")
                 };
 
                 // Replaces the default no-transition response.
@@ -409,11 +445,7 @@ public:
                                                                       IsAtopControl>                >,
     //  +---------------+--------------+--------------+--------+------------------------------------+
     Row < HasTarget     , boost::any   , Retarget     , none   , And_<Not_<EventTypeIsAnonymous>,
-                                                                      And_<IsPointer,
-                                                                           Not_<IsAtopTarget>>>     >,
-    Row < HasTarget     , Move         , Retarget     , none   , And_<IsTouch,
                                                                       Not_<IsAtopTarget>>           >,
-    Row < HasTarget     , Up           , Idle         , none   , IsTouch                            >,
     //  +---------------+--------------+--------------+--------+------------------------------------+
     Row < Retarget      , none         , Idle         , none   , Not_<IsAtopControl>                >,
     Row < Retarget      , none         , HasTarget    , none   , IsAtopControl                      >
@@ -517,6 +549,13 @@ bool Input::NotifyUp()
     _shouldUpdateScreen = false;
 
     _isDown = false;
+
+    if (IsTouch())
+    {
+        // If we release a touch point then that input is no longer atop anything
+        _atopElementInfo = {};
+        _atopControl     = nullptr;
+    }
 
     CheckTargetEnabledStatus();
 
@@ -718,6 +757,11 @@ void Input::SendNotifyEngagedReturn()
 template<class Event>
 void Input::ProcessEvent(const Event& evt)
 {
+#ifdef DBG
+    printf("\nProcessEvent %s...\n", typeid(evt).name());
+    fflush(stdout);
+#endif
+
     // Enable reading the active event while processing
     _activeEvent = evt;
     ScopeExit onScopeExit(
