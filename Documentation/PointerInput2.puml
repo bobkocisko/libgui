@@ -4,12 +4,12 @@ note "This state machine takes advantage of the UML state machine rules regardin
 
 [*] --> Idle
 
-Idle --> HasTarget: *Any* [IsAtopControl]
+Idle --> HasTarget: *Any* [!EventTypeIsAnonymous && \n IsAtopControl]
 
 Retarget --> HasTarget: [IsAtopControl]
 Retarget --> Idle: [!IsAtopControl]
-HasTarget -u-> Retarget: *Any* [IsPointer && !IsAtopTarget]
-HasTarget -u-> Retarget: Move [IsTouch && !IsAtopTarget]
+HasTarget -u-> Retarget: *Any* [!EventTypeIsAnonymous && \n IsPointer && \n !IsAtopTarget]
+HasTarget -u-> Retarget: Move [IsTouch && \n !IsAtopTarget]
 HasTarget -u-> Idle: Up [IsTouch]
 
 state HasTarget: enter: SetTargetToAtopControl
@@ -36,7 +36,7 @@ state HasTarget {
                 Pending --> Engaged: Down / \n NotifyDown
 
                 Engaged --> Engaged: Move [IsAtopTarget] / NotifyMove
-                Engaged --> Pending: Up / \n NotifyUp
+                Engaged --> Pending: Up [IsPointer] / \n NotifyUp
                 Engaged --> EngagedRemotely: Move [!IsAtopTarget] / \n NotifyEngagedEscape
 
                 EngagedRemotely --> Engaged: Move [IsAtopTarget] / \n NotifyEngagedReturn

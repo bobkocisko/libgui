@@ -375,7 +375,7 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
     auto touchInput = InputId(FirstTouchId);
     em->NotifyNewPoint(touchInput, Point{1, 1});
     em->NotifyDown(touchInput);
-    ASSERT_EQ(true, sc->GetNotifyTouchEnterReleasedCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchEnterPushedCalled());
     ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
 
     em->NotifyUp(touchInput);
@@ -468,7 +468,7 @@ TEST(ElementManagerTests, WhenControlIsTouchDragged_ItReceivesNotifications)
     auto touchInput = InputId(FirstTouchId);
     em->NotifyNewPoint(touchInput, Point{1, 1});
     em->NotifyDown(touchInput);
-    ASSERT_EQ(true, sc->GetNotifyTouchEnterReleasedCalled());
+    ASSERT_EQ(true, sc->GetNotifyTouchEnterPushedCalled());
     ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
 
     em->NotifyNewPoint(touchInput, Point{1.1, 1.1});

@@ -100,6 +100,20 @@ public:
             return fsm._parent->IsTouch();
         }
     };
+    struct EventTypeIsAnonymous
+    {
+        template<class EVT, class FSM, class SourceState, class TargetState>
+        bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+        {
+            if (!std::is_same<EVT, boost::any>::value)
+            {
+                return false;
+            }
+
+            auto& any = (boost::any&) evt;
+            return any.type() == typeid(none);
+        }
+    };
 
     // states
     struct Idle: public state<>
@@ -381,7 +395,7 @@ public:
                 Row < Pending          , Move   , Pending          , NotifyMove            , IsAtopTarget          >,
                 Row < Pending          , Down   , Engaged          , NotifyDown            , none                  >,
                 //  +------------------+--------+------------------+-----------------------+-----------------------+
-                Row < Engaged          , Up     , Pending          , NotifyUp              , none                  >,
+                Row < Engaged          , Up     , Pending          , NotifyUp              , IsPointer             >,
                 Row < Engaged          , Move   , EngagedRemotely  , NotifyEngagedEscape   , Not_<IsAtopTarget>    >,
                 Row < Engaged          , Move   , Engaged          , NotifyMove            , IsAtopTarget          >,
                 //  +------------------+--------+------------------+-----------------------+-----------------------+
@@ -394,6 +408,7 @@ public:
 
             private:
                 friend class IsAtopTarget;
+                friend class IsPointer;
                 Input* _parent;
 
             };
@@ -499,18 +514,20 @@ public:
     // NOTE: Idle must be the first state listed in this table
     struct transition_table : boost::mpl::vector<
     //    Start           Event          Next State     Action   Guard
-    //  +---------------+--------------+--------------+--------+------------------------------+
-    Row < Idle          , boost::any   , HasTarget    , none   , IsAtopControl                >,
-    //  +---------------+--------------+--------------+--------+------------------------------+
-    Row < HasTarget     , boost::any   , Retarget     , none   , And_<IsPointer,
-                                                                      Not_<IsAtopTarget>>     >,
+    //  +---------------+--------------+--------------+--------+------------------------------------+
+    Row < Idle          , boost::any   , HasTarget    , none   , And_<Not_<EventTypeIsAnonymous>,
+                                                                      IsAtopControl>                >,
+    //  +---------------+--------------+--------------+--------+------------------------------------+
+    Row < HasTarget     , boost::any   , Retarget     , none   , And_<Not_<EventTypeIsAnonymous>,
+                                                                      And_<IsPointer,
+                                                                           Not_<IsAtopTarget>>>     >,
     Row < HasTarget     , Move         , Retarget     , none   , And_<IsTouch,
-                                                                      Not_<IsAtopTarget>>     >,
-    Row < HasTarget     , Up           , Idle         , none   , IsTouch                      >,
-    //  +---------------+--------------+--------------+--------+------------------------------+
-    Row < Retarget      , none         , Idle         , none   , Not_<IsAtopControl>          >,
-    Row < Retarget      , none         , HasTarget    , none   , IsAtopControl                >
-    //  +---------------+--------------+--------------+--------+------------------------------+
+                                                                      Not_<IsAtopTarget>>           >,
+    Row < HasTarget     , Up           , Idle         , none   , IsTouch                            >,
+    //  +---------------+--------------+--------------+--------+------------------------------------+
+    Row < Retarget      , none         , Idle         , none   , Not_<IsAtopControl>                >,
+    Row < Retarget      , none         , HasTarget    , none   , IsAtopControl                      >
+    //  +---------------+--------------+--------------+--------+------------------------------------+
     > {};
 
     // @formatter:on
