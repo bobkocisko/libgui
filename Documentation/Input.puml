@@ -1,6 +1,6 @@
 @startuml
 
-note "This state machine takes advantage of the UML state machine rules regarding\nsubmachines and transition priorities. For more details: \n http://www.boost.org/doc/libs/1_55_0/libs/msm/doc/HTML/ch02s02.html#d0e226 \n\nAlso observe the output of running StateMachineTests and StateMachine2Tests\nto gain a better understanding of these rules" as N1
+note "This state machine takes advantage of the UML state machine rules regarding\nsubmachines and transition priorities. For more details: \n http://www.boost.org/doc/libs/1_55_0/libs/msm/doc/HTML/ch02s02.html#d0e226 \n\nAlso observe the output of running StateMachineTests and StateMachine2Tests\nto gain a better understanding of these rules\n\nAlso, note that boost msm's implementation of *Any* events also is invoked \nif the state machine uses any anonymous transitions so a special guard has \nto be used to avoid this" as N1
 
 [*] --> Idle
 

@@ -39,8 +39,6 @@ namespace libgui
 
 namespace SmInput
 {
-#define DBG(x) printf(x "\n"); fflush(stdout);
-
 // events
 struct Move
 {
@@ -121,30 +119,17 @@ public:
         template<class Event, class Fsm>
         void on_entry(Event const& evt, Fsm& fsm)
         {
-            DBG("Enter Idle")
             fsm._parent->SetIsActive(false);
         }
 
         template<class Event, class Fsm>
         void on_exit(Event const& evt, Fsm& fsm)
         {
-            DBG("Exit Idle")
             fsm._parent->SetIsActive(true);
         }
     };
     struct Retarget: public state<>
     {
-        template<class Event, class Fsm>
-        void on_entry(Event const& evt, Fsm& fsm)
-        {
-            DBG("Enter Retarget")
-        }
-
-        template<class Event, class Fsm>
-        void on_exit(Event const& evt, Fsm& fsm)
-        {
-            DBG("Exit Retarget")
-        }
     };
     struct HasTarget_: public state_machine_def<HasTarget_>
     {
@@ -156,46 +141,21 @@ public:
         template<class Event, class Fsm>
         void on_entry(Event const& evt, Fsm& fsm)
         {
-            DBG("Enter HasTarget")
             fsm._parent->SetTargetToAtopControl();
         }
 
         template<class Event, class Fsm>
         void on_exit(Event const& evt, Fsm& fsm)
         {
-            DBG("Exit HasTarget")
             fsm._parent->SetTargetToNothing();
         }
 
         // states
         struct DecideTargetIsEnabled: public state<>
         {
-            template<class Event, class Fsm>
-            void on_entry(Event const& evt, Fsm& fsm)
-            {
-                DBG("Enter DecideTargetIsEnabled")
-            }
-
-            template<class Event, class Fsm>
-            void on_exit(Event const& evt, Fsm& fsm)
-            {
-                DBG("Exit DecideTargetIsEnabled")
-            }
-
         };
         struct HasDisabled: public state<>
         {
-            template<class Event, class Fsm>
-            void on_entry(Event const& evt, Fsm& fsm)
-            {
-                DBG("Enter HasDisabled")
-            }
-
-            template<class Event, class Fsm>
-            void on_exit(Event const& evt, Fsm& fsm)
-            {
-                DBG("Exit HasDisabled")
-            }
         };
         struct HasEnabled_: public state_machine_def<HasEnabled_>
         {
@@ -207,31 +167,9 @@ public:
             // states
             struct DecideTargetIsBusy: public state<>
             {
-                template<class Event, class Fsm>
-                void on_entry(Event const& evt, Fsm& fsm)
-                {
-                    DBG("Enter DecideTargetIsBusy")
-                }
-
-                template<class Event, class Fsm>
-                void on_exit(Event const& evt, Fsm& fsm)
-                {
-                    DBG("Exit DecideTargetIsBusy")
-                }
             };
             struct HasBusy: public state<>
             {
-                template<class Event, class Fsm>
-                void on_entry(Event const& evt, Fsm& fsm)
-                {
-                    DBG("Enter HasBusy")
-                }
-
-                template<class Event, class Fsm>
-                void on_exit(Event const& evt, Fsm& fsm)
-                {
-                    DBG("Exit HasBusy")
-                }
             };
 
             struct HasAvailable_: public state_machine_def<HasAvailable_>
@@ -244,7 +182,6 @@ public:
                 template<class Event, class Fsm>
                 void on_entry(Event const& evt, Fsm& fsm)
                 {
-                    DBG("Enter HasAvailable")
                     fsm._parent->SendNotifyBusy();
                     fsm._parent->SendNotifyEnter();
                 }
@@ -252,9 +189,6 @@ public:
                 template<class Event, class Fsm>
                 void on_exit(Event const& evt, Fsm& fsm)
                 {
-                    DBG("Exit HasAvailable")
-                    printf("%s\n", fsm._parent->GetActiveEvent().type().name());
-                    fflush(stdout);
                     if (fsm._parent->GetActiveEvent().type() == typeid(Up))
                     {
                         fsm._parent->SendNotifyUp();
@@ -318,59 +252,15 @@ public:
                 // states
                 struct DecideEventType: public state<>
                 {
-                    template<class Event, class Fsm>
-                    void on_entry(Event const& evt, Fsm& fsm)
-                    {
-                        DBG("Enter DecideEventType")
-                    }
-
-                    template<class Event, class Fsm>
-                    void on_exit(Event const& evt, Fsm& fsm)
-                    {
-                        DBG("Exit DecideEventType")
-                    }
                 };
                 struct Pending: public state<>
                 {
-                    template<class Event, class Fsm>
-                    void on_entry(Event const& evt, Fsm& fsm)
-                    {
-                        DBG("Enter Pending")
-                    }
-
-                    template<class Event, class Fsm>
-                    void on_exit(Event const& evt, Fsm& fsm)
-                    {
-                        DBG("Exit Pending")
-                    }
                 };
                 struct Engaged: public state<>
                 {
-                    template<class Event, class Fsm>
-                    void on_entry(Event const& evt, Fsm& fsm)
-                    {
-                        DBG("Enter Engaged")
-                    }
-
-                    template<class Event, class Fsm>
-                    void on_exit(Event const& evt, Fsm& fsm)
-                    {
-                        DBG("Exit Engaged")
-                    }
                 };
                 struct EngagedRemotely: public state<>
                 {
-                    template<class Event, class Fsm>
-                    void on_entry(Event const& evt, Fsm& fsm)
-                    {
-                        DBG("Enter EngagedRemotely")
-                    }
-
-                    template<class Event, class Fsm>
-                    void on_exit(Event const& evt, Fsm& fsm)
-                    {
-                        DBG("Exit EngagedRemotely")
-                    }
                 };
 
                 // Replaces the default no-transition response.
@@ -829,7 +719,6 @@ template<class Event>
 void Input::ProcessEvent(const Event& evt)
 {
     // Enable reading the active event while processing
-    printf("ProcessEvent: %s\n", typeid(evt).name());
     _activeEvent = evt;
     ScopeExit onScopeExit(
         [this]()
