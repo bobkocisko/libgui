@@ -58,7 +58,6 @@ struct TargetBecameEnabled
 
 class StateMachineFrontEnd: public state_machine_def<StateMachineFrontEnd>
 {
-#define DBG
 
 #ifdef DBG
 #define DBG_PRINT(x) printf(x "\n"); fflush(stdout);
@@ -77,6 +76,7 @@ void on_exit(Event const& evt, Fsm& fsm) \
 
 #else
 #define DBG_PRINT(x) ;
+#define DBG_ENTER_EXIT(x) ;
 #endif
 
 
