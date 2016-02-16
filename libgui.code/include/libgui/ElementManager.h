@@ -3,15 +3,16 @@
 #include "Control.h"
 #include "Input.h"
 #include <vector>
+#include <list>
+
+class Layer;
 
 namespace libgui
 {
 class ElementManager: public std::enable_shared_from_this<ElementManager>
 {
 public:
-    void SetRoot(shared_ptr<Element>);
-
-    shared_ptr<Element> GetRoot();
+    void AddLayer(const std::unique_ptr<Layer>&& layer);
 
     bool NotifyNewPoint(InputId inputId, Point point);
     bool NotifyDown(InputId inputId);
@@ -31,21 +32,18 @@ public:
     // If you need a per-monitor DPI setting you need to create a separate ElementManager for each monitor.
     void   SetDpiY(double dpiY);
 
-// For debugging purposes
+    // For debugging purposes
     const vector<Input*>& GetActiveInputs() const;
     void EnableDebugLogging();
 
 private:
-    std::vector<Input*> _activeInputs;
+    std::vector<Input*>               _activeInputs;
+    std::list<std::unique_ptr<Layer>> _layers;
+    function<void(bool)>              _systemCaptureCallback;
+    bool                              _isDebugLoggingEnabled;
+    double                            _dpiX = 96.0;
+    double                            _dpiY = 96.0;
 
-    shared_ptr<Element>  _root = nullptr;
-
-    function<void(bool)> _systemCaptureCallback;
     Input* GetInput(const InputId& inputId);
-
-    bool _isDebugLoggingEnabled;
-
-    double _dpiX = 96.0;
-    double _dpiY = 96.0;
 };
 }

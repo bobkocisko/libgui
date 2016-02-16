@@ -1,21 +1,17 @@
 #include "libgui/Common.h"
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
+#include "libgui/Layer.h"
 
 namespace libgui
 {
-void ElementManager::SetRoot(shared_ptr<Element> element)
+void ElementManager::AddLayer(const std::unique_ptr<Layer>&& layer)
 {
-    _root = element;
-    element->SetElementManager(this);
-}
+    layer->_elementManager = this;
+    layer->_layer          = layer.get();
 
-shared_ptr<Element> ElementManager::GetRoot()
-{
-    return _root;
+    _layers.push_back(std::move(layer));
 }
-
-// TODO: capture pointer and touch movements outside the current window as needed
 
 const function<void(bool)>& ElementManager::GetSystemCaptureCallback() const
 {
@@ -31,7 +27,17 @@ bool ElementManager::NotifyNewPoint(InputId inputId, Point point)
 {
     auto input = GetInput(inputId);
 
-    auto elementQueryInfo = _root->GetElementAtPoint(point);
+    // Loop through the layers from the top to the bottom
+    ElementQueryInfo elementQueryInfo;
+    for (auto        layerIter = _layers.rbegin(); layerIter != _layers.rend(); ++layerIter)
+    {
+        auto& layer = *layerIter;
+        elementQueryInfo = layer->GetElementAtPoint(point);
+        if (elementQueryInfo.FoundElement())
+        {
+            break;
+        }
+    }
 
     return input->NotifyNewPoint(point, elementQueryInfo);
 }

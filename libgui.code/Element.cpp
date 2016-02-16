@@ -3,18 +3,20 @@
 #include "libgui/ElementManager.h"
 #include "libgui/DrawingManager.h"
 #include "libgui/Location.h"
+#include "libgui/Layer.h"
 
 namespace libgui
 {
 // Element Manager
-void Element::SetElementManager(ElementManager* elementManager)
-{
-    _elementManager = elementManager;
-}
-
 ElementManager* Element::GetElementManager() const
 {
     return _elementManager;
+}
+
+// Layer
+Layer* Element::GetLayer() const
+{
+    return _layer;
 }
 
 // View Model
@@ -143,9 +145,6 @@ void Element::ClearElementCache(int cacheLevel)
 // Arrangement
 void Element::ResetArrangement()
 {
-    _isVisible = true;
-    _isEnabled = true;
-
     _left    = 0;
     _top     = 0;
     _right   = 0;
@@ -208,12 +207,12 @@ void Element::Arrange()
     }
 }
 
-void Element::ArrangeAndDraw(bool draw)
+void Element::ArrangeAndDraw()
 {
     ResetArrangement();
     PrepareViewModel();
     Arrange();
-    if (draw && _isVisible)
+    if (GetIsVisible())
     {
         if (_clipToBounds)
         {
@@ -229,7 +228,7 @@ void Element::ArrangeAndDraw(bool draw)
         {
             for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
             {
-                e->ArrangeAndDraw(draw);
+                e->ArrangeAndDraw();
             }
         }
 
@@ -241,6 +240,77 @@ void Element::ArrangeAndDraw(bool draw)
             }
         }
     }
+}
+
+void Element::RearrangeAndRedrawHelper(const Rect4& redrawRegion)
+{
+    if (_parent)
+    {
+        _parent->RearrangeAndRedrawHelper(redrawRegion);
+    }
+
+    ResetArrangement();
+    PrepareViewModel();
+    Arrange();
+}
+
+void Element::UpdateLayersBelow(Layer* layer, const Rect4& redrawRegion)
+{
+    if (!layer)
+    {
+        return;
+    }
+
+    // Move to next lower layer as long as this layer's opaque region wouldn't hide the area below
+    if (!layer->OpaqueContainsRegion(redrawRegion))
+    {
+        UpdateLayersBelow(layer->GetLayerBelow(), redrawRegion);
+    }
+
+    // Now from the lowest layer up, search for the elements in the region and update them
+    std::deque<Element*> elementsFound;
+    std::queue<Element*> elementsFoundQueue(elementsFound);
+    layer->FindVisibleElements(redrawRegion, elementsFoundQueue);
+
+    if (!elementsFound.empty())
+    {
+        for (auto& element: elementsFound)
+        {
+            element->Draw();
+        }
+    }
+}
+
+void Element::Update()
+{
+    auto wasVisible = GetIsVisible();
+    BeginDirtyTracking();
+    {
+        ResetArrangement();
+        PrepareViewModel();
+        Arrange();
+    }
+    auto& redrawRegion = EndDirtyTracking();
+
+    // If the redraw region is totally hidden both before
+    // and after the rearrangement, we don't have to do anything
+    if ((!wasVisible && !GetIsVisible()) ||
+        CoveredByLayerAbove(redrawRegion))
+    {
+        return;
+    }
+
+    // Do the layer(s) below
+    UpdateLayersBelow(GetLayer(), redrawRegion);
+
+    // Work up the hierarchy of this layer
+    if (_parent)
+    {
+        _parent->RearrangeAndRedrawHelper(redrawRegion);
+    }
+
+    // TODO: now continue with layers above
+
 }
 
 void Element::InitializeAll()
@@ -266,6 +336,9 @@ void Element::InitializeThis()
     {
         // Copy the element manager from the parent
         _elementManager = _parent->_elementManager;
+
+        // Copy the layer from the parent
+        _layer = _parent->_layer;
     }
 }
 
@@ -297,6 +370,16 @@ void Element::SetClipToBounds(bool clipToBounds)
 bool Element::GetClipToBounds()
 {
     return _clipToBounds;
+}
+
+void Element::SetConsumesInput(bool consumesInput)
+{
+    _consumesInput = consumesInput;
+}
+
+bool Element::GetConsumesInput()
+{
+    return _consumesInput;
 }
 
 void Element::SetLeft(double left)
@@ -521,7 +604,7 @@ ElementQueryInfo Element::GetElementAtPoint(Point point)
 
 ElementQueryInfo Element::GetElementAtPointHelper(Point point, bool hasDisabledAncestor)
 {
-    if (!GetIsVisible())
+    if (!GetIsVisible() || !GetConsumesInput())
     {
         return ElementQueryInfo();
     }
@@ -546,6 +629,32 @@ ElementQueryInfo Element::GetElementAtPointHelper(Point point, bool hasDisabledA
         return ElementQueryInfo(this, hasDisabledAncestor);
     }
     return ElementQueryInfo();
+}
+
+void Element::FindVisibleElements(const Rect4& region, std::queue<Element*>& results)
+{
+    // This is a plain old brute force algorithm to search the entire hierarchy and
+    // find matches.
+
+    if (!GetIsVisible())
+    {
+        return;
+    }
+
+    // Thanks to http://stackoverflow.com/a/306332/4307047 for the rectangle intersection logic
+    if (region.left < GetRight() && region.right > GetLeft() &&
+        region.top > GetBottom() && region.bottom < GetTop())
+    {
+        results.push(this);
+    }
+
+    if (_firstChild)
+    {
+        for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
+        {
+            e->FindVisibleElementsHelper(region, results);
+        }
+    }
 }
 
 Element::~Element()
@@ -631,6 +740,82 @@ bool Element::ThisOrAncestors(const std::function<bool(Element*)>& predicate)
         current = current->_parent.get();
     }
     while (current);
+
+    return false;
+}
+
+void Element::SetVisualBounds(const Rect4& bounds)
+{
+    _visualBounds = bounds;
+}
+
+const boost::optional<Rect4>& Element::GetVisualBounds()
+{
+    return _visualBounds;
+}
+
+const Rect4 Element::GetTotalBounds()
+{
+    if (_visualBounds)
+    {
+        auto& visualBounds = _visualBounds.get();
+        return Rect4(GetLeft() + visualBounds.left,
+                     GetTop() + visualBounds.top,
+                     GetRight() + visualBounds.right,
+                     GetBottom() + visualBounds.bottom);
+    }
+    else
+    {
+        return Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
+    }
+}
+
+void Element::BeginDirtyTracking()
+{
+    // Store the dirty bounds for later
+    _dirtyBounds = GetTotalBounds();
+}
+
+const Rect4& Element::EndDirtyTracking()
+{
+    auto currentBounds = GetTotalBounds();
+
+    // Union the original bounds with the current bounds
+    // This is so that if the element has moved since
+    // we began dirty tracking, we'll be able to get
+    // the whole dirty region, both the region that must
+    // be cleared and also the region that must be drawn
+
+    if (currentBounds.left < _dirtyBounds.left)
+    {
+        _dirtyBounds.left = currentBounds.left;
+    }
+    if (currentBounds.top < _dirtyBounds.top)
+    {
+        _dirtyBounds.top = currentBounds.top;
+    }
+    if (currentBounds.right > _dirtyBounds.right)
+    {
+        _dirtyBounds.right = currentBounds.right;
+    }
+    if (currentBounds.bottom > _dirtyBounds.bottom)
+    {
+        _dirtyBounds.bottom = currentBounds.bottom;
+    }
+
+    return _dirtyBounds;
+}
+
+bool Element::CoveredByLayerAbove(const Rect4& region)
+{
+    Layer* current = GetLayer();
+    while ((current = current->GetLayerAbove()))
+    {
+        if (current->OpaqueContainsRegion(region))
+        {
+            return true;
+        }
+    }
 
     return false;
 }
