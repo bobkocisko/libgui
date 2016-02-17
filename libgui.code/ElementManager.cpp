@@ -106,4 +106,30 @@ void ElementManager::SetDpiY(double dpiY)
 {
     _dpiY = dpiY;
 }
+
+void ElementManager::SetPushClipCallback(const function<void(Rect4)>& callback)
+{
+    _pushClipCallback = callback;
+}
+
+void ElementManager::SetPopClipCallback(const function<void()>& callback)
+{
+    _popClipCallback = callback;
+}
+
+void ElementManager::PushClip(const Rect4& clip)
+{
+    if (_pushClipCallback)
+    {
+        _pushClipCallback(clip);
+    }
+}
+
+void ElementManager::PopClip()
+{
+    if (_popClipCallback)
+    {
+        _popClipCallback();
+    }
+}
 }

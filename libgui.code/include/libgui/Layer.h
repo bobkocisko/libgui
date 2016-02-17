@@ -17,6 +17,11 @@ class Layer: public Element
     friend class ElementManager;
 
 public:
+    // Set the area of the layer that is fully opaque.  This is an optional
+    // and recommended optimization so that layers under this opaque area
+    // do not need to redraw themselves.
+    void SetOpaqueArea(const boost::optional<Rect4>& opaqueArea);
+
     // The area of the layer that is fully opaque.  This is an optional
     // and recommended optimization so that layers under this opaque area
     // do not need to redraw themselves.
@@ -28,6 +33,7 @@ public:
     // The layer below this one, if any
     Layer* GetLayerBelow();
 
+    // Returns whether the opaque area of this layer (if any) contains the specified region
     bool OpaqueContainsRegion(const Rect4& region);
 
 private:

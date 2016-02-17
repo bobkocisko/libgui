@@ -21,6 +21,12 @@ public:
     const function<void(bool)>& GetSystemCaptureCallback() const;
     void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
 
+    void SetPushClipCallback(const function<void(const Rect4&)>& callback);
+    void SetPopClipCallback(const function<void()>& callback);
+
+    void PushClip(const Rect4& clip);
+    void PopClip();
+
     // DPI: The number of pixels per inch, used to support setting element values in inches
     double GetDpiX() const;
     // DPI: The number of pixels per inch, used to support setting element values in inches.
@@ -43,6 +49,8 @@ private:
     bool                              _isDebugLoggingEnabled;
     double                            _dpiX = 96.0;
     double                            _dpiY = 96.0;
+    function<void(Rect4)>             _pushClipCallback;
+    function<void()>                  _popClipCallback;
 
     Input* GetInput(const InputId& inputId);
 };

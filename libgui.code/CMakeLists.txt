@@ -10,7 +10,6 @@ set(SOURCE_FILES
     include/libgui/Button.h
     include/libgui/Container.h
     include/libgui/Control.h
-    include/libgui/DrawingManager.h
     include/libgui/Element.h
     include/libgui/ElementManager.h
     include/libgui/Grid.h
@@ -25,7 +24,6 @@ set(SOURCE_FILES
     Button.cpp
     Container.cpp
     Control.cpp
-    DrawingManager.cpp
     Element.cpp
     ElementManager.cpp
     Grid.cpp

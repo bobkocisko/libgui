@@ -172,18 +172,17 @@ public:
     // Drawing
 
     virtual void Draw();
+    virtual void DrawUpdate(const Rect4& updateArea);
 
     // Called during each arrange cycle to draw this element (unless the Draw method is overridden)
     void SetDrawCallback(function<void(shared_ptr<Element>)>);
+    void SetDrawUpdateCallback(function<void(shared_ptr<Element>, const Rect4&)>);
+
 
     // -----------------------------------------------------------------
     // Hit testing
 
-    // It is strongly recommended that this method be overridden in each container class
-    // in order to increase efficiency of hit testing, assuming that the container class
-    // has a more optimized mechanism for locating its children than this
-    // default brute force search
-    ElementQueryInfo GetElementAtPoint(Point);
+    ElementQueryInfo GetElementAtPoint(const Point& point);
 
     // -----------------------------------------------------------------
     // Queries
@@ -194,9 +193,13 @@ public:
     // in order to increase efficiency of inter-layer element updates, assuming that the
     // container class has a more optimized mechanism for locating its children than this
     // default brute force search
-    // Note that the order in which the elements is added to the results list is important:
-    // it should be the same order that the elements would be drawn, back to front
-    virtual void FindVisibleElements(const Rect4& region, std::queue<Element*>& results);
+    virtual void FindChildren(const Rect4& region, const std::function<void(Element*)>& resultHandler);
+
+    // It is strongly recommended that this method be overridden in each container class
+    // in order to increase efficiency of hit testing, assuming that the container class
+    // has a more optimized mechanism for locating its children than this
+    // default brute force search
+    virtual Element* FindLastChild(const Point& point);
 
     // -----------------------------------------------------------------
     // Destructor
@@ -260,13 +263,14 @@ private:
     // Drawing
     function<void(shared_ptr<Element>)>
          _drawCallback;
+    function<void(shared_ptr<Element>, const Rect4&)>
+         _drawUpdateCallback;
 
     // Hit Testing
-    ElementQueryInfo GetElementAtPointHelper(Point point, bool hasDisabledAncestor);
+    ElementQueryInfo GetElementAtPointHelper(const Point& point, bool hasDisabledAncestor);
 
     bool CoveredByLayerAbove(const Rect4& region);
-    void RearrangeAndRedrawHelper(const Rect4& redrawRegion);
+    void UpdateRegion(const Rect4& redrawRegion);
     void UpdateLayersBelow(Layer* layer, const Rect4& redrawRegion);
-    void FindVisibleElementsHelper(const Rect4& region, std::list<Element*>& results);
 };
 }
