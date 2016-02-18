@@ -1,7 +1,6 @@
 #include "libgui/Common.h"
 #include "libgui/Element.h"
 #include "libgui/ElementManager.h"
-#include "libgui/DrawingManager.h"
 #include "libgui/Location.h"
 #include "libgui/Layer.h"
 
@@ -190,6 +189,16 @@ void Element::SetArrangeCallback(function<void(shared_ptr<Element>)> arrangeCall
     _arrangeCallback = arrangeCallback;
 }
 
+void Element::AddArrangeDependent(shared_ptr<Element> dependent)
+{
+    if (dependent->GetLayer() != GetLayer())
+    {
+        throw std::runtime_error("Dependent elements must be on the same layer");
+    }
+
+    _arrangeDependents.push_back(dependent);
+}
+
 void Element::Arrange()
 {
     if (_arrangeCallback)
@@ -209,30 +218,41 @@ void Element::Arrange()
 
 void Element::ArrangeAndDraw()
 {
+    VisitThisAndDescendents(
+        [](Element* e) // What to do for each element before visiting its children
+        {
+            e->DoArrangeTasks();
+            return e->DoDrawTasksIfVisible(boost::none); // whether or not to visit its children
+        },
+        [](Element* e) // What to do for each element after visiting its children
+        {
+            e->DoDrawTasksCleanup();
+        });
+}
+
+void Element::DoArrangeTasks()
+{
     ResetArrangement();
     PrepareViewModel();
     Arrange();
+}
+
+bool Element::DoDrawTasksIfVisible(const boost::optional<Rect4>& updateArea)
+{
     if (GetIsVisible())
     {
-        if (_clipToBounds)
-        {
-            Rect4 r(GetLeft(), GetTop(), GetRight(), GetBottom());
-            _elementManager->PushClip(r);
-        }
+        ClipToBoundsIfNeeded();
+        Draw(updateArea);
+        return true;
+    }
+    return false;
+}
 
-        Draw();
-        if (_firstChild)
-        {
-            for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
-            {
-                e->ArrangeAndDraw();
-            }
-        }
-
-        if (_clipToBounds)
-        {
-            _elementManager->PopClip();
-        }
+void Element::DoDrawTasksCleanup()
+{
+    if (GetIsVisible() && GetClipToBounds())
+    {
+        _elementManager->PopClip();
     }
 }
 
@@ -241,11 +261,10 @@ void Element::Update()
     auto wasVisible = GetIsVisible();
     BeginDirtyTracking();
     {
-        ResetArrangement();
-        PrepareViewModel();
-        Arrange();
+        DoArrangeTasks();
     }
-    auto& redrawRegion = EndDirtyTracking();
+    bool moved;
+    auto& redrawRegion = EndDirtyTracking(moved);
 
     // If the redraw region is totally hidden both before
     // and after the rearrangement, we don't have to do anything
@@ -255,60 +274,93 @@ void Element::Update()
         return;
     }
 
-    // Do the layer(s) below
-    UpdateLayersBelow(GetLayer(), redrawRegion);
-
-    // Work up the hierarchy of this layer
-    if (_parent)
+    _elementManager->PushClip(redrawRegion);
     {
-        _parent->RearrangeAndRedrawHelper(redrawRegion);
-    }
+        auto currentLayer = GetLayer();
 
-    // TODO: now continue with layers above
-
-}
-
-void Element::UpdateLayersBelow(Layer* layer, const Rect4& redrawRegion)
-{
-    if (!layer)
-    {
-        return;
-    }
-
-    // Move to next lower layer as long as this layer's opaque region wouldn't hide the area below
-    if (!layer->OpaqueContainsRegion(redrawRegion))
-    {
-        UpdateLayersBelow(layer->GetLayerBelow(), redrawRegion);
-    }
-
-    // Now from the lowest layer up, search for the elements in the region and update them
-    layer->UpdateRegion(redrawRegion);
-}
-
-void Element::UpdateRegion(const Rect4& redrawRegion)
-{
-    FindChildren(redrawRegion, [](Element* e)
-    {
-        if (e->GetIsVisible())
-        {
-            if (e->_clipToBounds)
+        currentLayer->VisitLowerLayersIf(
+            [&redrawRegion](Layer* currentLayer2)
             {
-                Rect4 r(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom());
-                e->_elementManager->PushClip(r);
-            }
-
-            e->DrawUpdate(redrawRegion);
-            e->FindChildren(redrawRegion, [](Element* e2)
+                return !currentLayer2->OpaqueAreaContains(redrawRegion);
+            },
+            [&redrawRegion](Layer* lowerLayer)
             {
-                e2->UpdateRegion(redrawRegion);
+                lowerLayer->RedrawThisAndDescendents(redrawRegion);
             });
 
-            if (e->_clipToBounds)
-            {
-                e->_elementManager->PopClip();
-            }
+
+        int thisAndAncestorClips = 0;
+
+        VisitAncestors([&redrawRegion](Element* ancestor)
+                       {
+                           ancestor->DoDrawTasksIfVisible(redrawRegion);
+                           if (ancestor->GetClipToBounds())
+                           {
+                               ++thisAndAncestorClips;
+                           }
+                       });
+
+        // Apply the current element clip, if any, before drawing children
+        if (ClipToBoundsIfNeeded())
+        {
+            ++thisAndAncestorClips;
         }
-    });
+
+        if (moved)
+        {
+            // Arrange all the children of this element since it is expected that
+            // children depend on their parent for arrangement
+            VisitChildren([](Element* e)
+                          {
+                              e->ArrangeAndDraw();
+                          });
+        }
+        else
+        {
+            // Element hasn't moved, so just redraw children without arranging
+            VisitChildren([](Element* child)
+                          {
+                              child->RedrawThisAndDescendents(boost::none);
+                          });
+        }
+
+        while (thisAndAncestorClips)
+        {
+            _elementManager->PopClip();
+            --thisAndAncestorClips;
+        }
+
+        // Now draw the layers above
+        currentLayer->VisitHigherLayers(
+            [&redrawRegion](Layer* higherLayer)
+            {
+                higherLayer->RedrawThisAndDescendents(redrawRegion);
+            });
+
+    }
+    _elementManager->PopClip();
+
+    if (moved)
+    {
+        // update any dependent elements in this same layer
+        VisitArrangeDependents([](Element* e)
+                               {
+                                   e->Update();
+                               });
+    }
+}
+
+void Element::RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegion)
+{
+    VisitThisAndDescendents(
+        [&redrawRegion](Element* e) // What to do for each element before visiting its children
+        {
+            return e->DoDrawTasksIfVisible(redrawRegion);
+        },
+        [](Element* e) // What to do for each element after visiting its children
+        {
+            e->DoDrawTasksCleanup();
+        });
 }
 
 void Element::InitializeAll()
@@ -368,6 +420,18 @@ void Element::SetClipToBounds(bool clipToBounds)
 bool Element::GetClipToBounds()
 {
     return _clipToBounds;
+}
+
+bool Element::ClipToBoundsIfNeeded()
+{
+    if (_clipToBounds)
+    {
+        _elementManager->PushClip(Rect4(GetLeft(), GetTop(), GetRight(), GetBottom()));
+
+        return true;
+    }
+
+    return false;
 }
 
 void Element::SetConsumesInput(bool consumesInput)
@@ -577,11 +641,11 @@ VPixels Element::GetHeight()
 }
 
 // Drawing
-void Element::Draw()
+void Element::Draw(const boost::optional<Rect4>& updateArea)
 {
     if (_drawCallback)
     {
-        _drawCallback(shared_from_this());
+        _drawCallback(this, updateArea);
     }
     else
     {
@@ -589,20 +653,7 @@ void Element::Draw()
     }
 }
 
-void Element::DrawUpdate(const Rect4& updateArea)
-{
-    if (_drawUpdateCallback)
-    {
-        _drawUpdateCallback(shared_from_this(), updateArea);
-    }
-    else
-    {
-        // By default no drawing takes place
-    }
-}
-
-
-void Element::SetDrawCallback(function<void(shared_ptr<Element>)> drawCallback)
+void Element::SetDrawCallback(function<void(Element*, const boost::optional<Rect4>&)> drawCallback)
 {
     _drawCallback = drawCallback;
 }
@@ -651,24 +702,138 @@ ElementQueryInfo Element::GetElementAtPointHelper(const Point& point, bool hasDi
     }
 }
 
-void Element::FindChildren(const Rect4& region, const std::function<void(Element*)>& resultHandler)
+void Element::VisitAncestors(const std::function<void(Element*)>& action)
+{
+    VisitAncestorsHelper(action, true);
+}
+
+void Element::VisitAncestorsHelper(const std::function<void(Element*)>& action, bool isCallee)
+{
+    if (_parent)
+    {
+        _parent->VisitAncestorsHelper(action, false);
+    }
+
+    if (!isCallee)
+    {
+        action(this);
+    }
+}
+
+void Element::VisitChildren(const std::function<void(Element*)>& action)
+{
+    if (_firstChild)
+    {
+        for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
+        {
+            action(e.get());
+        }
+    }
+}
+
+void Element::VisitArrangeDependents(const std::function<void(Element*)> action)
+{
+    auto iter = _arrangeDependents.begin();
+    while (iter != _arrangeDependents.end())
+    {
+        auto& dependentWeakPtr = *iter;
+        if (auto dependent = dependentWeakPtr.lock())
+        {
+            action(dependent.get());
+            ++iter;
+        }
+        else
+        {
+            // The dependent has disappeared so we will remove it from our list
+            auto eraseIter = iter;
+            ++iter;
+            _arrangeDependents.erase(eraseIter);
+        }
+    }
+}
+
+void Element::VisitChildren(const Rect4& region, const std::function<void(Element*)>& action)
 {
     // This is a plain old brute force algorithm to search all the children
     if (_firstChild)
     {
         for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
         {
-            auto& totalBounds = e->GetTotalBounds();
-
-            // Thanks to http://stackoverflow.com/a/306332/4307047 for the rectangle intersection logic
-            // but including equality with each operator so that identical rectangles would succeed
-            if (region.left <= totalBounds.right && region.right >= totalBounds.left &&
-                region.top >= totalBounds.bottom && region.bottom <= totalBounds.top)
+            if (e->Intersects(region))
             {
-                resultHandler(e.get());
+                action(e.get());
             }
         }
     }
+}
+
+void Element::VisitChildrenWithTotalBounds(const Rect4& region, const std::function<void(Element*)>& action)
+{
+    // This is a plain old brute force algorithm to search all the children
+    if (_firstChild)
+    {
+        for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
+        {
+            if (e->TotalBoundsIntersects(region))
+            {
+                action(e.get());
+            }
+        }
+    }
+}
+
+void Element::VisitThisAndDescendents(const std::function<bool(Element*)> preChildrenAction,
+                                      const std::function<void(Element*)> postChildrenAction)
+{
+    if (preChildrenAction(this))
+    {
+        VisitChildren([](Element* child)
+                      {
+                          child->VisitThisAndDescendents(preChildrenAction, postChildrenAction);
+                      });
+
+        postChildrenAction(this);
+    }
+}
+
+void Element::VisitThisAndDescendents(const Rect4& region,
+                                      const std::function<bool(Element*)> preChildrenAction,
+                                      const std::function<void(Element*)> postChildrenAction)
+{
+    if (preChildrenAction(this))
+    {
+        VisitChildren(region,
+                      [](Element* child)
+                      {
+                          child->VisitThisAndDescendents(preChildrenAction, postChildrenAction);
+                      });
+
+        postChildrenAction(this);
+    }
+}
+
+bool Element::Intersects(const Rect4& region)
+{
+    // Thanks to http://stackoverflow.com/a/306332/4307047 for the rectangle intersection logic
+    // but including equality with each operator so that identical rectangles would succeed
+    return (region.left <= GetRight() && region.right >= GetLeft() &&
+            region.top >= GetBottom() && region.bottom <= GetTop());
+}
+
+bool Element::Intersects(const Point& point)
+{
+    return (point.X >= GetLeft() && point.X <= GetRight() &&
+            point.Y >= GetTop() && point.Y <= GetBottom());
+}
+
+bool Element::TotalBoundsIntersects(const Rect4& region)
+{
+    auto& totalBounds = GetTotalBounds();
+
+    // Thanks to http://stackoverflow.com/a/306332/4307047 for the rectangle intersection logic
+    // but including equality with each operator so that identical rectangles would succeed
+    return (region.left <= totalBounds.right && region.right >= totalBounds.left &&
+            region.top >= totalBounds.bottom && region.bottom <= totalBounds.top);
 }
 
 Element* Element::FindLastChild(const Point& point)
@@ -679,10 +844,7 @@ Element* Element::FindLastChild(const Point& point)
     {
         for (auto e = _lastChild; e != nullptr; e = e->_prevsibling)
         {
-            auto& totalBounds = e->GetTotalBounds();
-
-            if (point.X >= totalBounds.left && point.X <= totalBounds.right &&
-                point.Y >= totalBounds.top && point.Y <= totalBounds.bottom)
+            if (Intersects(point))
             {
                 return e.get();
             }
@@ -807,12 +969,20 @@ const Rect4 Element::GetTotalBounds()
 void Element::BeginDirtyTracking()
 {
     // Store the dirty bounds for later
-    _dirtyBounds = GetTotalBounds();
+    _dirtyBounds      = Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
+    _dirtyTotalBounds = GetTotalBounds();
 }
 
-const Rect4& Element::EndDirtyTracking()
+const Rect4& Element::EndDirtyTracking(bool& moved)
 {
-    auto currentBounds = GetTotalBounds();
+    auto currentTotalBounds = GetTotalBounds();
+
+    auto currentBounds = Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
+
+    moved = (currentBounds.left != _dirtyBounds.left ||
+             currentBounds.top != _dirtyBounds.top ||
+             currentBounds.right != _dirtyBounds.right ||
+             currentBounds.bottom != _dirtyBounds.bottom);
 
     // Union the original bounds with the current bounds
     // This is so that if the element has moved since
@@ -820,24 +990,24 @@ const Rect4& Element::EndDirtyTracking()
     // the whole dirty region, both the region that must
     // be cleared and also the region that must be drawn
 
-    if (currentBounds.left < _dirtyBounds.left)
+    if (currentTotalBounds.left < _dirtyTotalBounds.left)
     {
-        _dirtyBounds.left = currentBounds.left;
+        _dirtyTotalBounds.left = currentTotalBounds.left;
     }
-    if (currentBounds.top < _dirtyBounds.top)
+    if (currentTotalBounds.top < _dirtyTotalBounds.top)
     {
-        _dirtyBounds.top = currentBounds.top;
+        _dirtyTotalBounds.top = currentTotalBounds.top;
     }
-    if (currentBounds.right > _dirtyBounds.right)
+    if (currentTotalBounds.right > _dirtyTotalBounds.right)
     {
-        _dirtyBounds.right = currentBounds.right;
+        _dirtyTotalBounds.right = currentTotalBounds.right;
     }
-    if (currentBounds.bottom > _dirtyBounds.bottom)
+    if (currentTotalBounds.bottom > _dirtyTotalBounds.bottom)
     {
-        _dirtyBounds.bottom = currentBounds.bottom;
+        _dirtyTotalBounds.bottom = currentTotalBounds.bottom;
     }
 
-    return _dirtyBounds;
+    return _dirtyTotalBounds;
 }
 
 bool Element::CoveredByLayerAbove(const Rect4& region)
@@ -845,18 +1015,13 @@ bool Element::CoveredByLayerAbove(const Rect4& region)
     Layer* current = GetLayer();
     while ((current = current->GetLayerAbove()))
     {
-        if (current->OpaqueContainsRegion(region))
+        if (current->OpaqueAreaContains(region))
         {
             return true;
         }
     }
 
     return false;
-}
-
-void Element::SetDrawUpdateCallback(function<void(shared_ptr<Element>, const Rect4&)> callback)
-{
-    _drawUpdateCallback = callback;
 }
 
 }

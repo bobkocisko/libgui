@@ -17,6 +17,51 @@ const boost::optional<Rect4>& Layer::GetOpaqueArea()
     return _opaqueArea;
 }
 
+void Layer::VisitLowerLayersIf(const std::function<bool(Layer* currentLayer)>& continueDownPredicate,
+                               const std::function<void(Layer* lowerLayer)>& action)
+{
+    VisitLowerLayersIfHelper(continueDownPredicate, action, true);
+}
+
+void Layer::VisitLowerLayersIfHelper(const std::function<bool(Layer* currentLayer)>& continueDownPredicate,
+                                     const std::function<void(Layer* lowerLayer)>& action, bool isFirst)
+{
+    if (continueDownPredicate(this))
+    {
+        auto nextLayerBelow = GetLayerBelow();
+        if (nextLayerBelow)
+        {
+            nextLayerBelow->VisitLowerLayersIfHelper(continueDownPredicate, action, false);
+        }
+    }
+
+    // Only perform this on the lower layers, not on the layer that launched this operation
+    if (!isFirst)
+    {
+        action(this);
+    }
+}
+
+void Layer::VisitHigherLayers(const std::function<void(Layer*)>& action)
+{
+    VisitHigherLayersHelper(action, true);
+}
+
+void Layer::VisitHigherLayersHelper(const std::function<void(Layer*)>& action, bool isFirst)
+{
+    auto nextLayerAbove = GetLayerAbove();
+    if (nextLayerAbove)
+    {
+        nextLayerAbove->VisitHigherLayersHelper(action, false);
+    }
+
+    // Only perform this on the higher layers, not on the layer that launched this operation
+    if (!isFirst)
+    {
+        action(this);
+    }
+}
+
 Layer* Layer::GetLayerAbove()
 {
     return _layerAbove;
@@ -27,7 +72,7 @@ Layer* Layer::GetLayerBelow()
     return _layerBelow;
 }
 
-bool Layer::OpaqueContainsRegion(const Rect4& region)
+bool Layer::OpaqueAreaContains(const Rect4& region)
 {
     auto opaqueArea = GetOpaqueArea();
     if (opaqueArea)

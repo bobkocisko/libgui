@@ -5,7 +5,7 @@
 #include "Types.h"
 #include "Rect.h"
 #include <boost/optional.hpp>
-#include <queue>
+#include <deque>
 
 class Layer;
 
@@ -99,6 +99,10 @@ public:
     void SetArrangeCallback(function<void(shared_ptr<Element>)>);
 
     // -----------------------------------------------------------------
+    // Arrange dependents
+    void AddArrangeDependent(shared_ptr<Element> dependent);
+
+    // -----------------------------------------------------------------
     // Bounds
 
     // Set visual bounds, if drawing outside the active area of the element
@@ -115,7 +119,7 @@ public:
     // -----------------------------------------------------------------
     // Dirty
     void BeginDirtyTracking();
-    const Rect4& EndDirtyTracking();
+    const Rect4& EndDirtyTracking(bool& moved);
 
     // -----------------------------------------------------------------
     // Optional post-construction initialization pass that some elements require
@@ -171,12 +175,10 @@ public:
     // -----------------------------------------------------------------
     // Drawing
 
-    virtual void Draw();
-    virtual void DrawUpdate(const Rect4& updateArea);
+    virtual void Draw(const boost::optional<Rect4>& updateArea);
 
     // Called during each arrange cycle to draw this element (unless the Draw method is overridden)
-    void SetDrawCallback(function<void(shared_ptr<Element>)>);
-    void SetDrawUpdateCallback(function<void(shared_ptr<Element>, const Rect4&)>);
+    void SetDrawCallback(function<void(Element* e, const boost::optional<Rect4>& updateArea)>);
 
 
     // -----------------------------------------------------------------
@@ -190,16 +192,40 @@ public:
     bool ThisOrAncestors(const std::function<bool(Element*)>& predicate);
 
     // It is strongly recommended that this method be overridden in each container class
+    // in order to increase efficiency of hit testing, assuming that the container class
+    // has a more optimized mechanism for locating its children than this
+    // default brute force search
+    virtual Element* FindLastChild(const Point& point);
+
+    // -----------------------------------------------------------------
+    // Visitors
+
+    // Visit children first to last
+    void VisitChildren(const std::function<void(Element*)>& action);
+
+    // Visit ancestors of this element, oldest ancestor first
+    void VisitAncestors(const std::function<void(Element*)>& action);
+
+    void VisitArrangeDependents(const std::function<void(Element*)> action);
+
+    void VisitThisAndDescendents(const std::function<bool(Element*)> preChildrenAction,
+                                 const std::function<void(Element*)> postChildrenAction);
+
+    void VisitThisAndDescendents(const Rect4& region,
+                                 const std::function<bool(Element*)> preChildrenAction,
+                                 const std::function<void(Element*)> postChildrenAction);
+
+    // It is strongly recommended that this method be overridden in each container class
     // in order to increase efficiency of inter-layer element updates, assuming that the
     // container class has a more optimized mechanism for locating its children than this
     // default brute force search
-    virtual void FindChildren(const Rect4& region, const std::function<void(Element*)>& resultHandler);
+    virtual void VisitChildren(const Rect4& region, const std::function<void(Element*)>& action);
 
     // It is strongly recommended that this method be overridden in each container class
     // in order to increase efficiency of hit testing, assuming that the container class
     // has a more optimized mechanism for locating its children than this
     // default brute force search
-    virtual Element* FindLastChild(const Point& point);
+    virtual void VisitChildrenWithTotalBounds(const Rect4& region, const std::function<void(Element*)>& action);
 
     // -----------------------------------------------------------------
     // Destructor
@@ -214,6 +240,9 @@ private:
     Layer* _layer;
 
     shared_ptr<ViewModelBase> _viewModel;
+
+    // Arrange dependents
+    std::deque<weak_ptr<Element>> _arrangeDependents;
 
     // Visual tree
     shared_ptr<Element> _parent;
@@ -234,6 +263,7 @@ private:
 
     // Dirty
     Rect4 _dirtyBounds;
+    Rect4 _dirtyTotalBounds;
 
     // State tracking
     bool _clipToBounds  = false;
@@ -261,16 +291,29 @@ private:
     bool _isHeightSet  = false;
 
     // Drawing
-    function<void(shared_ptr<Element>)>
+    function<void(Element*, const boost::optional<Rect4>&)>
          _drawCallback;
-    function<void(shared_ptr<Element>, const Rect4&)>
-         _drawUpdateCallback;
 
     // Hit Testing
     ElementQueryInfo GetElementAtPointHelper(const Point& point, bool hasDisabledAncestor);
 
     bool CoveredByLayerAbove(const Rect4& region);
-    void UpdateRegion(const Rect4& redrawRegion);
-    void UpdateLayersBelow(Layer* layer, const Rect4& redrawRegion);
+    void RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegion);
+    bool Intersects(const Rect4& region);
+    bool TotalBoundsIntersects(const Rect4& region);
+    bool Intersects(const Point& point);
+
+    void VisitAncestorsHelper(const std::function<void(Element*)>& action, bool isCallee);
+
+    void DoArrangeTasks();
+
+    // Returns whether the element is visible
+    bool DoDrawTasksIfVisible(const boost::optional<Rect4>& updateArea);
+
+    // Cleans up whatever state was modified by DoDrawTasksIfVisible.
+    void DoDrawTasksCleanup();
+
+    bool ClipToBoundsIfNeeded();
+
 };
 }

@@ -27,6 +27,15 @@ public:
     // do not need to redraw themselves.
     const boost::optional<Rect4>& GetOpaqueArea();
 
+    // Visit layers below the current one from bottom to top and perform the
+    // specified action on each layer
+    void VisitLowerLayersIf(const std::function<bool(Layer* currentLayer)>& continueDownPredicate,
+                            const std::function<void(Layer* lowerLayer)>& action);
+
+    // Visit layers above the current one from bottom to top and perform the
+    // specified action on each layer
+    void VisitHigherLayers(const std::function<void(Layer*)>& action);
+
     // The layer above this one, if any
     Layer* GetLayerAbove();
 
@@ -34,13 +43,17 @@ public:
     Layer* GetLayerBelow();
 
     // Returns whether the opaque area of this layer (if any) contains the specified region
-    bool OpaqueContainsRegion(const Rect4& region);
+    bool OpaqueAreaContains(const Rect4& region);
 
 private:
     boost::optional<Rect4> _opaqueArea;
 
     Layer* _layerAbove = nullptr;
     Layer* _layerBelow = nullptr;
+
+    void VisitLowerLayersIfHelper(const std::function<bool(Layer*)>& continueDownPredicate,
+                                  const std::function<void(Layer*)>& action, bool isFirst);
+    void VisitHigherLayersHelper(const std::function<void(Layer*)>& action, bool isFirst);
 
 };
 
