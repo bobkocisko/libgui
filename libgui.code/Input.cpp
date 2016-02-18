@@ -1,5 +1,5 @@
 //
-// Created by sjm-kociskobd on 12/18/15.
+// Created by Bob Kocisko on 12/18/15.
 //
 
 #include "libgui/Input.h"

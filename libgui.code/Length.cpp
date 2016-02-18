@@ -1,5 +1,5 @@
 //
-// Created by sjm-kociskobd on 10/8/15.
+// Created by Bob Kocisko on 10/8/15.
 //
 
 #include "libgui/Length.h"

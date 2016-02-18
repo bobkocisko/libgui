@@ -1,5 +1,5 @@
 //
-// Created by sjm-kociskobd on 2/3/16.
+// Created by Bob Kocisko on 2/3/16.
 //
 
 #include "libgui/Types.h"

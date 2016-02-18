@@ -1,5 +1,5 @@
 //
-// Created by sjm-kociskobd on 8/28/15.
+// Created by Bob Kocisko on 8/28/15.
 //
 
 #include <gtest/gtest.h>
