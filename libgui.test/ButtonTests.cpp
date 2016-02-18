@@ -1,9 +1,11 @@
 #include "include/Common.h"
 #include "libgui/Button.h"
 #include "libgui/ElementManager.h"
+#include "libgui/Layer.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+
 using namespace libgui;
 using namespace std;
 
@@ -30,9 +32,12 @@ TEST(ButtonTests, WhenPointerLeaving_StateIsIdle)
 
 TEST(ButtonTests, WhenPointerPushed_StateIsEngaged)
 {
-    auto em  = make_shared<ElementManager>();
-    auto btn = make_shared<Button>();
-    em->SetRoot(btn);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
@@ -50,9 +55,12 @@ TEST(ButtonTests, WhenPointerReleased_StateIsPending)
 
 TEST(ButtonTests, WhenPointerPushedAndEscaping_StateIsEngagedRemotely)
 {
-    auto em  = make_shared<ElementManager>();
-    auto btn = make_shared<Button>();
-    em->SetRoot(btn);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
@@ -62,9 +70,12 @@ TEST(ButtonTests, WhenPointerPushedAndEscaping_StateIsEngagedRemotely)
 
 TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsEngaged)
 {
-    auto em  = make_shared<ElementManager>();
-    auto btn = make_shared<Button>();
-    em->SetRoot(btn);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
@@ -75,9 +86,12 @@ TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsEngaged)
 
 TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_StateIsIdle)
 {
-    auto em  = make_shared<ElementManager>();
-    auto btn = make_shared<Button>();
-    em->SetRoot(btn);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
@@ -88,8 +102,12 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_StateIsIdle)
 
 TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
 {
-    auto em         = make_shared<ElementManager>();
-    auto btn        = make_shared<Button>();
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
     bool is_clicked = false;
     btn->SetEventCallback([&](shared_ptr<Button> b, Button::OutputEvent event)
                           {
@@ -99,7 +117,6 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
                               }
                           });
 
-    em->SetRoot(btn);
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
@@ -110,9 +127,12 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
 
 TEST(ButtonTests, AfterPointerClicked_StateIsPending)
 {
-    auto em  = make_shared<ElementManager>();
-    auto btn = make_shared<Button>();
-    em->SetRoot(btn);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
@@ -122,8 +142,12 @@ TEST(ButtonTests, AfterPointerClicked_StateIsPending)
 
 TEST(ButtonTests, WhenTouchPushAndRelease_Click)
 {
-    auto em        = make_shared<ElementManager>();
-    auto btn       = make_shared<Button>();
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
     bool isClicked = false;
     btn->SetEventCallback([&](shared_ptr<Button> b, Button::OutputEvent event)
                           {
@@ -133,7 +157,6 @@ TEST(ButtonTests, WhenTouchPushAndRelease_Click)
                               }
                           });
 
-    em->SetRoot(btn);
     bool updateScreen;
     btn->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Touch, InputAction::Push, Point(), updateScreen);
@@ -143,10 +166,12 @@ TEST(ButtonTests, WhenTouchPushAndRelease_Click)
 
 TEST(ButtonTests, WhenTouchDownEscapeReturnAndUp_StateIsPending)
 {
-    auto em  = make_shared<ElementManager>();
-    auto btn = make_shared<Button>();
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
 
-    em->SetRoot(btn);
     bool updateScreen;
     btn->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Touch, InputAction::Push, Point(), updateScreen);
@@ -159,8 +184,12 @@ TEST(ButtonTests, WhenTouchDownEscapeReturnAndUp_StateIsPending)
 
 TEST(ButtonTests, WhenMultiplePushAndRelease_MultipleOutputEvents)
 {
-    auto em        = make_shared<ElementManager>();
-    auto btn       = make_shared<Button>();
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
     bool is_pushed = false;
     btn->SetEventCallback([&](shared_ptr<Button> b, Button::OutputEvent event)
                           {
@@ -170,7 +199,6 @@ TEST(ButtonTests, WhenMultiplePushAndRelease_MultipleOutputEvents)
                               }
                           });
 
-    em->SetRoot(btn);
     bool updateScreen;
     btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
     btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);

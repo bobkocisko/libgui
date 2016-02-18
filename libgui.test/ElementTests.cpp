@@ -2,6 +2,7 @@
 #include <libgui/Element.h>
 #include <libgui/ElementManager.h>
 #include <gtest/gtest.h>
+#include "libgui/Layer.h"
 
 using namespace std;
 using namespace libgui;
@@ -28,9 +29,8 @@ private:
 
 TEST(ElementTests, WhenRemovingChildren_AllReferencesAreCleaned)
 {
-    auto root = make_shared<Element>();
-    auto em = make_shared<ElementManager>();
-    em->SetRoot(root);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
 
     auto child1 = make_shared<Element>();
     root->AddChild(child1);
@@ -56,9 +56,8 @@ TEST(ElementTests, WhenRemovingChildren_AllReferencesAreCleaned)
 
 TEST(ElementTests, WhenElementDisabled_ChildControlsDisabledAlso)
 {
-    auto root = make_shared<Element>();
     auto em   = make_shared<ElementManager>();
-    em->SetRoot(root);
+    auto root = em->AddLayer();
 
     root->SetTop(5);
     root->SetLeft(5);
@@ -68,6 +67,7 @@ TEST(ElementTests, WhenElementDisabled_ChildControlsDisabledAlso)
 
     auto child = make_shared<Element>();
     root->AddChild(child);
+
     child->SetTop(10);
     child->SetLeft(10);
     child->SetWidth(5);

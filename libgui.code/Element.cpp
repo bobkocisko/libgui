@@ -163,7 +163,7 @@ void Element::ResetArrangement()
     _isHeightSet  = false;
 }
 
-void Element::SetSetViewModelCallback(function<void(shared_ptr<Element>)> setViewModelCallback)
+void Element::SetSetViewModelCallback(const function<void(shared_ptr<Element>)>& setViewModelCallback)
 {
     _setViewModelCallback = setViewModelCallback;
 }
@@ -184,7 +184,7 @@ void Element::PrepareViewModel()
     }
 }
 
-void Element::SetArrangeCallback(function<void(shared_ptr<Element>)> arrangeCallback)
+void Element::SetArrangeCallback(const function<void(shared_ptr<Element>)>& arrangeCallback)
 {
     _arrangeCallback = arrangeCallback;
 }
@@ -291,7 +291,7 @@ void Element::Update()
 
         int thisAndAncestorClips = 0;
 
-        VisitAncestors([&redrawRegion](Element* ancestor)
+        VisitAncestors([&redrawRegion, &thisAndAncestorClips](Element* ancestor)
                        {
                            ancestor->DoDrawTasksIfVisible(redrawRegion);
                            if (ancestor->GetClipToBounds())
@@ -653,7 +653,7 @@ void Element::Draw(const boost::optional<Rect4>& updateArea)
     }
 }
 
-void Element::SetDrawCallback(function<void(Element*, const boost::optional<Rect4>&)> drawCallback)
+void Element::SetDrawCallback(const function<void(Element*, const boost::optional<Rect4>&)>& drawCallback)
 {
     _drawCallback = drawCallback;
 }
@@ -731,7 +731,7 @@ void Element::VisitChildren(const std::function<void(Element*)>& action)
     }
 }
 
-void Element::VisitArrangeDependents(const std::function<void(Element*)> action)
+void Element::VisitArrangeDependents(const std::function<void(Element*)>& action)
 {
     auto iter = _arrangeDependents.begin();
     while (iter != _arrangeDependents.end())
@@ -782,12 +782,12 @@ void Element::VisitChildrenWithTotalBounds(const Rect4& region, const std::funct
     }
 }
 
-void Element::VisitThisAndDescendents(const std::function<bool(Element*)> preChildrenAction,
-                                      const std::function<void(Element*)> postChildrenAction)
+void Element::VisitThisAndDescendents(const std::function<bool(Element*)>& preChildrenAction,
+                                      const std::function<void(Element*)>& postChildrenAction)
 {
     if (preChildrenAction(this))
     {
-        VisitChildren([](Element* child)
+        VisitChildren([&preChildrenAction, &postChildrenAction](Element* child)
                       {
                           child->VisitThisAndDescendents(preChildrenAction, postChildrenAction);
                       });
@@ -797,13 +797,13 @@ void Element::VisitThisAndDescendents(const std::function<bool(Element*)> preChi
 }
 
 void Element::VisitThisAndDescendents(const Rect4& region,
-                                      const std::function<bool(Element*)> preChildrenAction,
-                                      const std::function<void(Element*)> postChildrenAction)
+                                      const std::function<bool(Element*)>& preChildrenAction,
+                                      const std::function<void(Element*)>& postChildrenAction)
 {
     if (preChildrenAction(this))
     {
         VisitChildren(region,
-                      [](Element* child)
+                      [&preChildrenAction, &postChildrenAction](Element* child)
                       {
                           child->VisitThisAndDescendents(preChildrenAction, postChildrenAction);
                       });

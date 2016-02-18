@@ -5,22 +5,23 @@
 #include <vector>
 #include <list>
 
-class Layer;
-
 namespace libgui
 {
+
+class Layer;
+
 class ElementManager: public std::enable_shared_from_this<ElementManager>
 {
 public:
-    void AddLayer(const std::unique_ptr<Layer>&& layer);
+    Layer* AddLayer();
+
+    void ArrangeAndDrawAll();
 
     bool NotifyNewPoint(InputId inputId, Point point);
     bool NotifyDown(InputId inputId);
     bool NotifyUp(InputId inputId);
 
-    const function<void(bool)>& GetSystemCaptureCallback() const;
     void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
-
     void SetPushClipCallback(const function<void(const Rect4&)>& callback);
     void SetPopClipCallback(const function<void()>& callback);
 
@@ -44,12 +45,12 @@ public:
 
 private:
     std::vector<Input*>               _activeInputs;
-    std::list<std::unique_ptr<Layer>> _layers;
+    std::list<std::shared_ptr<Layer>> _layers;
     function<void(bool)>              _systemCaptureCallback;
     bool                              _isDebugLoggingEnabled;
     double                            _dpiX = 96.0;
     double                            _dpiY = 96.0;
-    function<void(Rect4)>             _pushClipCallback;
+    function<void(const Rect4&)>      _pushClipCallback;
     function<void()>                  _popClipCallback;
 
     Input* GetInput(const InputId& inputId);

@@ -5,6 +5,7 @@
 #include "libgui/Types.h"
 #include "libgui/Element.h"
 #include "libgui/ElementManager.h"
+#include "libgui/Layer.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -15,9 +16,8 @@ using ::testing::Return;
 
 TEST(TypesTest, InchesArithmetic)
 {
-    auto root = make_shared<Element>();
     auto em   = make_shared<ElementManager>();
-    em->SetRoot(root);
+    auto root = em->AddLayer();
     em->SetDpiX(100.0);
     em->SetDpiY(100.0);
 
@@ -38,10 +38,9 @@ TEST(TypesTest, InchesArithmetic)
 TEST(TypesTest, ConvertInchesToPixels)
 {
     auto em      = make_shared<ElementManager>();
-    auto element = std::make_shared<Element>();
+    auto element = em->AddLayer();
     em->SetDpiX(100.0);
     em->SetDpiY(200.0);
-    element->SetElementManager(em.get());
 
     element->SetTop(5 * inches);
     element->SetLeft(3.0 * inches);
@@ -53,10 +52,9 @@ TEST(TypesTest, ConvertInchesToPixels)
 TEST(TypesTest, CombineInchPixelMath)
 {
     auto em      = make_shared<ElementManager>();
-    auto element = std::make_shared<Element>();
+    auto element = em->AddLayer();
     em->SetDpiX(100.0);
     em->SetDpiY(200.0);
-    element->SetElementManager(em.get());
 
     element->SetLeft(50);
     element->SetRight(element->GetLeft() + 3 * inches);
@@ -85,10 +83,9 @@ TEST(TypesTest, LocationConversions)
     ASSERT_EQ(20, location.y);
 
     auto em      = make_shared<ElementManager>();
-    auto element = std::make_shared<Element>();
+    auto element = em->AddLayer();
     em->SetDpiX(100.0);
     em->SetDpiY(200.0);
-    element->SetElementManager(em.get());
 
     element->SetLeft(500);
 

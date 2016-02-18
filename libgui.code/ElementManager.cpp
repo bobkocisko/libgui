@@ -5,17 +5,22 @@
 
 namespace libgui
 {
-void ElementManager::AddLayer(const std::unique_ptr<Layer>&& layer)
+Layer* ElementManager::AddLayer()
 {
+    auto layer = new Layer();
     layer->_elementManager = this;
-    layer->_layer          = layer.get();
+    layer->_layer          = layer;
 
-    _layers.push_back(std::move(layer));
+    _layers.push_back(std::shared_ptr<Layer>(layer));
+    return layer;
 }
 
-const function<void(bool)>& ElementManager::GetSystemCaptureCallback() const
+void ElementManager::ArrangeAndDrawAll()
 {
-    return _systemCaptureCallback;
+    for (auto& layer: _layers)
+    {
+        layer->ArrangeAndDraw();
+    }
 }
 
 void ElementManager::SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback)
@@ -107,7 +112,7 @@ void ElementManager::SetDpiY(double dpiY)
     _dpiY = dpiY;
 }
 
-void ElementManager::SetPushClipCallback(const function<void(Rect4)>& callback)
+void ElementManager::SetPushClipCallback(const function<void(const Rect4&)>& callback)
 {
     _pushClipCallback = callback;
 }

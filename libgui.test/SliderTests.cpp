@@ -4,9 +4,11 @@
 
 #include <libgui/Slider.h>
 #include <libgui/ElementManager.h>
+#include "libgui/Layer.h"
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+
 using namespace libgui;
 using namespace std;
 
@@ -15,10 +17,11 @@ using ::testing::Return;
 
 TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 {
-    auto slider = make_shared<Slider>();
     auto em     = make_shared<ElementManager>();
-    em->SetRoot(slider);
-    slider->InitializeAll();
+    auto root   = em->AddLayer();
+    auto slider = make_shared<Slider>();
+    root->AddChild(slider);
+    root->InitializeAll();
 
     auto thumb = slider->GetThumb();
 
@@ -31,10 +34,11 @@ TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 
 TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 {
-    auto slider = make_shared<Slider>();
     auto em     = make_shared<ElementManager>();
-    em->SetRoot(slider);
-    slider->InitializeAll();
+    auto root   = em->AddLayer();
+    auto slider = make_shared<Slider>();
+    root->AddChild(slider);
+    root->InitializeAll();
 
     auto thumb = slider->GetThumb();
 
@@ -47,10 +51,11 @@ TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 
 TEST(SliderTests, WhenTouchDragged_ValueChanges)
 {
-    auto slider = make_shared<Slider>();
     auto em     = make_shared<ElementManager>();
-    em->SetRoot(slider);
-    slider->InitializeAll();
+    auto root   = em->AddLayer();
+    auto slider = make_shared<Slider>();
+    root->AddChild(slider);
+    root->InitializeAll();
 
     auto thumb = slider->GetThumb();
 

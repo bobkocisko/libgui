@@ -7,8 +7,6 @@
 #include <boost/optional.hpp>
 #include <deque>
 
-class Layer;
-
 using namespace std;
 
 namespace libgui
@@ -20,6 +18,7 @@ namespace libgui
 
 class ElementManager;
 class Element;
+class Layer;
 
 struct ElementQueryInfo
 {
@@ -58,7 +57,7 @@ public:
 
     // Called during each arrange cycle to set or update the attached view model
     // (unless the PrepareViewModel method is overridden)
-    void SetSetViewModelCallback(function<void(shared_ptr<Element>)>);
+    void SetSetViewModelCallback(const function<void(shared_ptr<Element>)>&);
 
 
     // -----------------------------------------------------------------
@@ -96,7 +95,7 @@ public:
 
     // Called during each arrange cycle to set or update the position and size of the element
     // (unless the Arrange method is overridden)
-    void SetArrangeCallback(function<void(shared_ptr<Element>)>);
+    void SetArrangeCallback(const function<void(shared_ptr<Element>)>&);
 
     // -----------------------------------------------------------------
     // Arrange dependents
@@ -178,7 +177,7 @@ public:
     virtual void Draw(const boost::optional<Rect4>& updateArea);
 
     // Called during each arrange cycle to draw this element (unless the Draw method is overridden)
-    void SetDrawCallback(function<void(Element* e, const boost::optional<Rect4>& updateArea)>);
+    void SetDrawCallback(const function<void(Element* e, const boost::optional<Rect4>& updateArea)>&);
 
 
     // -----------------------------------------------------------------
@@ -206,14 +205,14 @@ public:
     // Visit ancestors of this element, oldest ancestor first
     void VisitAncestors(const std::function<void(Element*)>& action);
 
-    void VisitArrangeDependents(const std::function<void(Element*)> action);
+    void VisitArrangeDependents(const std::function<void(Element*)>& action);
 
-    void VisitThisAndDescendents(const std::function<bool(Element*)> preChildrenAction,
-                                 const std::function<void(Element*)> postChildrenAction);
+    void VisitThisAndDescendents(const std::function<bool(Element*)>& preChildrenAction,
+                                 const std::function<void(Element*)>& postChildrenAction);
 
     void VisitThisAndDescendents(const Rect4& region,
-                                 const std::function<bool(Element*)> preChildrenAction,
-                                 const std::function<void(Element*)> postChildrenAction);
+                                 const std::function<bool(Element*)>& preChildrenAction,
+                                 const std::function<void(Element*)>& postChildrenAction);
 
     // It is strongly recommended that this method be overridden in each container class
     // in order to increase efficiency of inter-layer element updates, assuming that the
@@ -262,8 +261,8 @@ private:
     boost::optional<Rect4> _visualBounds;
 
     // Dirty
-    Rect4 _dirtyBounds;
-    Rect4 _dirtyTotalBounds;
+    Rect4 _dirtyBounds      = Rect4(0, 0, 0, 0);
+    Rect4 _dirtyTotalBounds = Rect4(0, 0, 0, 0);
 
     // State tracking
     bool _clipToBounds  = false;
