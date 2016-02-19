@@ -16,8 +16,8 @@ add_subdirectory(libgui.code)
 
 if(libgui_build_samples)
     add_subdirectory(libgui.sample.opengl)
-    add_subdirectory(libgui.sample.windows)
-    add_subdirectory(libgui.sample.windows2)
+    # add_subdirectory(libgui.sample.windows)
+    # add_subdirectory(libgui.sample.windows2)
 endif()
 
 if(libgui_build_tests)

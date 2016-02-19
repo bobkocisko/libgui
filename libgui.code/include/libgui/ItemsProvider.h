@@ -1,17 +1,18 @@
 ﻿#pragma once
-#include "ViewModelBase.h"
 
-using namespace std;
+#include <memory>
 
 namespace libgui
 {
-	class ItemsProvider
-	{
-	public:
-		virtual ~ItemsProvider();
+class ViewModelBase;
 
-		virtual int GetTotalItems() = 0;
-		virtual shared_ptr<ViewModelBase> GetItem(int index) = 0;
-	};
+class ItemsProvider
+{
+public:
+    virtual ~ItemsProvider();
+
+    virtual int                            GetTotalItems()    = 0;
+    virtual std::shared_ptr<ViewModelBase> GetItem(int index) = 0;
+};
 }
 

@@ -37,6 +37,13 @@
  *
  */
 
+#include "libgui/Element.h"
+#include "libgui/ElementManager.h"
+#include "libgui/Layer.h"
+#include "libgui/Grid.h"
+#include "libgui/Scrollbar.h"
+#include "libgui/Slider.h"
+
 #include "freetype-gl.h"
 #include "vertex-buffer.h"
 #include "text-buffer.h"
@@ -47,6 +54,10 @@
 #include <GLFW/glfw3.h>
 #include <vec234.h>
 #include <stdio.h>
+#include <stack>
+#include <boost/optional.hpp>
+
+#include "include/ItemsViewModel.h"
 
 typedef struct
 {
@@ -58,7 +69,359 @@ mat4 model, view, projection;
 
 GLuint shader;
 
-vertex_buffer_t* lines_buffer;
+using libgui::ElementManager;
+using libgui::Rect4;
+using libgui::Element;
+using libgui::Grid;
+using libgui::Scrollbar;
+using libgui::Slider;
+
+std::shared_ptr<ElementManager> elementManager;
+
+std::stack<boost::optional<Rect4>> clipStack;
+
+#define GLERR(EXP) { EXP; CheckOpenGLError(#EXP); }
+
+void CheckOpenGLError(const char* expression)
+{
+    auto result = glGetError();
+    if (GL_NO_ERROR != result)
+    {
+        throw runtime_error(std::string("OpenGL error for statement ") +
+                            expression + ": " + (char*) gluErrorString(result));
+    }
+}
+
+auto initialWindowWidth = 640;
+
+auto initialWindowHeight = 480;
+
+int windowWidth = -1;
+
+int windowHeight = -1;
+
+bool firstWindowRefresh = true;
+
+void FillRectangle(double left, double top, double right, double bottom, int r, int g, int b);
+void OutlineRectangle(double left, double top, double right, double bottom, int r, int g, int b, double lineWidth);
+void DrawText(double centerX, double centerY, std::string text);
+
+void InitElements()
+{
+    elementManager = make_shared<ElementManager>();
+
+    elementManager->SetPushClipCallback(
+        [](const Rect4& newRegion)
+        {
+            if (clipStack.empty())
+            {
+                auto left   = int(round(newRegion.left));
+                auto bottom = int(round(newRegion.bottom));
+                auto width  = int(round(newRegion.right)) - left;
+                auto height = bottom - int(round(newRegion.top));
+                GLERR(glScissor(left, windowHeight - bottom, width, height));
+
+                clipStack.push(newRegion);
+
+                GLERR(glEnable(GL_SCISSOR_TEST));
+            }
+            else
+            {
+                // Intersect the current region and push the result
+                auto& currentRegionOpt = clipStack.top();
+
+                if (currentRegionOpt)
+                {
+                    auto& currentRegion = currentRegionOpt.get();
+
+                    Rect4 intersection;
+                    intersection.left   = max(currentRegion.left, newRegion.left);
+                    intersection.top    = max(currentRegion.top, newRegion.top);
+                    intersection.right  = min(currentRegion.right, newRegion.right);
+                    intersection.bottom = min(currentRegion.bottom, newRegion.bottom);
+
+                    if (intersection.left <= intersection.right &&
+                        intersection.top >= intersection.bottom)
+                    {
+                        // The rectangles overlap
+                        auto left   = int(round(intersection.left));
+                        auto bottom = int(round(intersection.bottom));
+                        auto width  = int(round(intersection.right)) - left;
+                        auto height = bottom - int(round(intersection.top));
+                        GLERR(glScissor(left, windowHeight - bottom, width, height));
+
+                        clipStack.push(intersection);
+                    }
+                    else
+                    {
+                        // The rectangles do not overlap, so clip everything
+                        GLERR(glScissor(0, 0, 0, 0));
+                        clipStack.push(boost::none);
+                    }
+                }
+                else
+                {
+                    // The current region is empty, and intersecting empty with anything else results in empty.
+                    // So stick a placeholder on the stack but don't do anything.
+                    clipStack.push(boost::none);
+                }
+            }
+        });
+
+    elementManager->SetPopClipCallback(
+        []()
+        {
+            clipStack.pop();
+            if (clipStack.empty())
+            {
+                GLERR(glDisable(GL_SCISSOR_TEST));
+            }
+            else
+            {
+                auto& clipOpt = clipStack.top();
+                if (clipOpt)
+                {
+                    auto& clip = clipOpt.get();
+                    auto left   = int(round(clip.left));
+                    auto bottom = int(round(clip.bottom));
+                    auto width  = int(round(clip.right)) - left;
+                    auto height = bottom - int(round(clip.top));
+                    GLERR(glScissor(left, windowHeight - bottom, width, height));
+                }
+                else
+                {
+                    GLERR(glScissor(0, 0, 0, 0));
+                }
+            }
+        });
+
+    // Main view model
+    auto itemsVm = make_shared<ItemsViewModel>();
+
+    // Set up the root element to match the window size
+    auto root = elementManager->AddLayer();
+    root->SetViewModel(itemsVm);
+    root->SetArrangeCallback(
+        [](shared_ptr<Element> e)
+        {
+            printf("Arranging root with size %d, %d\n", windowWidth, windowHeight);
+            fflush(stdout);
+            e->SetLeft(0);
+            e->SetRight(windowWidth);
+            e->SetTop(0);
+            e->SetBottom(windowHeight);
+        });
+
+
+    // Build the screen elements
+    auto header = make_shared<Element>();
+    {
+        root->AddChild(header);
+        header->SetArrangeCallback(
+            [](shared_ptr<Element> e)
+            {
+                auto p = e->GetParent();
+                e->SetLeft(p->GetLeft());
+                e->SetRight(p->GetRight());
+                e->SetTop(p->GetTop());
+                e->SetHeight(41.0);
+            });
+        header->SetDrawCallback(
+            [](Element* e, const boost::optional<Rect4>& redrawRegion)
+            {
+                OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xAB, 0xAB, 0xAB, 1.0);
+            });
+    }
+
+    auto footer = make_shared<Element>();
+    {
+        root->AddChild(footer);
+        footer->SetArrangeCallback(
+            [](shared_ptr<Element> e)
+            {
+                auto p = e->GetParent();
+                e->SetLeft(p->GetLeft());
+                e->SetRight(p->GetRight());
+                e->SetBottom(p->GetBottom());
+                e->SetHeight(41.0);
+            });
+        footer->SetDrawCallback(
+            [](Element* e, const boost::optional<Rect4>& redrawRegion)
+            {
+                OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xAB, 0xAB, 0xAB, 1.0);
+            });
+    }
+
+    auto gridScrollWidth = 32;
+
+    auto grid = make_shared<Grid>();
+    {
+        root->AddChild(grid);
+        grid->SetArrangeCallback(
+            [header, footer, gridScrollWidth](shared_ptr<Element> e)
+            {
+                auto p = e->GetParent();
+                e->SetTop(header->GetBottom());
+                e->SetBottom(footer->GetTop());
+
+                // CanScroll method depends on the height to be specified first
+                auto can_scroll = dynamic_pointer_cast<Grid>(e)->CanScroll();
+                if (can_scroll)
+                {
+                    e->SetRight(p->GetRight() - gridScrollWidth - 10);
+                }
+                else
+                {
+                    e->SetRight(p->GetRight() - 10);
+                }
+                e->SetLeft(p->GetLeft() + gridScrollWidth);
+            });
+
+        grid->SetTopPadding(5);
+        grid->SetBottomPadding(5);
+
+        grid->SetCellHeight(100);
+        grid->SetColumns(3);
+        grid->SetItemsProvider(itemsVm);
+
+        grid->SetCellCreateCallback(
+            []()
+            {
+                auto cell_background = make_shared<Element>();
+                cell_background->SetArrangeCallback(
+                    [](shared_ptr<Element> e)
+                    {
+                        auto p = e->GetParent();
+                        e->SetLeft(p->GetLeft() + 10);
+                        e->SetRight(p->GetRight());
+                        e->SetTop(p->GetTop() + 5);
+                        e->SetBottom(p->GetBottom() - 5);
+                    });
+
+                cell_background->SetDrawCallback(
+                    [](Element* e, const boost::optional<Rect4>& redrawRegion)
+                    {
+                        // Rounded at 4.5 px radius would be better
+                        FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xEB, 0xEB, 0xEB);
+                    });
+                {
+                    auto text = make_shared<Element>();
+                    cell_background->AddChild(text);
+                    text->SetDrawCallback(
+                        [](Element* e, const boost::optional<Rect4>& redrawRegion)
+                        {
+                            auto ivm = dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
+                            DrawText(e->GetCenterX(), e->GetCenterY(), ivm->GetName());
+                        });
+                }
+                return cell_background;
+            });
+    }
+
+    auto grid_scroll = make_shared<Scrollbar>(grid);
+    {
+        root->AddChild(grid_scroll);
+        grid_scroll->InitializeThis();
+        grid_scroll->SetArrangeCallback(
+            [grid, gridScrollWidth, header, footer](shared_ptr<Element> e)
+            {
+                auto p          = e->GetParent();
+                auto can_scroll = dynamic_pointer_cast<Grid>(grid)->CanScroll();
+
+                if (can_scroll)
+                {
+                    e->SetWidth(gridScrollWidth);
+                    e->SetRight(p->GetRight());
+                    e->SetTop(header->GetBottom());
+                    e->SetBottom(footer->GetTop());
+                }
+                else
+                {
+                    e->SetIsVisible(false);
+                }
+            });
+
+        grid_scroll->SetDrawCallback(
+            [](Element* e, const boost::optional<Rect4>& redrawRegion)
+            {
+                // Draw the scrollbar background
+                FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xCD, 0xCD, 0xCD);
+            });
+
+        auto track = grid_scroll->GetTrack();
+        track->SetArrangeCallback(
+            [](shared_ptr<Element> e)
+            {
+                auto p = e->GetParent();
+                e->SetLeft(p->GetLeft() + 5);
+                e->SetRight(p->GetRight() - 5);
+                e->SetTop(p->GetTop() + 5);
+                e->SetBottom(p->GetBottom() - 5);
+            });
+
+        auto thumb = grid_scroll->GetThumb();
+        thumb->SetDrawCallback(
+            [](Element* e, const boost::optional<Rect4>& redrawRegion)
+            {
+                FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0x77, 0x77, 0x77);
+            });
+
+    }
+
+    auto slider = make_shared<Slider>();
+    {
+        root->AddChild(slider);
+        slider->InitializeThis();
+        slider->SetThumbHeight(50);
+        slider->SetArrangeCallback(
+            [gridScrollWidth, header, footer](shared_ptr<Element> e)
+            {
+                auto p = e->GetParent();
+                e->SetWidth(gridScrollWidth);
+                e->SetLeft(p->GetLeft());
+                e->SetTop(header->GetBottom());
+                e->SetBottom(footer->GetTop());
+            });
+
+        slider->SetDrawCallback(
+            [](Element* e, const boost::optional<Rect4>& redrawRegion)
+            {
+                // Draw the scrollbar background
+                FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xCD, 0xCD, 0xCD);
+            });
+
+        auto slider_track = slider->GetTrack();
+        slider_track->SetArrangeCallback(
+            [](shared_ptr<Element> e)
+            {
+                auto p = e->GetParent();
+                e->SetLeft(p->GetLeft() + 5);
+                e->SetRight(p->GetRight() - 5);
+                e->SetTop(p->GetTop() + 5);
+                e->SetBottom(p->GetBottom() - 5);
+            });
+
+        auto slider_thumb = slider->GetThumb();
+        slider_thumb->SetDrawCallback(
+            [](Element* e, const boost::optional<Rect4>& redrawRegion)
+            {
+                FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0x77, 0x77, 0x77);
+            });
+    }
+
+    auto sliderValueText = make_shared<Element>();
+    {
+        footer->AddChild(sliderValueText);
+        sliderValueText->SetDrawCallback(
+            [slider](Element* e, const boost::optional<Rect4>& redrawRegion)
+            {
+                std::string valueString = std::to_string(slider->GetValue());
+                DrawText(e->GetCenterX(), e->GetCenterY(), valueString); // Dark gray
+            });
+    }
+
+    root->InitializeAll();
+}
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -72,35 +435,147 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
     }
 }
 
-void display(GLFWwindow* window)
+void FillRectangle(double left, double top, double right, double bottom, int r, int g, int b)
 {
-    glClearColor(0.40, 0.40, 0.45, 1.00);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    auto rf = float(r) / 255.0;
+    auto gf = float(g) / 255.0;
+    auto bf = float(b) / 255.0;
 
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    glBlendColor(1.0, 1.0, 1.0, 1.0);
-    glUseProgram(shader);
+    vertex_buffer_t* buffer;
+    buffer = vertex_buffer_new("vertex:3f,color:4f");
+    vertex_t vertices[] = {{left,  top,    0, rf, gf, bf, 1},  // 0
+                           {right, top,    0, rf, gf, bf, 1},  // 1
+                           {right, bottom, 0, rf, gf, bf, 1},  // 2
+                           {left,  bottom, 0, rf, gf, bf, 1}}; // 3
+
+    GLuint indices[] = {3, 0, 2, 1};
+    vertex_buffer_push_back(buffer, vertices, 4, indices, 4);
+
+    GLERR(glUseProgram(shader));
     {
-        glUniformMatrix4fv(glGetUniformLocation(shader, "model"),
-                           1, 0, model.data);
-        glUniformMatrix4fv(glGetUniformLocation(shader, "view"),
-                           1, 0, view.data);
-        glUniformMatrix4fv(glGetUniformLocation(shader, "projection"),
-                           1, 0, projection.data);
-        vertex_buffer_render(lines_buffer, GL_LINES);
+        GLERR(glUniformMatrix4fv(glGetUniformLocation(shader, "model"),
+                                 1, 0, model.data));
+        GLERR(glUniformMatrix4fv(glGetUniformLocation(shader, "view"),
+                                 1, 0, view.data));
+        GLERR(glUniformMatrix4fv(glGetUniformLocation(shader, "projection"),
+                                 1, 0, projection.data));
+        vertex_buffer_render(buffer, GL_TRIANGLE_STRIP);
     }
 
+    vertex_buffer_delete(buffer);
+}
 
-    glfwSwapBuffers(window);
+void OutlineRectangle(double left, double top, double right, double bottom, int r, int g, int b, double lineWidth)
+{
+    auto rf = float(r) / 255.0;
+    auto gf = float(g) / 255.0;
+    auto bf = float(b) / 255.0;
+
+    lineWidth = round(lineWidth);
+    GLERR(glLineWidth((float) lineWidth));
+    auto halfLineWidth = lineWidth / 2;
+
+    auto x1 = float(round(left) + halfLineWidth);
+    auto x2 = float(round(right) - halfLineWidth);
+    auto y1 = float(round(top) + halfLineWidth);
+    auto y2 = float(round(bottom) - halfLineWidth);
+
+    vertex_buffer_t* buffer;
+    buffer = vertex_buffer_new("vertex:3f,color:4f");
+    vertex_t vertices[] = {{x1, y1, 0, rf, gf, bf, 1},  // 0
+                           {x2, y1, 0, rf, gf, bf, 1},  // 1
+                           {x2, y2, 0, rf, gf, bf, 1},  // 2
+                           {x1, y2, 0, rf, gf, bf, 1}}; // 3
+    GLuint   indices[]  = {0, 1, 2, 3};
+    vertex_buffer_push_back(buffer, vertices, 4, indices, 4);
+
+    GLERR(glUseProgram(shader));
+    {
+        GLERR(glUniformMatrix4fv(glGetUniformLocation(shader, "model"),
+                                 1, 0, model.data));
+        GLERR(glUniformMatrix4fv(glGetUniformLocation(shader, "view"),
+                                 1, 0, view.data));
+        GLERR(glUniformMatrix4fv(glGetUniformLocation(shader, "projection"),
+                                 1, 0, projection.data));
+        vertex_buffer_render(buffer, GL_LINE_LOOP);
+    }
+
+    vertex_buffer_delete(buffer);
+}
+
+void DrawText(double centerX, double centerY, std::string text)
+{
+    // TODO!
+}
+
+void display(GLFWwindow* window)
+{
+    auto& redrawnRegionOpt = elementManager->GetRedrawnRegion();
+    if (redrawnRegionOpt)
+    {
+        printf("swapping buffers\n");
+        fflush(stdout);
+
+        // Something has changed since the last time anything was redrawn
+        glfwSwapBuffers(window);
+
+        // Copy from back to front buffer just the region that changed
+        // so that both buffers are identical
+
+        auto& redrawnRegion = redrawnRegionOpt.get();
+
+        auto left   = int(round(redrawnRegion.left));
+        auto top    = int(round(redrawnRegion.top));
+        auto right  = int(round(redrawnRegion.right));
+        auto bottom = int(round(redrawnRegion.bottom));
+
+        GLERR(glBlitFramebuffer(left, bottom, right, top,
+                                left, bottom, right, top,
+                                GL_COLOR_BUFFER_BIT, GL_NEAREST));
+
+        // Clear the redrawn region for next time
+        elementManager->ClearRedrawnRegion();
+    }
+
+}
+
+void RefreshEntireWindow(GLFWwindow* window, int width, int height)
+{
+    GLERR(glViewport(0, 0, width, height));
+
+    // Flip along the y axis so that we can use top-to-bottom coordinates
+    mat4_set_orthographic(&projection, 0, width, height, 0, -1, 1);
+
+    GLERR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+    windowWidth  = width;
+    windowHeight = height;
+    elementManager->ArrangeAndDrawAll();
 
 }
 
 void reshape(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, 0, width, height);
+    if (width != windowWidth || height != windowHeight)
+    {
+        printf("Reshaping with size %d, %d\n", width, height);
+        fflush(stdout);
 
-    // Flip along the y axis so that we can use top-to-bottom coordinates
-    mat4_set_orthographic(&projection, 0, width, height, 0, -1, 1);
+        RefreshEntireWindow(window, width, height);
+    }
+}
+
+void windowRefresh(GLFWwindow* window)
+{
+    if (firstWindowRefresh)
+    {
+        printf("First window refresh\n");
+        fflush(stdout);
+
+        RefreshEntireWindow(window, initialWindowWidth, initialWindowHeight);
+
+        firstWindowRefresh = false;
+    }
 }
 
 void init()
@@ -108,30 +583,20 @@ void init()
     shader = shader_load("shaders/v3f-c4f.vert",
                          "shaders/v3f-c4f.frag");
 
-    float left   = 20;
-    float right  = 100;
-    float top    = 20;
-    float bottom = 100;
-
-
-    lines_buffer = vertex_buffer_new("vertex:3f,color:4f");
-    vertex_t vertices[] = {{left - 10,  top,         0, 0, 0, 0, 1}, // top
-                           {right + 10, top,         0, 0, 0, 0, 1},
-
-                           {left - 10,  bottom,      0, 0, 0, 0, 1}, // bottom
-                           {right + 10, bottom,      0, 0, 0, 0, 1},
-
-                           {left,       top - 10,    0, 0, 0, 0, 1}, // left
-                           {left,       bottom + 10, 0, 0, 0, 0, 1},
-                           {right,      top - 10,    0, 0, 0, 0, 1}, // right
-                           {right,      bottom + 10, 0, 0, 0, 0, 1}};
-    GLuint   indices[]  = {0, 1, 2, 3, 4, 5, 6, 7};
-    vertex_buffer_push_back(lines_buffer, vertices, 8, indices, 8);
-
     mat4_set_identity(&projection);
     mat4_set_identity(&model);
     mat4_set_identity(&view);
 
+    // When we blit later on, this tells opengl where to blit from and to
+    GLERR(glReadBuffer(GL_FRONT_LEFT));
+    GLERR(glDrawBuffer(GL_BACK_LEFT));
+
+    GLERR(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+    GLERR(glBlendColor(1.0, 1.0, 1.0, 1.0));
+
+    GLERR(glClearColor(1.0, 1.0, 1.0, 1.00));
+
+    InitElements();
 }
 
 int main(void)
@@ -144,8 +609,10 @@ int main(void)
         return -1;
     }
 
-    /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1, 1, "Hello World", NULL, NULL);
+    glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+
+
+    window = glfwCreateWindow(initialWindowWidth, initialWindowHeight, "Test libgui", NULL, NULL);
     if (!window)
     {
         printf("Could not create window.  Exiting...\n");
@@ -155,9 +622,10 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
     glfwSetFramebufferSizeCallback(window, reshape);
-    glfwSetWindowRefreshCallback(window, display);
+    glfwSetWindowRefreshCallback(window, windowRefresh);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
 
@@ -171,7 +639,6 @@ int main(void)
 
     init();
 
-    glfwSetWindowSize(window, 640, 480);
     glfwShowWindow(window);
 
     /* Loop until the user closes the window */
@@ -186,379 +653,4 @@ int main(void)
 
     glfwTerminate();
     return 0;
-}
-
-void InitElements()
-{
-    DrawingManager::Get()->SetStartClippingCallback([&](Rect4 r)
-                                                    {
-                                                        D2D1_RECT_F clipRect;
-                                                        clipRect.left   = r.left;
-                                                        clipRect.right  = r.right;
-                                                        clipRect.top    = r.top;
-                                                        clipRect.bottom = r.bottom;
-                                                        render_target_->PushAxisAlignedClip(clipRect,
-                                                                                            D2D1_ANTIALIAS_MODE_ALIASED);
-                                                    });
-    DrawingManager::Get()->SetStopClippingCallback([&]()
-                                                   {
-                                                       render_target_->PopAxisAlignedClip();
-                                                   });
-
-// Main view model
-    auto itemsVm = make_shared<ItemsViewModel>();
-
-// Set up the root element to match the window size
-    auto root = make_shared<Element>();
-    m_elementManager->SetRoot(root);
-    root->SetElementManager(m_elementManager);
-    root->SetViewModel(itemsVm);
-    root->SetArrangeCallback([&](shared_ptr <Element> e)
-                             {
-                                 D2D1_SIZE_F rtSize = render_target_->GetSize();
-                                 e->SetLeft(0);
-                                 e->SetRight(rtSize.width);
-                                 e->SetTop(0);
-                                 e->SetBottom(rtSize.height);
-                             });
-
-
-// Build the screen elements
-    auto header = make_shared<Element>();
-    {
-        root->AddChild(header);
-        header->SetArrangeCallback([&](shared_ptr <Element> e)
-                                   {
-                                       auto p = e->GetParent();
-                                       e->SetLeft(p->GetLeft());
-                                       e->SetRight(p->GetRight());
-                                       e->SetTop(p->GetTop());
-                                       e->SetHeight(41.0);
-                                   });
-        header->SetDrawCallback([&](shared_ptr <Element> e)
-                                {
-                                    DrawBorder(1.0, SharedResources::Get()->GrayBrush, e);
-                                });
-    }
-
-    auto footer = make_shared<Element>();
-    {
-        root->AddChild(footer);
-        footer->SetArrangeCallback([&](shared_ptr <Element> e)
-                                   {
-                                       auto p = e->GetParent();
-                                       e->SetLeft(p->GetLeft());
-                                       e->SetRight(p->GetRight());
-                                       e->SetBottom(p->GetBottom());
-                                       e->SetHeight(41.0);
-                                   });
-        footer->SetDrawCallback([&](shared_ptr <Element> e)
-                                {
-                                    DrawBorder(1.0, SharedResources::Get()->GrayBrush, e);
-                                });
-    }
-
-    auto grid_scroll_width = 32;
-
-    auto grid = make_shared<Grid>();
-    {
-        root->AddChild(grid);
-        grid->SetArrangeCallback([=](shared_ptr <Element> e)
-                                 {
-                                     auto p = e->GetParent();
-                                     e->SetTop(header->GetBottom());
-                                     e->SetBottom(footer->GetTop());
-
-// CanScroll method depends on the height to be specified first
-                                     auto can_scroll = dynamic_pointer_cast<Grid>(e)->CanScroll();
-                                     if (can_scroll)
-                                     {
-                                         e->SetRight(p->GetRight() - grid_scroll_width - 10);
-                                     }
-                                     else
-                                     {
-                                         e->SetRight(p->GetRight() - 10);
-                                     }
-                                     e->SetLeft(p->GetLeft() + grid_scroll_width);
-                                 });
-
-        grid->SetTopPadding(5);
-        grid->SetBottomPadding(5);
-
-        grid->SetCellHeight(100);
-        grid->SetColumns(3);
-        grid->SetItemsProvider(itemsVm);
-
-        grid->SetCellCreateCallback(
-            [&]()
-            {
-                auto cell_background = make_shared<Element>();
-                cell_background->SetArrangeCallback(
-                    [](shared_ptr <Element> e)
-                    {
-                        auto p = e->GetParent();
-                        e->SetLeft(p->GetLeft() + 10);
-                        e->SetRight(p->GetRight());
-                        e->SetTop(p->GetTop() + 5);
-                        e->SetBottom(p->GetBottom() - 5);
-                    });
-
-                cell_background->SetDrawCallback(
-                    [&](shared_ptr <Element> e)
-                    {
-                        D2D1_ROUNDED_RECT rr;
-                        rr.rect.left   = e->GetLeft();
-                        rr.rect.right  = e->GetRight();
-                        rr.rect.top    = e->GetTop();
-                        rr.rect.bottom = e->GetBottom();
-                        rr.radiusX     = 4.5;
-                        rr.radiusY     = 4.5;
-
-                        render_target_->FillRoundedRectangle(rr,
-                                                             SharedResources::Get()
-                                                                 ->LightGrayBrush);
-                    });
-                {
-                    auto text = make_shared<Element>();
-                    cell_background->AddChild(text);
-                    text->SetDrawCallback(
-                        [&](shared_ptr <Element> e)
-                        {
-                            auto        ivm =
-                                            dynamic_pointer_cast<ItemViewModel>(
-                                                e->GetViewModel());
-                            D2D1_RECT_F rect;
-                            rect.left   = e->GetLeft();
-                            rect.right  = e->GetRight();
-                            rect.top    = e->GetTop();
-                            rect.bottom = e->GetBottom();
-                            render_target_->DrawTextW(
-                                ivm->GetName().c_str(),
-                                ivm->GetName().length(),
-                                m_pTextFormat,
-                                rect,
-                                SharedResources::Get()->DarkGrayBrush);
-                        });
-                }
-                return cell_background;
-            });
-    }
-
-    auto grid_scroll = make_shared<Scrollbar>(grid);
-    {
-        root->AddChild(grid_scroll);
-        grid_scroll->Initialize();
-        grid_scroll->SetArrangeCallback(
-            [=](shared_ptr <Element> e)
-            {
-                auto p          = e->GetParent();
-                auto can_scroll = dynamic_pointer_cast<Grid>(grid)->CanScroll();
-
-                if (can_scroll)
-                {
-                    e->SetWidth(grid_scroll_width);
-                    e->SetRight(p->GetRight());
-                    e->SetTop(header->GetBottom());
-                    e->SetBottom(footer->GetTop());
-                }
-                else
-                {
-                    e->SetIsVisible(false);
-                }
-            });
-
-        grid_scroll->SetDrawCallback(
-            [&](shared_ptr <Element> e)
-            {
-// Draw the scrollbar background
-                auto        sr = SharedResources::Get();
-                D2D1_RECT_F rect;
-                rect.left   = e->GetLeft();
-                rect.right  = e->GetRight();
-                rect.top    = e->GetTop();
-                rect.bottom = e->GetBottom();
-                render_target_->FillRectangle(rect, sr->LightGrayBrush);
-            });
-
-        auto track = grid_scroll->GetTrack();
-        track->SetArrangeCallback(
-            [=](shared_ptr <Element> e)
-            {
-                auto p = e->GetParent();
-                e->SetLeft(p->GetLeft() + 5);
-                e->SetRight(p->GetRight() - 5);
-                e->SetTop(p->GetTop() + 5);
-                e->SetBottom(p->GetBottom() - 5);
-            });
-
-        auto thumb = grid_scroll->GetThumb();
-        thumb->SetDrawCallback(
-            [&](shared_ptr <Element> e)
-            {
-                auto        sr = SharedResources::Get();
-                D2D1_RECT_F rect;
-                rect.left   = e->GetLeft();
-                rect.right  = e->GetRight();
-                rect.top    = e->GetTop();
-                rect.bottom = e->GetBottom();
-                render_target_->FillRectangle(rect, sr->MediumGrayBrush);
-            });
-
-    }
-
-    auto slider = make_shared<Slider>();
-    {
-        root->AddChild(slider);
-        slider->Initialize();
-        slider->SetThumbHeight(50);
-        slider->SetArrangeCallback(
-            [=](shared_ptr <Element> e)
-            {
-                auto p = e->GetParent();
-                e->SetWidth(grid_scroll_width);
-                e->SetLeft(p->GetLeft());
-                e->SetTop(header->GetBottom());
-                e->SetBottom(footer->GetTop());
-            });
-
-        slider->SetDrawCallback(
-            [&](shared_ptr <Element> e)
-            {
-// Draw the scrollbar background
-                auto        sr = SharedResources::Get();
-                D2D1_RECT_F rect;
-                rect.left   = e->GetLeft();
-                rect.right  = e->GetRight();
-                rect.top    = e->GetTop();
-                rect.bottom = e->GetBottom();
-                render_target_->FillRectangle(rect, sr->LightGrayBrush);
-            });
-
-        auto slider_track = slider->GetTrack();
-        slider_track->SetArrangeCallback(
-            [=](shared_ptr <Element> e)
-            {
-                auto p = e->GetParent();
-                e->SetLeft(p->GetLeft() + 5);
-                e->SetRight(p->GetRight() - 5);
-                e->SetTop(p->GetTop() + 5);
-                e->SetBottom(p->GetBottom() - 5);
-            });
-
-        auto slider_thumb = slider->GetThumb();
-        slider_thumb->SetDrawCallback(
-            [&](shared_ptr <Element> e)
-            {
-                auto        sr = SharedResources::Get();
-                D2D1_RECT_F rect;
-                rect.left   = e->GetLeft();
-                rect.right  = e->GetRight();
-                rect.top    = e->GetTop();
-                rect.bottom = e->GetBottom();
-                render_target_->FillRectangle(rect, sr->MediumGrayBrush);
-            });
-    }
-
-    auto sliderValueText = make_shared<Element>();
-    {
-        footer->AddChild(sliderValueText);
-        sliderValueText->SetDrawCallback(
-            [=](shared_ptr <Element> e)
-            {
-                wstring     valueString = to_wstring(slider->GetValue());
-                D2D1_RECT_F rect;
-                rect.left   = e->GetLeft();
-                rect.right  = e->GetRight();
-                rect.top    = e->GetTop();
-                rect.bottom = e->GetBottom();
-                render_target_->DrawTextW(
-                    valueString.c_str(), valueString.length(),
-                    m_pTextFormat, rect, SharedResources::Get()->DarkGrayBrush);
-
-            });
-    }
-}
-
-void App::DrawBorder(double strokeWidth, ID2D1Brush* brush, shared_ptr <Element> e)
-{
-    DrawBorder(LEFT | TOP | RIGHT | BOTTOM, strokeWidth, brush, e);
-}
-
-void App::DrawBorder(int sides, double strokeWidth, ID2D1Brush* brush, shared_ptr <Element> e)
-{
-    double halfStrokeWidth = strokeWidth / 2;
-
-    if ((LEFT | TOP | RIGHT | BOTTOM) == sides)
-    {
-        // All sides: use a rectangle and draw its border
-        D2D1_RECT_F rect = {};
-        rect.left   = e->GetLeft() + halfStrokeWidth;
-        rect.right  = e->GetRight() - halfStrokeWidth;
-        rect.top    = e->GetTop() + halfStrokeWidth;
-        rect.bottom = e->GetBottom() - halfStrokeWidth;
-        render_target_->DrawRectangle(rect, brush, strokeWidth);
-    }
-    else
-    {
-        D2D1_RECT_F outerRect;
-        outerRect.left   = e->GetLeft();
-        outerRect.right  = e->GetRight();
-        outerRect.top    = e->GetTop();
-        outerRect.bottom = e->GetBottom();
-
-        D2D1_RECT_F rect = {};
-        rect.left   = outerRect.left + halfStrokeWidth;
-        rect.right  = outerRect.right - halfStrokeWidth;
-        rect.top    = outerRect.top + halfStrokeWidth;
-        rect.bottom = outerRect.bottom - halfStrokeWidth;
-        // One or more side: use lines
-        if (0 < (sides & LEFT))
-        {
-            render_target_->DrawLine(
-                D2D1::Point2F(rect.left, outerRect.top),
-                D2D1::Point2F(rect.left, outerRect.bottom),
-                brush, strokeWidth);
-        }
-        if (0 < (sides & RIGHT))
-        {
-            render_target_->DrawLine(
-                D2D1::Point2F(rect.right, outerRect.top),
-                D2D1::Point2F(rect.right, outerRect.bottom),
-                brush, strokeWidth);
-        }
-        if (0 < (sides & TOP))
-        {
-            double left  = outerRect.left;
-            double right = outerRect.right;
-            if (0 < (sides & LEFT))
-            {
-                left += strokeWidth;
-            }
-            if (0 < (sides & RIGHT))
-            {
-                right -= strokeWidth;
-            }
-            render_target_->DrawLine(
-                D2D1::Point2F(left, rect.top),
-                D2D1::Point2F(right, rect.top),
-                brush, strokeWidth);
-        }
-        if (0 < (sides & BOTTOM))
-        {
-            double left  = outerRect.left;
-            double right = outerRect.right;
-            if (0 < (sides & LEFT))
-            {
-                left += strokeWidth;
-            }
-            if (0 < (sides & RIGHT))
-            {
-                right -= strokeWidth;
-            }
-            render_target_->DrawLine(
-                D2D1::Point2F(left, rect.bottom),
-                D2D1::Point2F(right, rect.bottom),
-                brush, strokeWidth);
-        }
-    }
 }

@@ -20,6 +20,8 @@ void ElementManager::ArrangeAndDrawAll()
     for (auto& layer: _layers)
     {
         layer->ArrangeAndDraw();
+
+        AddToRedrawnRegion(layer->GetTotalBounds());
     }
 }
 
@@ -136,5 +138,46 @@ void ElementManager::PopClip()
     {
         _popClipCallback();
     }
+}
+
+void ElementManager::ClearRedrawnRegion()
+{
+    _redrawnRegion = boost::none;
+}
+
+void ElementManager::AddToRedrawnRegion(const Rect4& region)
+{
+    if (_redrawnRegion)
+    {
+        // Expand the existing region to include this new region
+        auto& currentRegion = _redrawnRegion.get();
+
+        if (region.left < currentRegion.left)
+        {
+            currentRegion.left = region.left;
+        }
+        if (region.top < currentRegion.top)
+        {
+            currentRegion.top = region.top;
+        }
+        if (region.right > currentRegion.right)
+        {
+            currentRegion.right = region.right;
+        }
+        if (region.bottom > currentRegion.bottom)
+        {
+            currentRegion.bottom = region.bottom;
+        }
+    }
+    else
+    {
+        // There isn't any region yet, so use the specified region as the only region
+        _redrawnRegion = region;
+    }
+}
+
+const boost::optional<Rect4>& ElementManager::GetRedrawnRegion()
+{
+    return _redrawnRegion;
 }
 }

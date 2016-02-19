@@ -44,7 +44,11 @@ set(FREETYPE_GL_FONT_PATH ${SOURCE_DIR}/fonts)
 # Set up the src test runner executable
 
 set(SOURCE_FILES
+    ItemsViewModel.cpp
+    ItemViewModel.cpp
     main.cpp
+    include/ItemsViewModel.h
+    include/ItemViewModel.h
     )
 
 add_executable(libgui.sample.opengl ${SOURCE_FILES})

@@ -340,6 +340,8 @@ void Element::Update()
     }
     _elementManager->PopClip();
 
+    _elementManager->AddToRedrawnRegion(redrawRegion);
+
     if (moved)
     {
         // update any dependent elements in this same layer

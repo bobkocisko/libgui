@@ -5,37 +5,46 @@
 
 namespace libgui
 {
-	Rect::Rect(Location location, Size size)
-		:location(location),
-		size(size)
-	{
-	}
+Rect::Rect(Location location, Size size)
+    : location(location),
+      size(size)
+{
+}
 
-	double Rect::GetLeft()
-	{
-		return location.x;
-	}
+double Rect::GetLeft()
+{
+    return location.x;
+}
 
-	double Rect::GetTop()
-	{
-		return location.y;
-	}
+double Rect::GetTop()
+{
+    return location.y;
+}
 
-	double Rect::GetRight()
-	{
-		return location.x + size.width;
-	}
+double Rect::GetRight()
+{
+    return location.x + size.width;
+}
 
-	double Rect::GetBottom()
-	{
-		return location.y + size.height;
-	}
+double Rect::GetBottom()
+{
+    return location.y + size.height;
+}
 
-	Rect4::Rect4(double left, double top, double right, double bottom)
-		: left(left),
-		top(top),
-		right(right),
-		bottom(bottom)
-	{
-	}
+Rect4::Rect4(double left, double top, double right, double bottom)
+    : left(left),
+      top(top),
+      right(right),
+      bottom(bottom)
+{
+}
+
+Rect4::Rect4()
+    : left(0),
+      top(0),
+      right(0),
+      bottom(0)
+{
+
+}
 }

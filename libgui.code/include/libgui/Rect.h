@@ -20,7 +20,8 @@ struct Rect
 
 	struct Rect4
 	{
-		Rect4(double left, double top, double right, double bottom);
+        Rect4();
+        Rect4(double left, double top, double right, double bottom);
 
 		double left;
 		double top;

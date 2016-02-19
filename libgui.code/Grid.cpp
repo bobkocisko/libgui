@@ -40,6 +40,7 @@ namespace libgui
 			auto cellContainer = make_shared<Cell>(fromThis, childrenCount + i);
 			AddChild(cellContainer);
 			cellContainer->AddChild(m_cellCreateCallback());
+            cellContainer->InitializeAll();
 		}
 
 		// Now do some calculations based on the current parameters
