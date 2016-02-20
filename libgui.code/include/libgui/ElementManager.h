@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <boost/optional.hpp>
+#include <queue>
 
 namespace libgui
 {
@@ -114,6 +115,23 @@ public:
 
     // -------------------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------------------
+    // Update tracking
+    // ---------------
+    // During the update cycle it is possible to have circular references between elements
+    // which list each other as arrange dependents.  To avoid a stack overflow exception
+    // due to endless circular references, it is necessary to track which elements have
+    // been updated so far.
+
+    // Internal use only.  Clears the list of updated elements at the beginning of an update pass
+    void ClearUpdateTracking();
+
+    // Internal use only.  Checks and returns whether the specified element has been updated since the
+    // last call to ClearUpdateTracking, and if it hasn't, adds the element to the tracking list
+    bool TryBeginUpdate(Element* element);
+
+
+
 private:
     std::vector<Input*>               _activeInputs;
     std::list<std::shared_ptr<Layer>> _layers;
@@ -124,6 +142,7 @@ private:
     function<void(const Rect4&)>      _pushClipCallback;
     function<void()>                  _popClipCallback;
     boost::optional<Rect4>            _redrawnRegion;
+    std::deque<Element*>              _updatedElements;
 
     Input* GetInput(const InputId& inputId);
 };

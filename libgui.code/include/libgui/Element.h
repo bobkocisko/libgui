@@ -314,5 +314,7 @@ private:
 
     bool ClipToBoundsIfNeeded();
 
+    void UpdateHelper();
+
 };
 }

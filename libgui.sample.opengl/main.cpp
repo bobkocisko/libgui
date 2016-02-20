@@ -43,6 +43,7 @@
 #include "libgui/Grid.h"
 #include "libgui/Scrollbar.h"
 #include "libgui/Slider.h"
+#include "libgui/IntersectionStack.h"
 
 #include "freetype-gl.h"
 #include "vertex-buffer.h"
@@ -78,7 +79,9 @@ using libgui::Slider;
 
 std::shared_ptr<ElementManager> elementManager;
 
-std::stack<boost::optional<Rect4>> clipStack;
+libgui::IntersectionStack clipStack;
+
+bool                      isClipping = false;
 
 #define GLERR(EXP) { EXP; CheckOpenGLError(#EXP); }
 
@@ -110,87 +113,49 @@ void InitElements()
 {
     elementManager = make_shared<ElementManager>();
 
+    // OpenGL does not support stacking scissor regions, so we use a helper class
+    // IntersectionStack to manage the stack and then we forward the final current
+    // result to OpenGL's glScissor and glEnable/glDisable calls
+
     elementManager->SetPushClipCallback(
         [](const Rect4& newRegion)
         {
-            if (clipStack.empty())
-            {
-                auto left   = int(round(newRegion.left));
-                auto bottom = int(round(newRegion.bottom));
-                auto width  = int(round(newRegion.right)) - left;
-                auto height = bottom - int(round(newRegion.top));
-                GLERR(glScissor(left, windowHeight - bottom, width, height));
-
-                clipStack.push(newRegion);
-
-                GLERR(glEnable(GL_SCISSOR_TEST));
-            }
-            else
-            {
-                // Intersect the current region and push the result
-                auto& currentRegionOpt = clipStack.top();
-
-                if (currentRegionOpt)
-                {
-                    auto& currentRegion = currentRegionOpt.get();
-
-                    Rect4 intersection;
-                    intersection.left   = max(currentRegion.left, newRegion.left);
-                    intersection.top    = max(currentRegion.top, newRegion.top);
-                    intersection.right  = min(currentRegion.right, newRegion.right);
-                    intersection.bottom = min(currentRegion.bottom, newRegion.bottom);
-
-                    if (intersection.left <= intersection.right &&
-                        intersection.top >= intersection.bottom)
-                    {
-                        // The rectangles overlap
-                        auto left   = int(round(intersection.left));
-                        auto bottom = int(round(intersection.bottom));
-                        auto width  = int(round(intersection.right)) - left;
-                        auto height = bottom - int(round(intersection.top));
-                        GLERR(glScissor(left, windowHeight - bottom, width, height));
-
-                        clipStack.push(intersection);
-                    }
-                    else
-                    {
-                        // The rectangles do not overlap, so clip everything
-                        GLERR(glScissor(0, 0, 0, 0));
-                        clipStack.push(boost::none);
-                    }
-                }
-                else
-                {
-                    // The current region is empty, and intersecting empty with anything else results in empty.
-                    // So stick a placeholder on the stack but don't do anything.
-                    clipStack.push(boost::none);
-                }
-            }
+            clipStack.PushRegion(newRegion);
         });
 
     elementManager->SetPopClipCallback(
         []()
         {
-            clipStack.pop();
-            if (clipStack.empty())
+            clipStack.PopRegion();
+        });
+
+    clipStack.SetRegionChangedCallback(
+        [](const boost::optional<Rect4>& regionOpt)
+        {
+            if (regionOpt)
             {
-                GLERR(glDisable(GL_SCISSOR_TEST));
+                auto region = regionOpt.get();
+
+                auto left   = int(round(region.left));
+                auto bottom = int(round(region.bottom));
+                auto width  = int(round(region.right)) - left;
+                auto height = bottom - int(round(region.top));
+                GLERR(glScissor(left, windowHeight - bottom, width, height));
+
+                // Enable the scissor test if not already enabled
+                if (!isClipping)
+                {
+                    GLERR(glEnable(GL_SCISSOR_TEST));
+                    isClipping = true;
+                }
             }
             else
             {
-                auto& clipOpt = clipStack.top();
-                if (clipOpt)
+                // Disable the scissor test if not already disabled
+                if (isClipping)
                 {
-                    auto& clip = clipOpt.get();
-                    auto left   = int(round(clip.left));
-                    auto bottom = int(round(clip.bottom));
-                    auto width  = int(round(clip.right)) - left;
-                    auto height = bottom - int(round(clip.top));
-                    GLERR(glScissor(left, windowHeight - bottom, width, height));
-                }
-                else
-                {
-                    GLERR(glScissor(0, 0, 0, 0));
+                    GLERR(glDisable(GL_SCISSOR_TEST));
+                    isClipping = false;
                 }
             }
         });
@@ -257,6 +222,7 @@ void InitElements()
     auto grid = make_shared<Grid>();
     {
         root->AddChild(grid);
+        grid->InitializeThis();
         grid->SetArrangeCallback(
             [header, footer, gridScrollWidth](shared_ptr<Element> e)
             {

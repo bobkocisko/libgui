@@ -47,4 +47,25 @@ Rect4::Rect4()
 {
 
 }
+
+bool Rect4::operator==(const Rect4& other) const
+{
+    return left == other.left &&
+           top == other.top &&
+           right == other.right &&
+           bottom == other.bottom;
+}
+
+bool Rect4::operator!=(const Rect4& other) const
+{
+    return !operator==(other);
+}
+
+bool Rect4::IsEmpty()
+{
+    return left == 0 &&
+           top == 0 &&
+           right == 0 &&
+           bottom == 0;
+}
 }

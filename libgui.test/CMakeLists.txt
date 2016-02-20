@@ -11,7 +11,7 @@ set(SOURCE_FILES
     main.cpp SliderTests.cpp TypesTest.cpp StateMachineTests.cpp
     StateMachine2Tests.cpp
     StateMachine3Tests.cpp
-    )
+    IntersectionStackTests.cpp)
 
 # External projects Google Test & Google Mock
 

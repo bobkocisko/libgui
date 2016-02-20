@@ -258,6 +258,20 @@ void Element::DoDrawTasksCleanup()
 
 void Element::Update()
 {
+    // Since we are beginning an update pass, clear the tracking of which elements have been updated
+    _elementManager->ClearUpdateTracking();
+
+    UpdateHelper();
+}
+
+void Element::UpdateHelper()
+{
+    // Check that this element hasn't already been updated in this update pass
+    if (!_elementManager->TryBeginUpdate(this))
+    {
+        return;
+    }
+
     auto wasVisible = GetIsVisible();
     BeginDirtyTracking();
     {
@@ -347,10 +361,11 @@ void Element::Update()
         // update any dependent elements in this same layer
         VisitArrangeDependents([](Element* e)
                                {
-                                   e->Update();
+                                   e->UpdateHelper();
                                });
     }
 }
+
 
 void Element::RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegion)
 {

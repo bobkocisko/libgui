@@ -180,4 +180,23 @@ const boost::optional<Rect4>& ElementManager::GetRedrawnRegion()
 {
     return _redrawnRegion;
 }
+
+void ElementManager::ClearUpdateTracking()
+{
+    _updatedElements.clear();
+}
+
+bool ElementManager::TryBeginUpdate(Element* element)
+{
+    for (auto& e: _updatedElements)
+    {
+        if (e == element)
+        {
+            return false;
+        }
+    }
+
+    _updatedElements.push_back(element);
+    return true;
+}
 }

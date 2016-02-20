@@ -37,6 +37,15 @@ void Scrollbar::InitializeThis()
         dynamic_pointer_cast<Scrollbar>(shared_from_this()),
         _track);
     _track->AddChild(_thumb);
+
+    // Add bidirectional arrange dependencies between this element and its scroll delegate,
+    // if the scroll delegate is also an element
+    auto delegateElement = dynamic_pointer_cast<Element>(_scrollDelegate);
+    if (delegateElement)
+    {
+        delegateElement->AddArrangeDependent(shared_from_this());
+        this->AddArrangeDependent(delegateElement);
+    }
 }
 
 const shared_ptr<Scrollbar::Thumb>& Scrollbar::GetThumb() const
