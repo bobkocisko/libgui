@@ -60,6 +60,13 @@
 
 #include "include/ItemsViewModel.h"
 
+using libgui::ElementManager;
+using libgui::Rect4;
+using libgui::Element;
+using libgui::Grid;
+using libgui::Scrollbar;
+using libgui::Slider;
+
 typedef struct
 {
     float x, y, z;
@@ -70,18 +77,15 @@ mat4 model, view, projection;
 
 GLuint shader;
 
-using libgui::ElementManager;
-using libgui::Rect4;
-using libgui::Element;
-using libgui::Grid;
-using libgui::Scrollbar;
-using libgui::Slider;
+text_buffer_t* text_buffer;
+
+markup_t markup;
 
 std::shared_ptr<ElementManager> elementManager;
 
 libgui::IntersectionStack clipStack;
 
-bool                      isClipping = false;
+bool isClipping = false;
 
 #define GLERR(EXP) { EXP; CheckOpenGLError(#EXP); }
 
@@ -471,7 +475,39 @@ void OutlineRectangle(double left, double top, double right, double bottom, int 
 
 void DrawText(double centerX, double centerY, std::string text)
 {
-    // TODO!
+
+    text_buffer_clear(text_buffer);
+
+    vec2 pen = {{0, 0}};
+    text_buffer_add_text(text_buffer, &pen, &markup, text.c_str(), text.length());
+
+    text_buffer_align(text_buffer, &pen, ALIGN_CENTER);
+
+    vec4 bounds = text_buffer_get_bounds(text_buffer, &pen);
+
+    Size currentSize;
+    currentSize.width  = bounds.width;
+    currentSize.height = bounds.height;
+
+    float x = float(centerX) - (currentSize.width / 2);
+    float y = float(centerY) - (currentSize.height / 2);
+
+    // Flip the text so it looks right inside a flipped world
+    mat4_set_scaling(&model, 1, -1, 1);
+
+    // Now translate to the appropriate location
+    mat4_translate(&model, round(x), round(y), 0);
+
+    glUseProgram(text_buffer->shader);
+    {
+        glUniformMatrix4fv(glGetUniformLocation(text_buffer->shader, "model"),
+                           1, 0, model.data);
+        glUniformMatrix4fv(glGetUniformLocation(text_buffer->shader, "view"),
+                           1, 0, view.data);
+        glUniformMatrix4fv(glGetUniformLocation(text_buffer->shader, "projection"),
+                           1, 0, projection.data);
+        text_buffer_render(text_buffer);
+    }
 }
 
 void display(GLFWwindow* window)
@@ -546,6 +582,30 @@ void windowRefresh(GLFWwindow* window)
 
 void init()
 {
+    text_buffer = text_buffer_new(LCD_FILTERING_OFF,
+                                  "shaders/text.vert",
+                                  "shaders/text.frag");
+    vec4 black  = {{0.0, 0.0, 0.0, 1.0}};
+    text_buffer->base_color = black;
+
+    vec4 none = {{1.0, 1.0, 1.0, 0.0}};
+    markup.family              = (char*) "fonts/Vera.ttf";
+    markup.size                = 9.0;
+    markup.bold                = 0;
+    markup.italic              = 0;
+    markup.rise                = 0.0;
+    markup.spacing             = 0.0;
+    markup.gamma               = 1.0;
+    markup.foreground_color    = black;
+    markup.background_color    = none;
+    markup.underline           = 0;
+    markup.underline_color     = black;
+    markup.overline            = 0;
+    markup.overline_color      = black;
+    markup.strikethrough       = 0;
+    markup.strikethrough_color = black;
+    markup.font                = 0;
+
     shader = shader_load("shaders/v3f-c4f.vert",
                          "shaders/v3f-c4f.frag");
 
