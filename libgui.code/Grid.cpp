@@ -15,23 +15,23 @@ void Grid::Arrange()
 
     // Then create children if needed
 
-    if (m_cellHeight == 0 || !m_itemsProvider || !_cellCreateCallback)
+    if (_cellHeight == 0 || !_itemsProvider || !_cellCreateCallback)
     {
         // Invalid state
         return;
     }
 
-    if (m_lastHeightUsedForScrollCheck != GetHeight())
+    if (_lastHeightUsedForScrollCheck != GetHeight())
     {
         // Do another scroll height check since the height of the element has changed
-        LimitToBounds(m_offsetPercent);
-        m_lastHeightUsedForScrollCheck = GetHeight();
+        LimitToBounds(_offsetPercent);
+        _lastHeightUsedForScrollCheck = GetHeight();
     }
 
-    auto totalCount      = m_itemsProvider->GetTotalItems();
+    auto totalCount      = _itemsProvider->GetTotalItems();
     auto childrenCount   = GetChildrenCount();
-    int  visibleRows     = ceil(GetHeight() / m_cellHeight) + 1; // Need an extra for partial rows
-    auto visibleItems    = visibleRows * m_columns;
+    int  visibleRows     = ceil(GetHeight() / _cellHeight) + 1; // Need an extra for partial rows
+    auto visibleItems    = visibleRows * _columns;
     auto missingChildren = min(totalCount, visibleItems) - childrenCount;
 
     for (int i = 0; i < missingChildren; i++)
@@ -43,58 +43,58 @@ void Grid::Arrange()
     }
 
     // Now do some calculations based on the current parameters
-    m_cellWidth = GetWidth() / m_columns;
+    _cellWidth = GetWidth() / _columns;
 
-    auto totalRows          = ceil(double(totalCount) / m_columns);
-    auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
-    auto totalHeightOffset  = totalContentHeight * m_offsetPercent;
+    auto totalRows          = ceil(double(totalCount) / _columns);
+    auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
+    auto totalHeightOffset  = totalContentHeight * _offsetPercent;
 
-    int currentRow = floor((totalHeightOffset - m_topPadding) / m_cellHeight);
-    m_rowOffset = fmod(totalHeightOffset - m_topPadding, m_cellHeight);
+    int currentRow = floor((totalHeightOffset - _topPadding) / _cellHeight);
+    _rowOffset = fmod(totalHeightOffset - _topPadding, _cellHeight);
 
-    currentRow      = max(0, currentRow);
-    m_baseItemIndex = currentRow * m_columns;
+    currentRow     = max(0, currentRow);
+    _baseItemIndex = currentRow * _columns;
 
 }
 
 double Grid::GetCurrentOffsetPercent()
 {
-    return m_offsetPercent;
+    return _offsetPercent;
 }
 
 double Grid::GetThumbSizePercent()
 {
-    auto totalRows          = ceil(double(m_itemsProvider->GetTotalItems()) / m_columns);
-    auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
+    auto totalRows          = ceil(double(_itemsProvider->GetTotalItems()) / _columns);
+    auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
     return min(1.0, GetHeight() / totalContentHeight);
 }
 
 void Grid::MoveToOffsetPercent(double offsetPercent)
 {
-    m_offsetPercent = offsetPercent;
+    _offsetPercent = offsetPercent;
 }
 
 bool Grid::CanScroll()
 {
-    auto totalRows          = ceil(double(m_itemsProvider->GetTotalItems()) / m_columns);
-    auto totalContentHeight = (totalRows * m_cellHeight) + m_topPadding + m_bottomPadding;
+    auto totalRows          = ceil(double(_itemsProvider->GetTotalItems()) / _columns);
+    auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
     return totalContentHeight > GetHeight();
 }
 
 Grid::Cell::Cell(const shared_ptr<Grid>& grid, int index)
     :
-    m_grid(grid), m_index(index)
+    _grid(grid), _index(index)
 {
 }
 
 void Grid::Cell::PrepareViewModel()
 {
-    if (m_grid->m_itemsProvider)
+    if (_grid->_itemsProvider)
     {
-        auto index = m_grid->m_baseItemIndex + m_index;
-        if (index < m_grid->m_itemsProvider->GetTotalItems())
+        auto index = _grid->_baseItemIndex + _index;
+        if (index < _grid->_itemsProvider->GetTotalItems())
         {
-            SetViewModel(m_grid->m_itemsProvider->GetItem(index));
+            SetViewModel(_grid->_itemsProvider->GetItem(index));
         }
         else
         {
@@ -111,15 +111,15 @@ void Grid::Cell::Arrange()
         return;
     }
 
-    auto row = m_index / m_grid->m_columns;
-    auto col = m_index % m_grid->m_columns;
+    auto row = _index / _grid->_columns;
+    auto col = _index % _grid->_columns;
 
-    auto left   = (m_grid->GetLeft() + col * m_grid->m_cellWidth);
-    auto right  = left + m_grid->m_cellWidth;
+    auto left   = (_grid->GetLeft() + col * _grid->_cellWidth);
+    auto right  = left + _grid->_cellWidth;
     auto top    =
-             m_grid->GetTop() - m_grid->m_rowOffset
-             + row * m_grid->m_cellHeight;
-    auto bottom = top + m_grid->m_cellHeight;
+             _grid->GetTop() - _grid->_rowOffset
+             + row * _grid->_cellHeight;
+    auto bottom = top + _grid->_cellHeight;
 
     // Snap to pixel boundaries
     SetLeft(round(left));
@@ -130,52 +130,52 @@ void Grid::Cell::Arrange()
 
 const int& Grid::GetColumns() const
 {
-    return m_columns;
+    return _columns;
 }
 
 void Grid::SetColumns(int columns)
 {
-    m_columns = columns;
+    _columns = columns;
 }
 
 void Grid::SetCellHeight(double cellHeight)
 {
-    m_cellHeight = cellHeight;
+    _cellHeight = cellHeight;
 }
 
 double Grid::GetCellHeight()
 {
-    return m_cellHeight;
+    return _cellHeight;
 }
 
 const double& Grid::GetTopPadding() const
 {
-    return m_topPadding;
+    return _topPadding;
 }
 
 void Grid::SetTopPadding(double topPadding)
 {
-    m_topPadding = topPadding;
+    _topPadding = topPadding;
 }
 
 const double& Grid::GetBottomPadding() const
 {
-    return m_bottomPadding;
+    return _bottomPadding;
 }
 
 void Grid::SetBottomPadding(double bottomPadding)
 {
-    m_bottomPadding = bottomPadding;
+    _bottomPadding = bottomPadding;
 }
 
 const shared_ptr<ItemsProvider>& Grid::GetItemsProvider() const
 {
-    return m_itemsProvider;
+    return _itemsProvider;
 }
 
 void Grid::SetItemsProvider(const shared_ptr<ItemsProvider>& itemsProvider)
 {
-    m_itemsProvider = itemsProvider;
+    _itemsProvider = itemsProvider;
 }
 
 void Grid::SetCellCreateCallback(const function<void(shared_ptr<Element>)>& cellCreateCallback)

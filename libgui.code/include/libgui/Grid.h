@@ -5,65 +5,63 @@
 
 namespace libgui
 {
-	class Grid : public Element, public ScrollDelegate
-	{
-	
-	public:
-		Grid();
+class Grid: public Element, public ScrollDelegate
+{
 
-		void Arrange() override;
+public:
+    Grid();
 
-		double GetCurrentOffsetPercent() override;
-		double GetThumbSizePercent() override;
-		void MoveToOffsetPercent(double offsetPercent) override;
+    void Arrange() override;
 
-		bool CanScroll();
+    double GetCurrentOffsetPercent() override;
+    double GetThumbSizePercent() override;
+    void   MoveToOffsetPercent(double offsetPercent) override;
 
-		const int& GetColumns() const;
-		void SetColumns(int columns);
+    bool CanScroll();
 
-		void SetCellHeight(double);
-		double GetCellHeight();
+    const int& GetColumns() const;
+    void SetColumns(int columns);
 
-		const double& GetTopPadding() const;
-		const double& GetBottomPadding() const;
-		void SetTopPadding(double topPadding);
-		void SetBottomPadding(double bottomPadding);
+    void   SetCellHeight(double);
+    double GetCellHeight();
 
-		const shared_ptr<ItemsProvider>& GetItemsProvider() const;
+    const double& GetTopPadding() const;
+    const double& GetBottomPadding() const;
+    void SetTopPadding(double topPadding);
+    void SetBottomPadding(double bottomPadding);
 
-		void SetItemsProvider(const shared_ptr<ItemsProvider>& itemsProvider);
+    const shared_ptr<ItemsProvider>& GetItemsProvider() const;
 
-		void SetCellCreateCallback(const function<void(shared_ptr<Element> cellContainer)>& cellCreateCallback);
+    void SetItemsProvider(const shared_ptr<ItemsProvider>& itemsProvider);
+
+    void SetCellCreateCallback(const function<void(shared_ptr<Element> cellContainer)>& cellCreateCallback);
 
 
-	private:
-		int m_columns = 3;
-		double m_cellHeight;
-		double m_cellWidth;
-		double m_offsetPercent = 0.0;
-		int m_baseItemIndex;
-		double m_rowOffset;
-		double m_lastHeightUsedForScrollCheck = 0.0;
+private:
+    int    _columns                      = 3;
+    double _cellHeight;
+    double _cellWidth;
+    double _offsetPercent                = 0.0;
+    int    _baseItemIndex;
+    double _rowOffset;
+    double _lastHeightUsedForScrollCheck = 0.0;
+    double _topPadding                   = 0.0;
+    double _bottomPadding                = 0.0;
 
-		double m_topPadding = 0.0;
-		double m_bottomPadding = 0.0;
+    shared_ptr<ItemsProvider>           _itemsProvider;
+    function<void(shared_ptr<Element>)> _cellCreateCallback;
 
-		shared_ptr<ItemsProvider>           m_itemsProvider;
+    class Cell: public Element
+    {
+    public:
+        Cell(const shared_ptr<Grid>& parent, int index);
 
-		function<void(shared_ptr<Element>)> _cellCreateCallback;
-
-		class Cell : public Element
-		{
-		public:
-			Cell(const shared_ptr<Grid>& parent, int index);
-
-			void PrepareViewModel() override;
-			void Arrange() override;
-		private:
-			shared_ptr<Grid> m_grid;
-			int m_index;
-		};
-	};
+        void PrepareViewModel() override;
+        void Arrange() override;
+    private:
+        shared_ptr<Grid> _grid;
+        int              _index;
+    };
+};
 }
 
