@@ -50,7 +50,7 @@ void Grid::Arrange()
     auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
     auto totalHeightOffset  = totalContentHeight * _offsetPercent;
 
-    int currentRow = floor((totalHeightOffset - _topPadding) / _cellHeight);
+    int currentRow = int(floor((totalHeightOffset - _topPadding) / _cellHeight));
     _rowOffset = fmod(totalHeightOffset - _topPadding, _cellHeight);
 
     currentRow     = max(0, currentRow);
@@ -106,20 +106,15 @@ void Grid::Cell::PrepareViewModel()
 
 void Grid::Cell::Arrange()
 {
-    if (GetViewModel() == nullptr)
-    {
-        SetIsVisible(false);
-        return;
-    }
+    SetIsVisible(GetViewModel() != nullptr);
 
     auto row = _index / _grid->_columns;
     auto col = _index % _grid->_columns;
 
     auto left   = (_grid->GetLeft() + col * _grid->_cellWidth);
     auto right  = left + _grid->_cellWidth;
-    auto top    =
-             _grid->GetTop() - _grid->_rowOffset
-             + row * _grid->_cellHeight;
+    auto top    = _grid->GetTop() - _grid->_rowOffset
+                  + row * _grid->_cellHeight;
     auto bottom = top + _grid->_cellHeight;
 
     // Snap to pixel boundaries

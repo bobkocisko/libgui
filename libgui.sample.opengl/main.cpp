@@ -173,8 +173,6 @@ void InitElements()
     root->SetArrangeCallback(
         [](shared_ptr<Element> e)
         {
-            printf("Arranging root with size %d, %d\n", windowWidth, windowHeight);
-            fflush(stdout);
             e->SetLeft(0);
             e->SetRight(windowWidth);
             e->SetTop(0);
@@ -335,6 +333,7 @@ void InitElements()
 
                 if (can_scroll)
                 {
+                    e->SetIsVisible(true);
                     e->SetWidth(gridScrollWidth);
                     e->SetRight(p->GetRight());
                     e->SetTop(header->GetBottom());
@@ -606,9 +605,6 @@ void reshape(GLFWwindow* window, int width, int height)
 {
     if (width != windowWidth || height != windowHeight)
     {
-        printf("Reshaping with size %d, %d\n", width, height);
-        fflush(stdout);
-
         RefreshEntireWindow(window, width, height);
     }
 }
@@ -617,9 +613,6 @@ void windowRefresh(GLFWwindow* window)
 {
     if (firstWindowRefresh)
     {
-        printf("First window refresh\n");
-        fflush(stdout);
-
         RefreshEntireWindow(window, initialWindowWidth, initialWindowHeight);
 
         firstWindowRefresh = false;
