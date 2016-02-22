@@ -10,7 +10,7 @@ namespace libgui
 class Slider: public libgui::Element
 {
 public:
-    void InitializeThis() override;
+    bool InitializeThis() override;
 
     const double& GetValue() const;
     void SetValue(double value);
@@ -31,9 +31,12 @@ public:
 
     const shared_ptr<Track>& GetTrack() const;
 
+    virtual std::string GetTypeName() override;
+
     class Track: public Element
     {
-
+    public:
+        virtual std::string GetTypeName() override;
     };
 
     class Thumb: public Control
@@ -61,6 +64,9 @@ public:
         const weak_ptr<Slider>& GetSlider() const;
 
         void RecordAnchor();
+
+        virtual std::string GetTypeName() override;
+
     private:
         void* _stateMachine;
         weak_ptr<Slider> _slider;

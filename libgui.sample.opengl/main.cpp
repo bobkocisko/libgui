@@ -198,6 +198,16 @@ void InitElements()
         header->SetDrawCallback(
             [](Element* e, const boost::optional<Rect4>& redrawRegion)
             {
+                Rect4 region;
+                if (redrawRegion)
+                {
+                    region = redrawRegion.get();
+                }
+                else
+                {
+                    region = Rect4(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom());
+                }
+                FillRectangle(region.left, region.top, region.right, region.bottom, 0xFF, 0xFF, 0xFF);
                 OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xAB, 0xAB, 0xAB, 1.0);
             });
     }
@@ -217,6 +227,16 @@ void InitElements()
         footer->SetDrawCallback(
             [](Element* e, const boost::optional<Rect4>& redrawRegion)
             {
+                Rect4 region;
+                if (redrawRegion)
+                {
+                    region = redrawRegion.get();
+                }
+                else
+                {
+                    region = Rect4(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom());
+                }
+                FillRectangle(region.left, region.top, region.right, region.bottom, 0xFF, 0xFF, 0xFF);
                 OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xAB, 0xAB, 0xAB, 1.0);
             });
     }
@@ -226,7 +246,6 @@ void InitElements()
     auto grid = make_shared<Grid>();
     {
         root->AddChild(grid);
-        grid->InitializeThis();
         grid->SetArrangeCallback(
             [header, footer, gridScrollWidth](shared_ptr<Element> e)
             {
@@ -255,43 +274,45 @@ void InitElements()
         grid->SetItemsProvider(itemsVm);
 
         grid->SetCellCreateCallback(
-            []()
+            [](shared_ptr<Element> cellContainer)
             {
                 auto cell_background = make_shared<Element>();
-                cell_background->SetArrangeCallback(
-                    [](shared_ptr<Element> e)
-                    {
-                        auto p = e->GetParent();
-                        e->SetLeft(p->GetLeft() + 10);
-                        e->SetRight(p->GetRight());
-                        e->SetTop(p->GetTop() + 5);
-                        e->SetBottom(p->GetBottom() - 5);
-                    });
-
-                cell_background->SetDrawCallback(
-                    [](Element* e, const boost::optional<Rect4>& redrawRegion)
-                    {
-                        // Rounded at 4.5 px radius would be better
-                        FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xEB, 0xEB, 0xEB);
-                    });
                 {
-                    auto text = make_shared<Element>();
-                    cell_background->AddChild(text);
-                    text->SetDrawCallback(
+                    cellContainer->AddChild(cell_background);
+                    cell_background->SetArrangeCallback(
+                        [](shared_ptr<Element> e)
+                        {
+                            auto p = e->GetParent();
+                            e->SetLeft(p->GetLeft() + 10);
+                            e->SetRight(p->GetRight());
+                            e->SetTop(p->GetTop() + 5);
+                            e->SetBottom(p->GetBottom() - 5);
+                        });
+
+                    cell_background->SetDrawCallback(
                         [](Element* e, const boost::optional<Rect4>& redrawRegion)
                         {
-                            auto ivm = dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
-                            DrawText(e->GetCenterX(), e->GetCenterY(), ivm->GetName());
+                            // Rounded at 4.5 px radius would be better
+                            FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xEB, 0xEB, 0xEB);
                         });
+
+                    auto text = make_shared<Element>();
+                    {
+                        cell_background->AddChild(text);
+                        text->SetDrawCallback(
+                            [](Element* e, const boost::optional<Rect4>& redrawRegion)
+                            {
+                                auto ivm = dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
+                                DrawText(e->GetCenterX(), e->GetCenterY(), ivm->GetName());
+                            });
+                    }
                 }
-                return cell_background;
             });
     }
 
     auto grid_scroll = make_shared<Scrollbar>(grid);
     {
         root->AddChild(grid_scroll);
-        grid_scroll->InitializeThis();
         grid_scroll->SetArrangeCallback(
             [grid, gridScrollWidth, header, footer](shared_ptr<Element> e)
             {
@@ -318,6 +339,7 @@ void InitElements()
                 FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xCD, 0xCD, 0xCD);
             });
 
+        grid_scroll->InitializeThis();
         auto track = grid_scroll->GetTrack();
         track->SetArrangeCallback(
             [](shared_ptr<Element> e)
@@ -338,10 +360,11 @@ void InitElements()
 
     }
 
+    shared_ptr<Slider::Thumb> slider_thumb;
+
     auto slider = make_shared<Slider>();
     {
         root->AddChild(slider);
-        slider->InitializeThis();
         slider->SetThumbHeight(50);
         slider->SetArrangeCallback(
             [gridScrollWidth, header, footer](shared_ptr<Element> e)
@@ -360,6 +383,7 @@ void InitElements()
                 FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xCD, 0xCD, 0xCD);
             });
 
+        slider->InitializeThis();
         auto slider_track = slider->GetTrack();
         slider_track->SetArrangeCallback(
             [](shared_ptr<Element> e)
@@ -371,7 +395,7 @@ void InitElements()
                 e->SetBottom(p->GetBottom() - 5);
             });
 
-        auto slider_thumb = slider->GetThumb();
+        slider_thumb = slider->GetThumb();
         slider_thumb->SetDrawCallback(
             [](Element* e, const boost::optional<Rect4>& redrawRegion)
             {
@@ -388,6 +412,7 @@ void InitElements()
                 std::string valueString = std::to_string(slider->GetValue());
                 DrawText(e->GetCenterX(), e->GetCenterY(), valueString);
             });
+        slider_thumb->AddArrangeDependent(sliderValueText);
     }
 
     root->InitializeAll();
@@ -525,9 +550,6 @@ void display(GLFWwindow* window)
     auto& redrawnRegionOpt = elementManager->GetRedrawnRegion();
     if (redrawnRegionOpt)
     {
-        printf("swapping buffers\n");
-        fflush(stdout);
-
         // Something has changed since the last time anything was redrawn
         glfwSwapBuffers(window);
 

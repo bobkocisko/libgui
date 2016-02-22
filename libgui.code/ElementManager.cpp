@@ -126,6 +126,12 @@ void ElementManager::SetPopClipCallback(const function<void()>& callback)
 
 void ElementManager::PushClip(const Rect4& clip)
 {
+    #ifdef DBG
+    printf("Pushing clip (%f, %f, %f, %f)\n",
+           clip.left, clip.top, clip.right, clip.bottom);
+    fflush(stdout);
+    #endif
+
     if (_pushClipCallback)
     {
         _pushClipCallback(clip);

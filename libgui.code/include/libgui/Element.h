@@ -123,8 +123,11 @@ public:
     // -----------------------------------------------------------------
     // Optional post-construction initialization pass that some elements require
 
+    // Initializes this element and all its descendants
     virtual void InitializeAll();
-    virtual void InitializeThis();
+
+    // Initializes this element and returns whether this is the first initialization
+    virtual bool InitializeThis();
 
     // -----------------------------------------------------------------
     // State tracking
@@ -227,9 +230,13 @@ public:
     virtual void VisitChildrenWithTotalBounds(const Rect4& region, const std::function<void(Element*)>& action);
 
     // -----------------------------------------------------------------
-    // Destructor
+    // Debugging
+    virtual std::string GetTypeName();
 
+    // Destructor
+    // -----------------------------------------------------------------
     virtual ~Element();
+
 
 private:
     // Element manager
@@ -265,6 +272,7 @@ private:
     Rect4 _dirtyTotalBounds = Rect4(0, 0, 0, 0);
 
     // State tracking
+    bool _initialized   = false;
     bool _clipToBounds  = false;
     bool _isVisible     = true;
     bool _isEnabled     = true;
@@ -315,6 +323,5 @@ private:
     bool ClipToBoundsIfNeeded();
 
     void UpdateHelper();
-
 };
 }

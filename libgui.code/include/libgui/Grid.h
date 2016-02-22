@@ -34,8 +34,7 @@ namespace libgui
 
 		void SetItemsProvider(const shared_ptr<ItemsProvider>& itemsProvider);
 
-		const function<shared_ptr<Element>()>& GetCellCreateCallback() const;
-		void SetCellCreateCallback(const function<shared_ptr<Element>()>& cellCreateCallback);
+		void SetCellCreateCallback(const function<void(shared_ptr<Element> cellContainer)>& cellCreateCallback);
 
 
 	private:
@@ -50,9 +49,9 @@ namespace libgui
 		double m_topPadding = 0.0;
 		double m_bottomPadding = 0.0;
 
-		shared_ptr<ItemsProvider> m_itemsProvider;
+		shared_ptr<ItemsProvider>           m_itemsProvider;
 
-		function<shared_ptr<Element>()> m_cellCreateCallback;
+		function<void(shared_ptr<Element>)> _cellCreateCallback;
 
 		class Cell : public Element
 		{

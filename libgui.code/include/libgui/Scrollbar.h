@@ -12,7 +12,7 @@ class Scrollbar: public libgui::Element
 public:
     explicit Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate);
 
-    void InitializeThis() override;
+    bool InitializeThis() override;
 
     class Thumb;
     class Track;
@@ -23,9 +23,12 @@ public:
     const shared_ptr<ScrollDelegate>& GetScrollDelegate() const;
     void SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate);
 
+    virtual std::string GetTypeName() override;
+
     class Track: public Element
     {
-
+    public:
+        virtual std::string GetTypeName() override;
     };
 
     class Thumb: public Control
@@ -54,6 +57,9 @@ public:
         const weak_ptr<Scrollbar>& GetScrollbar() const;
 
         void RecordAnchor();
+
+        virtual std::string GetTypeName() override;
+
     private:
         void* _stateMachine;
         weak_ptr<Scrollbar> _scrollbar;

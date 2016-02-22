@@ -20,9 +20,12 @@ using boost::msm::TerminateFlag;
 
 namespace libgui
 {
-void Slider::InitializeThis()
+bool Slider::InitializeThis()
 {
-    Element::InitializeThis();
+    if (!Element::InitializeThis())
+    {
+        return false;
+    }
 
     _track = make_shared<Track>();
     this->AddChild(_track);
@@ -31,6 +34,13 @@ void Slider::InitializeThis()
         dynamic_pointer_cast<Slider>(shared_from_this()),
         _track);
     _track->AddChild(_thumb);
+
+    #ifdef DBG
+    printf("Initializing Slider\n");
+    fflush(stdout);
+    #endif
+
+    return true;
 }
 
 const double& Slider::GetValue() const
@@ -272,8 +282,8 @@ void Slider::Thumb::NotifyMove(Point point)
         {
             auto offsetPercent = ((point.Y - _anchorOffset) - track->GetTop()) /
                                  (track->GetHeight() - slider->GetThumbHeight());
-            offsetPercent      = max(0.0, offsetPercent);
-            offsetPercent      = min(1.0, offsetPercent);
+            offsetPercent = max(0.0, offsetPercent);
+            offsetPercent = min(1.0, offsetPercent);
             if (slider->GetRawFromValue() != offsetPercent)
             {
                 slider->SetValueFromRaw(offsetPercent);
@@ -320,5 +330,20 @@ const Inches Slider::GetThumbHeightInches() const
 void Slider::SetThumbHeight(Inches thumbHeight)
 {
     SetThumbHeight(double(thumbHeight) * GetElementManager()->GetDpiY());
+}
+
+std::string Slider::GetTypeName()
+{
+    return "Slider";
+}
+
+std::string Slider::Track::GetTypeName()
+{
+    return "Track";
+}
+
+std::string Slider::Thumb::GetTypeName()
+{
+    return "Thumb";
 }
 }

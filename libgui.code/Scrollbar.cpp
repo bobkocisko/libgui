@@ -26,9 +26,12 @@ Scrollbar::Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate)
 {
 }
 
-void Scrollbar::InitializeThis()
+bool Scrollbar::InitializeThis()
 {
-    Element::InitializeThis();
+    if (!Element::InitializeThis())
+    {
+        return false;
+    }
 
     _track = make_shared<Track>();
     this->AddChild(_track);
@@ -44,8 +47,10 @@ void Scrollbar::InitializeThis()
     if (delegateElement)
     {
         delegateElement->AddArrangeDependent(shared_from_this());
-        this->AddArrangeDependent(delegateElement);
+        _thumb->AddArrangeDependent(delegateElement);
     }
+
+    return true;
 }
 
 const shared_ptr<Scrollbar::Thumb>& Scrollbar::GetThumb() const
@@ -288,5 +293,20 @@ Scrollbar::Thumb::State Scrollbar::Thumb::GetState() const
 {
     auto stateMachine = (SmScrollbar::StateMachine*) _stateMachine;
     return (State) stateMachine->current_state()[0];
+}
+
+std::string Scrollbar::GetTypeName()
+{
+    return "Scrollbar";
+}
+
+std::string Scrollbar::Track::GetTypeName()
+{
+    return "Track";
+}
+
+std::string Scrollbar::Thumb::GetTypeName()
+{
+    return "Thumb";
 }
 }

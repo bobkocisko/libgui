@@ -4,6 +4,10 @@
 #include "libgui/Location.h"
 #include "libgui/Layer.h"
 
+#ifdef DBG
+#include <typeinfo>
+#endif
+
 namespace libgui
 {
 // Element Manager
@@ -78,6 +82,12 @@ void Element::RemoveChildren()
 
 void Element::AddChild(shared_ptr<Element> element)
 {
+    if (!_elementManager)
+    {
+        throw std::runtime_error("You cannot call AddChild on an element until it has been added "
+                                     "to the element hierarchy");
+    }
+
     if (_firstChild == nullptr)
     {
         _firstChild = element;
@@ -92,6 +102,13 @@ void Element::AddChild(shared_ptr<Element> element)
     _lastChild = element;
 
     _childrenCount++;
+
+    // Copy the element manager to the child
+    element->_elementManager = _elementManager;
+
+    // Copy the layer to the child
+    element->_layer = _layer;
+
 }
 
 int Element::GetChildrenCount()
@@ -272,6 +289,11 @@ void Element::UpdateHelper()
         return;
     }
 
+    #ifdef DBG
+    printf("Updating %s\n", GetTypeName().c_str());
+    fflush(stdout);
+    #endif
+
     auto wasVisible = GetIsVisible();
     BeginDirtyTracking();
     {
@@ -288,6 +310,12 @@ void Element::UpdateHelper()
         return;
     }
 
+    #ifdef DBG
+    printf("Calculated redraw region as (%f, %f, %f, %f)\n",
+           redrawRegion.left, redrawRegion.top, redrawRegion.right, redrawRegion.bottom);
+    fflush(stdout);
+    #endif
+
     _elementManager->PushClip(redrawRegion);
     {
         auto currentLayer = GetLayer();
@@ -299,6 +327,11 @@ void Element::UpdateHelper()
             },
             [&redrawRegion](Layer* lowerLayer)
             {
+                #ifdef DBG
+                printf("Redrawing lower layer\n");
+                fflush(stdout);
+                #endif
+
                 lowerLayer->RedrawThisAndDescendents(redrawRegion);
             });
 
@@ -307,6 +340,11 @@ void Element::UpdateHelper()
 
         VisitAncestors([&redrawRegion, &thisAndAncestorClips](Element* ancestor)
                        {
+                           #ifdef DBG
+                           printf("Redrawing ancestor %s\n", ancestor->GetTypeName().c_str());
+                           fflush(stdout);
+                           #endif
+
                            ancestor->DoDrawTasksIfVisible(redrawRegion);
                            if (ancestor->GetClipToBounds())
                            {
@@ -314,14 +352,28 @@ void Element::UpdateHelper()
                            }
                        });
 
-        // Apply the current element clip, if any, before drawing children
+        // Apply the current element clip, if any, before drawing this and children
         if (ClipToBoundsIfNeeded())
         {
             ++thisAndAncestorClips;
         }
 
+        // Now draw this element
+
+        #ifdef DBG
+        printf("Drawing %s\n", GetTypeName().c_str());
+        fflush(stdout);
+        #endif
+
+        Draw(boost::none);
+
         if (moved)
         {
+            #ifdef DBG
+            printf("Rearranging all children after move\n");
+            fflush(stdout);
+            #endif
+
             // Arrange all the children of this element since it is expected that
             // children depend on their parent for arrangement
             VisitChildren([](Element* e)
@@ -331,6 +383,11 @@ void Element::UpdateHelper()
         }
         else
         {
+            #ifdef DBG
+            printf("Redrawing all children\n");
+            fflush(stdout);
+            #endif
+
             // Element hasn't moved, so just redraw children without arranging
             VisitChildren([](Element* child)
                           {
@@ -348,6 +405,11 @@ void Element::UpdateHelper()
         currentLayer->VisitHigherLayers(
             [&redrawRegion](Layer* higherLayer)
             {
+                #ifdef DBG
+                printf("Redrawing higher layer\n");
+                fflush(stdout);
+                #endif
+
                 higherLayer->RedrawThisAndDescendents(redrawRegion);
             });
 
@@ -359,19 +421,29 @@ void Element::UpdateHelper()
     if (moved)
     {
         // update any dependent elements in this same layer
-        VisitArrangeDependents([](Element* e)
-                               {
-                                   e->UpdateHelper();
-                               });
+        VisitArrangeDependents(
+            [](Element* e)
+            {
+                #ifdef DBG
+                printf("Discovered arrange dependent %s\n", e->GetTypeName().c_str());
+                fflush(stdout);
+                #endif
+
+                e->UpdateHelper();
+            });
     }
 }
-
 
 void Element::RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegion)
 {
     VisitThisAndDescendents(
         [&redrawRegion](Element* e) // What to do for each element before visiting its children
         {
+            #ifdef DBG
+            printf("Redrawing descendent %s\n", e->GetTypeName().c_str());
+            fflush(stdout);
+            #endif
+
             return e->DoDrawTasksIfVisible(redrawRegion);
         },
         [](Element* e) // What to do for each element after visiting its children
@@ -396,17 +468,21 @@ void Element::InitializeAll()
 
 }
 
-void Element::InitializeThis()
+bool Element::InitializeThis()
 {
     // Default behavior
-    if (_parent)
-    {
-        // Copy the element manager from the parent
-        _elementManager = _parent->_elementManager;
 
-        // Copy the layer from the parent
-        _layer = _parent->_layer;
+    if (_initialized)
+    {
+        return false;
     }
+    else
+    {
+        // This is the first initialization request for this element
+        _initialized = true;
+        return true;
+    }
+
 }
 
 void Element::SetIsVisible(bool isVisible)
@@ -662,6 +738,11 @@ void Element::Draw(const boost::optional<Rect4>& updateArea)
 {
     if (_drawCallback)
     {
+        #ifdef DBG
+        printf("Calling draw callback for %s\n", GetTypeName().c_str());
+        fflush(stdout);
+        #endif
+
         _drawCallback(this, updateArea);
     }
     else
@@ -861,7 +942,7 @@ Element* Element::FindLastChild(const Point& point)
     {
         for (auto e = _lastChild; e != nullptr; e = e->_prevsibling)
         {
-            if (Intersects(point))
+            if (e->Intersects(point))
             {
                 return e.get();
             }
@@ -1041,5 +1122,9 @@ bool Element::CoveredByLayerAbove(const Rect4& region)
     return false;
 }
 
+std::string Element::GetTypeName()
+{
+    return "Element";
+}
 }
 
