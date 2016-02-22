@@ -21,9 +21,9 @@ public:
     Input(const InputId& inputId);
     virtual ~Input();
 
-    bool NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo);
-    bool NotifyDown();
-    bool NotifyUp();
+    void NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo);
+    void NotifyDown();
+    void NotifyUp();
 
     // Debugging
     const Point    & GetPoint() const;
@@ -68,7 +68,6 @@ private:
     ElementQueryInfo _atopElementInfo;
     bool             _targetEnabledState;
     bool             _isDown;
-    bool             _shouldUpdateScreen;
     Point            _point;
     InputType        _inputType;
     bool             _isDebugLoggingEnabled;

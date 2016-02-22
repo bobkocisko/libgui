@@ -50,9 +50,9 @@ public:
     // this library will map the actual events for each platform to these three methods,
     // which will trigger most of the actions of the library.
 
-    bool NotifyNewPoint(InputId inputId, Point point);
-    bool NotifyDown(InputId inputId);
-    bool NotifyUp(InputId inputId);
+    void NotifyNewPoint(InputId inputId, Point point);
+    void NotifyDown(InputId inputId);
+    void NotifyUp(InputId inputId);
 
     void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
 

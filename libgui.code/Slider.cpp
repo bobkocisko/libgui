@@ -214,11 +214,8 @@ void Slider::Thumb::Arrange()
     }
 }
 
-void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen)
+void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Point point)
 {
-    // Apply the default screen update logic
-    Control::NotifyInput(inputType, inputAction, point, updateScreen);
-
     _inputPoint = point;
 
     auto stateMachine = (SmSlider::StateMachine*) _stateMachine;
@@ -232,12 +229,7 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
             stateMachine->process_event(SmSlider::Enter());
             break;
         case InputAction::Move:
-            bool moveUpdateScreen;
-            NotifyMove(point, moveUpdateScreen);
-            if (moveUpdateScreen)
-            {
-                updateScreen = true;
-            }
+            NotifyMove(point);
             break;
         case InputAction::Push:
             stateMachine->process_event(SmSlider::Push());
@@ -255,6 +247,12 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
             stateMachine->process_event(SmSlider::EngagedReturn());
             break;
     }
+
+    if (InputAction::Move != inputAction)
+    {
+        // After any state changes except moving, we update the control (move updates are handled separately)
+        Update();
+    }
 }
 
 void Slider::Thumb::RecordAnchor()
@@ -262,9 +260,8 @@ void Slider::Thumb::RecordAnchor()
     _anchorOffset = _inputPoint.Y - GetTop();
 }
 
-void Slider::Thumb::NotifyMove(Point point, bool& updateScreen)
+void Slider::Thumb::NotifyMove(Point point)
 {
-    updateScreen = false;
     auto state = GetState();
     if (State::Engaged == state ||
         State::EngagedRemotely == state)
@@ -280,7 +277,7 @@ void Slider::Thumb::NotifyMove(Point point, bool& updateScreen)
             if (slider->GetRawFromValue() != offsetPercent)
             {
                 slider->SetValueFromRaw(offsetPercent);
-                updateScreen = true;
+                Update();
             }
         }
     }

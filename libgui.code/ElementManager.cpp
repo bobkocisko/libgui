@@ -30,7 +30,7 @@ void ElementManager::SetSystemCaptureCallback(const function<void(bool)>& system
     _systemCaptureCallback = systemCaptureCallback;
 }
 
-bool ElementManager::NotifyNewPoint(InputId inputId, Point point)
+void ElementManager::NotifyNewPoint(InputId inputId, Point point)
 {
     auto input = GetInput(inputId);
 
@@ -46,19 +46,19 @@ bool ElementManager::NotifyNewPoint(InputId inputId, Point point)
         }
     }
 
-    return input->NotifyNewPoint(point, elementQueryInfo);
+    input->NotifyNewPoint(point, elementQueryInfo);
 }
 
-bool ElementManager::NotifyDown(InputId inputId)
+void ElementManager::NotifyDown(InputId inputId)
 {
     auto input = GetInput(inputId);
-    return input->NotifyDown();
+    input->NotifyDown();
 }
 
-bool ElementManager::NotifyUp(InputId inputId)
+void ElementManager::NotifyUp(InputId inputId)
 {
     auto input = GetInput(inputId);
-    return input->NotifyUp();
+    input->NotifyUp();
 }
 
 Input* ElementManager::GetInput(const InputId& inputId)

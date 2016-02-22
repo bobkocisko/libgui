@@ -6,16 +6,13 @@ namespace libgui
 void Control::PreNotifyInput(InputAction inputAction,
                              InputType inputType,
                              Point point,
-                             bool& updateScreen,
                              bool& notify)
 {
-    updateScreen = (InputAction::Move != inputAction);
     notify       = true;
 }
 
-void Control::NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen)
+void Control::NotifyInput(InputType inputType, InputAction inputAction, Point point)
 {
-    updateScreen = (InputAction::Move != inputAction);
 }
 
 bool Control::HasActiveInput() const

@@ -155,11 +155,8 @@ Button::~Button()
     _stateMachine = nullptr;
 }
 
-void Button::NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen)
+void Button::NotifyInput(InputType inputType, InputAction inputAction, Point point)
 {
-    // Apply the default screen update logic
-    Control::NotifyInput(inputType, inputAction, point, updateScreen);
-
     auto stateMachine = (SmButton::StateMachine*) _stateMachine;
 
     switch (inputAction)
@@ -191,6 +188,11 @@ void Button::NotifyInput(InputType inputType, InputAction inputAction, Point poi
             break;
     }
 
+    if (InputAction::Move != inputAction)
+    {
+        // After any state changes except moving, we update the control
+        Update();
+    }
 }
 
 void Button::OnEvent(OutputEvent outputEvent)

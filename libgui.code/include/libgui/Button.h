@@ -13,7 +13,7 @@ namespace libgui
         virtual ~Button();
 
         // Input events
-        void NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen) override;
+        void NotifyInput(InputType inputType, InputAction inputAction, Point point) override;
 
         // This enum must match the order of the states defined in the state machine table
         enum VisibleState

@@ -386,7 +386,7 @@ void InitElements()
             [slider](Element* e, const boost::optional<Rect4>& redrawRegion)
             {
                 std::string valueString = std::to_string(slider->GetValue());
-                DrawText(e->GetCenterX(), e->GetCenterY(), valueString); // Dark gray
+                DrawText(e->GetCenterX(), e->GetCenterY(), valueString);
             });
     }
 
@@ -395,13 +395,21 @@ void InitElements()
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-
+    elementManager->NotifyNewPoint(PointerInputId, Point{xpos, ypos});
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
-    { ;
+    if (button == GLFW_MOUSE_BUTTON_LEFT)
+    {
+        if (action == GLFW_PRESS)
+        {
+            elementManager->NotifyDown(PointerInputId);
+        }
+        else if (action == GLFW_RELEASE)
+        {
+            elementManager->NotifyUp(PointerInputId);
+        }
     }
 }
 
@@ -584,10 +592,11 @@ void windowRefresh(GLFWwindow* window)
 
 void init()
 {
-    text_buffer = text_buffer_new(LCD_FILTERING_OFF,
-                                  "shaders/text.vert",
-                                  "shaders/text.frag");
-    vec4 black  = {{0.0, 0.0, 0.0, 1.0}};
+    text_buffer   = text_buffer_new(LCD_FILTERING_OFF,
+                                    "shaders/text.vert",
+                                    "shaders/text.frag");
+    vec4 black    = {{0.0, 0.0, 0.0, 1.0}};
+    vec4 darkGray = {{float(0x44) / 255.f, float(0x44) / 255.f, float(0x44) / 255.f, 1.0}};
     text_buffer->base_color = black;
 
     vec4 none = {{1.0, 1.0, 1.0, 0.0}};
@@ -598,7 +607,7 @@ void init()
     markup.rise                = 0.0;
     markup.spacing             = 0.0;
     markup.gamma               = 1.0;
-    markup.foreground_color    = black;
+    markup.foreground_color    = darkGray;
     markup.background_color    = none;
     markup.underline           = 0;
     markup.underline_color     = black;

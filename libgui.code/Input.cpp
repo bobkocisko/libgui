@@ -505,10 +505,8 @@ Input::~Input()
     _stateMachine = nullptr;
 }
 
-bool Input::NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo)
+void Input::NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo)
 {
-    _shouldUpdateScreen = false;
-
     _point = point;
 
     _atopElementInfo = elementQueryInfo;
@@ -527,27 +525,19 @@ bool Input::NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo)
     {
         _debugLogEntries.push_back(LogEntry{_point, _isActive});
     }
-
-    return _shouldUpdateScreen;
 }
 
-bool Input::NotifyDown()
+void Input::NotifyDown()
 {
-    _shouldUpdateScreen = false;
-
     _isDown = true;
 
     CheckTargetEnabledStatus();
 
     ProcessEvent(SmInput::Down());
-
-    return _shouldUpdateScreen;
 }
 
-bool Input::NotifyUp()
+void Input::NotifyUp()
 {
-    _shouldUpdateScreen = false;
-
     _isDown = false;
 
     if (IsTouch())
@@ -560,8 +550,6 @@ bool Input::NotifyUp()
     CheckTargetEnabledStatus();
 
     ProcessEvent(SmInput::Up());
-
-    return _shouldUpdateScreen;
 }
 
 bool Input::IsPointer()
@@ -678,80 +666,39 @@ void Input::SendNotifyEnter()
         }
     }
 
-    bool shouldUpdateScreen;
-    _target->NotifyInput(_inputType, inputAction, _point, shouldUpdateScreen);
-
-    if (shouldUpdateScreen)
-    {
-        _shouldUpdateScreen = true;
-    }
+    _target->NotifyInput(_inputType, inputAction, _point);
 }
 
 void Input::SendNotifyLeave()
 {
 
     // Notify the control that we've left
-    bool shouldUpdateScreen;
-    _target->NotifyInput(_inputType, InputAction::Leave, _point, shouldUpdateScreen);
-    if (shouldUpdateScreen)
-    {
-        _shouldUpdateScreen = true;
-    }
+    _target->NotifyInput(_inputType, InputAction::Leave, _point);
 }
 
 void Input::SendNotifyMove()
 {
-    bool shouldUpdateScreen;
-    _target->NotifyInput(_inputType, InputAction::Move, _point, shouldUpdateScreen);
-
-    if (shouldUpdateScreen)
-    {
-        _shouldUpdateScreen = true;
-    }
+    _target->NotifyInput(_inputType, InputAction::Move, _point);
 }
 
 void Input::SendNotifyDown()
 {
-    bool shouldUpdateScreen;
-    _target->NotifyInput(_inputType, InputAction::Push, _point, shouldUpdateScreen);
-
-    if (shouldUpdateScreen)
-    {
-        _shouldUpdateScreen = true;
-    }
+    _target->NotifyInput(_inputType, InputAction::Push, _point);
 }
 
 void Input::SendNotifyUp()
 {
-    bool shouldUpdateScreen;
-    _target->NotifyInput(_inputType, InputAction::Release, _point, shouldUpdateScreen);
-
-    if (shouldUpdateScreen)
-    {
-        _shouldUpdateScreen = true;
-    }
+    _target->NotifyInput(_inputType, InputAction::Release, _point);
 }
 
 void Input::SendNotifyEngagedEscape()
 {
-    bool shouldUpdateScreen;
-    _target->NotifyInput(_inputType, InputAction::EngagedEscape, _point, shouldUpdateScreen);
-
-    if (shouldUpdateScreen)
-    {
-        _shouldUpdateScreen = true;
-    }
+    _target->NotifyInput(_inputType, InputAction::EngagedEscape, _point);
 }
 
 void Input::SendNotifyEngagedReturn()
 {
-    bool shouldUpdateScreen;
-    _target->NotifyInput(_inputType, InputAction::EngagedReturn, _point, shouldUpdateScreen);
-
-    if (shouldUpdateScreen)
-    {
-        _shouldUpdateScreen = true;
-    }
+    _target->NotifyInput(_inputType, InputAction::EngagedReturn, _point);
 }
 
 template<class Event>

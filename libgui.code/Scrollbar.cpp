@@ -204,17 +204,13 @@ void Scrollbar::Thumb::Arrange()
     }
 }
 
-void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen)
+void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Point point)
 {
     if (InputType::Touch == inputType)
     {
         // Biased judgement: Scrollbars shouldn't even be visible in touch mode, so ignore touch inputs
-        updateScreen = false;
         return;
     }
-
-    // Apply the default screen update logic
-    Control::NotifyInput(inputType, inputAction, point, updateScreen);
 
     _pointer = point;
 
@@ -230,12 +226,7 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
             stateMachine->process_event(SmScrollbar::Enter());
             break;
         case InputAction::Move:
-            bool moveUpdateScreen;
-            NotifyPointerMove(point, moveUpdateScreen);
-            if (moveUpdateScreen)
-            {
-                updateScreen = true;
-            }
+            NotifyPointerMove(point);
             break;
         case InputAction::Push:
             stateMachine->process_event(SmScrollbar::Push());
@@ -254,6 +245,11 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
             break;
     }
 
+    if (InputAction::Move != inputAction)
+    {
+        // After any state changes except moving, we update the control (move updates are handled separately)
+        Update();
+    }
 }
 
 void Scrollbar::Thumb::RecordAnchor()
@@ -261,9 +257,8 @@ void Scrollbar::Thumb::RecordAnchor()
     _anchorOffset = _pointer.Y - GetTop();
 }
 
-void Scrollbar::Thumb::NotifyPointerMove(Point point, bool& updateScreen)
+void Scrollbar::Thumb::NotifyPointerMove(Point point)
 {
-    updateScreen = false;
     auto state = GetState();
     if (State::Engaged == state ||
         State::EngagedRemotely == state)
@@ -278,7 +273,7 @@ void Scrollbar::Thumb::NotifyPointerMove(Point point, bool& updateScreen)
             if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
             {
                 scrollDelegate->MoveToOffsetPercent(offsetPercent);
-                updateScreen = true;
+                Update();
             }
         }
     }

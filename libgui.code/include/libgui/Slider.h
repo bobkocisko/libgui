@@ -43,7 +43,7 @@ public:
         virtual ~Thumb();
 
         // Input events
-        void  NotifyInput(InputType inputType, InputAction inputAction, Point point, bool& updateScreen) override;
+        void  NotifyInput(InputType inputType, InputAction inputAction, Point point) override;
 
         // States
         // This enum must match the order of the states defined in the state machine table
@@ -68,7 +68,7 @@ public:
         double           _anchorOffset;
         Point            _inputPoint;
 
-        void NotifyMove(Point point, bool& updateScreen);
+        void NotifyMove(Point point);
     };
 
 protected:
