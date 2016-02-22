@@ -367,7 +367,7 @@ void Element::UpdateHelper()
 
         Draw(boost::none);
 
-        if (moved)
+        if (moved || GetUpdateRearrangesDescendants())
         {
             #ifdef DBG
             printf("Rearranging all children after move\n");
@@ -1125,6 +1125,16 @@ bool Element::CoveredByLayerAbove(const Rect4& region)
 std::string Element::GetTypeName()
 {
     return "Element";
+}
+
+void Element::SetUpdateRearrangesDescendants(bool updateRearrangesDescendents)
+{
+    _updateRearrangesDescendents = updateRearrangesDescendents;
+}
+
+bool Element::GetUpdateRearrangesDescendants()
+{
+    return _updateRearrangesDescendents;
 }
 }
 

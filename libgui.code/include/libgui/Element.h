@@ -86,19 +86,39 @@ public:
 
     // -----------------------------------------------------------------
     // Arrange cycle
+    // -------------
+    // Regarding updating of descendants, the default update logic is that
+    // an updated element's descendents will be rearranged only if the
+    // element is moved or resized, otherwise its descendants will be redrawn
+    // and not rearranged.  This behavior can be changed by setting
+    // SetUpdateRearrangesDescendants to true.
 
+    // Arranges and draws this element and all descendants.  Prefer
+    // Update() except where the entire set of elements should be updated
+    // or arranged and drawn for the first time.
     virtual void ArrangeAndDraw();
+
+    // Updates this element and all its dependents.  Should be called
+    // whenever data has changed that would affect the position, size
+    // or display of this element.
     virtual void Update();
-    virtual void ResetArrangement();
-    virtual void PrepareViewModel();
-    virtual void Arrange();
 
     // Called during each arrange cycle to set or update the position and size of the element
     // (unless the Arrange method is overridden)
     void SetArrangeCallback(const function<void(shared_ptr<Element>)>&);
 
-    // -----------------------------------------------------------------
-    // Arrange dependents
+    // Set whether calling update on this element will automatically rearrange all of its descendants.
+    // If this is false, descendents are only rearranged when the updated element is moved or resized.
+    // Descendents of an updated element are always redrawn regardless of this setting.
+    void SetUpdateRearrangesDescendants(bool updateRearrangesDescendents);
+
+    // Get whether calling update on this element will automatically rearrange all of its descendants.
+    // If this is false, descendents are only rearranged when the updated element is moved or resized.
+    // Descendents of an updated element are always redrawn regardless of this setting.
+    bool GetUpdateRearrangesDescendants();
+
+    // Add an element which will be updated whenever this element is arranged
+    // in such a way that its position or size is modified
     void AddArrangeDependent(shared_ptr<Element> dependent);
 
     // -----------------------------------------------------------------
@@ -233,24 +253,42 @@ public:
     // Debugging
     virtual std::string GetTypeName();
 
-    // Destructor
     // -----------------------------------------------------------------
+    // Destructor
     virtual ~Element();
+
+protected:
+
+    // -----------------------------------------------------------------
+    // Arrange cycle
+
+    virtual void ResetArrangement();
+    virtual void PrepareViewModel();
+    virtual void Arrange();
 
 
 private:
-    // Element manager
-    ElementManager* _elementManager;
+    // -----------------------------------------------------------------
+    // Objects shared among multiple elements
 
-    // Layer
+    ElementManager* _elementManager;
     Layer* _layer;
+
+    // -----------------------------------------------------------------
+    // View model
 
     shared_ptr<ViewModelBase> _viewModel;
 
-    // Arrange dependents
+    // -----------------------------------------------------------------
+    // Arrange cycle
+
     std::deque<weak_ptr<Element>> _arrangeDependents;
 
+    bool _updateRearrangesDescendents  = false;
+
+    // -----------------------------------------------------------------
     // Visual tree
+
     shared_ptr<Element> _parent;
     shared_ptr<Element> _firstChild;
     shared_ptr<Element> _lastChild;
@@ -258,27 +296,37 @@ private:
     shared_ptr<Element> _nextsibling;
     int                 _childrenCount = 0;
 
+    // -----------------------------------------------------------------
     // Arrangement
+
     function<void(shared_ptr<Element>)>
                         _setViewModelCallback;
     function<void(shared_ptr<Element>)>
                         _arrangeCallback;
 
+    // -----------------------------------------------------------------
     // Bounds
+
     boost::optional<Rect4> _visualBounds;
 
+    // -----------------------------------------------------------------
     // Dirty
+
     Rect4 _dirtyBounds      = Rect4(0, 0, 0, 0);
     Rect4 _dirtyTotalBounds = Rect4(0, 0, 0, 0);
 
+    // -----------------------------------------------------------------
     // State tracking
+
     bool _initialized   = false;
     bool _clipToBounds  = false;
     bool _isVisible     = true;
     bool _isEnabled     = true;
     bool _consumesInput = true;
 
+    // -----------------------------------------------------------------
     // Position and size
+
     double _left    = 0;
     double _top     = 0;
     double _right   = 0;
@@ -297,12 +345,19 @@ private:
     bool _isWidthSet   = false;
     bool _isHeightSet  = false;
 
+    // -----------------------------------------------------------------
     // Drawing
+
     function<void(Element*, const boost::optional<Rect4>&)>
          _drawCallback;
 
+    // -----------------------------------------------------------------
     // Hit Testing
+
     ElementQueryInfo GetElementAtPointHelper(const Point& point, bool hasDisabledAncestor);
+
+    // -----------------------------------------------------------------
+    // Helper methods
 
     bool CoveredByLayerAbove(const Rect4& region);
     void RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegion);

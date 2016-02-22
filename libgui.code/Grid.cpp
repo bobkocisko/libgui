@@ -6,6 +6,7 @@ namespace libgui
 Grid::Grid()
 {
     SetClipToBounds(true);
+    SetUpdateRearrangesDescendants(true);
 }
 
 void Grid::Arrange()

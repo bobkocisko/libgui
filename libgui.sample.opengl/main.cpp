@@ -265,6 +265,20 @@ void InitElements()
                 }
                 e->SetLeft(p->GetLeft() + gridScrollWidth);
             });
+        grid->SetDrawCallback(
+            [](Element* e, const boost::optional<Rect4>& redrawRegion)
+            {
+                Rect4 region;
+                if (redrawRegion)
+                {
+                    region = redrawRegion.get();
+                }
+                else
+                {
+                    region = Rect4(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom());
+                }
+                FillRectangle(region.left, region.top, region.right, region.bottom, 0xFF, 0xFF, 0xFF);
+            });
 
         grid->SetTopPadding(5);
         grid->SetBottomPadding(5);
