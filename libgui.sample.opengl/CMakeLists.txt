@@ -53,7 +53,8 @@ set(SOURCE_FILES
 
 add_executable(libgui.sample.opengl ${SOURCE_FILES})
 target_link_libraries(libgui.sample.opengl libgui libfreetypegl ${GLFW3_LIBRARY}
-    ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARIES})
+    ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARIES}
+    ${FREETYPE_LIBRARIES})
 
 macro(deploy_freetype_gl_shader SHADER_FILE)
     set(SRC_FILE ${FREETYPE_GL_SHADER_PATH}/${SHADER_FILE})

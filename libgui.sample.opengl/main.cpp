@@ -508,6 +508,8 @@ void DrawText(double centerX, double centerY, std::string text)
                            1, 0, projection.data);
         text_buffer_render(text_buffer);
     }
+
+    mat4_set_identity(&model);
 }
 
 void display(GLFWwindow* window)
@@ -590,7 +592,7 @@ void init()
 
     vec4 none = {{1.0, 1.0, 1.0, 0.0}};
     markup.family              = (char*) "fonts/Vera.ttf";
-    markup.size                = 9.0;
+    markup.size                = 12.0;
     markup.bold                = 0;
     markup.italic              = 0;
     markup.rise                = 0.0;
