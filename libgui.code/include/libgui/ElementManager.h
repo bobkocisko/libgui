@@ -54,6 +54,10 @@ public:
     void NotifyDown(InputId inputId);
     void NotifyUp(InputId inputId);
 
+    // Return the last point notification for the specified InputId, or (-1, -1) if
+    // no point has been notified for that input yet.
+    const Point& GetCurrentPoint(InputId inputId);
+
     void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
 
     // -------------------------------------------------------------------------------------

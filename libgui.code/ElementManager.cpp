@@ -61,6 +61,12 @@ void ElementManager::NotifyUp(InputId inputId)
     input->NotifyUp();
 }
 
+const Point& ElementManager::GetCurrentPoint(InputId inputId)
+{
+    auto input = GetInput(inputId);
+    return input->GetPoint();
+}
+
 Input* ElementManager::GetInput(const InputId& inputId)
 {
     if (inputId >= _activeInputs.size())

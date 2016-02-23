@@ -482,6 +482,9 @@ Input::Input(const InputId& inputId)
         _inputType = InputType::Touch;
     }
 
+    // Initialize the point to -1, -1 to satisfy the api of ElementManager's GetCurrentPoint method
+    _point = {-1, -1};
+
     // Create state machine
     auto stateMachine = new SmInput::StateMachine(this);
 
