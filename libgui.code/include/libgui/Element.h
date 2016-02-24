@@ -103,6 +103,10 @@ public:
     // or display of this element.
     virtual void Update();
 
+    // Updates this element and all its dependents.  Should be called
+    // before removing any element from the element hierarchy.
+    virtual void UpdateBeforeRemoval();
+
     // Called during each arrange cycle to set or update the position and size of the element
     // (unless the Arrange method is overridden)
     void SetArrangeCallback(const function<void(shared_ptr<Element>)>&);
@@ -233,6 +237,8 @@ public:
     void VisitThisAndDescendents(const std::function<bool(Element*)>& preChildrenAction,
                                  const std::function<void(Element*)>& postChildrenAction);
 
+    void VisitThisAndDescendents(const std::function<void(Element*)>& action);
+
     void VisitThisAndDescendents(const Rect4& region,
                                  const std::function<bool(Element*)>& preChildrenAction,
                                  const std::function<void(Element*)>& postChildrenAction);
@@ -272,7 +278,7 @@ private:
     // Objects shared among multiple elements
 
     ElementManager* _elementManager;
-    Layer* _layer;
+    Layer         * _layer;
 
     // -----------------------------------------------------------------
     // View model
@@ -323,6 +329,7 @@ private:
     bool _isVisible     = true;
     bool _isEnabled     = true;
     bool _consumesInput = true;
+    bool _isDetached    = false;
 
     // -----------------------------------------------------------------
     // Position and size
@@ -377,6 +384,6 @@ private:
 
     bool ClipToBoundsIfNeeded();
 
-    void UpdateHelper();
+    void UpdateHelper(bool willBeRemoved);
 };
 }

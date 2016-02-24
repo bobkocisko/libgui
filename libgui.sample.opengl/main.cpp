@@ -44,6 +44,7 @@
 #include "libgui/Scrollbar.h"
 #include "libgui/Slider.h"
 #include "libgui/IntersectionStack.h"
+#include "libgui/Button.h"
 
 #include "freetype-gl.h"
 #include "vertex-buffer.h"
@@ -66,12 +67,18 @@ using libgui::Element;
 using libgui::Grid;
 using libgui::Scrollbar;
 using libgui::Slider;
+using libgui::Button;
 
 typedef struct
 {
     float x, y, z;
     float r, g, b, a;
 } vertex_t;
+
+typedef struct
+{
+    int r, g, b;
+} color_t;
 
 mat4 model, view, projection;
 
@@ -112,6 +119,8 @@ bool firstWindowRefresh = true;
 void FillRectangle(double left, double top, double right, double bottom, int r, int g, int b);
 void OutlineRectangle(double left, double top, double right, double bottom, int r, int g, int b, double lineWidth);
 void DrawText(double centerX, double centerY, std::string text);
+
+void DrawButton(Element* e);
 
 void InitElements()
 {
@@ -178,6 +187,20 @@ void InitElements()
             e->SetTop(0);
             e->SetBottom(windowHeight);
         });
+    root->SetDrawCallback(
+        [](Element* e, const boost::optional<Rect4>& redrawRegion)
+        {
+            Rect4 region;
+            if (redrawRegion)
+            {
+                region = redrawRegion.get();
+            }
+            else
+            {
+                region = Rect4(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom());
+            }
+            FillRectangle(region.left, region.top, region.right, region.bottom, 0xFF, 0xFF, 0xFF);
+        });
 
 
     // Build the screen elements
@@ -196,18 +219,107 @@ void InitElements()
         header->SetDrawCallback(
             [](Element* e, const boost::optional<Rect4>& redrawRegion)
             {
-                Rect4 region;
-                if (redrawRegion)
-                {
-                    region = redrawRegion.get();
-                }
-                else
-                {
-                    region = Rect4(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom());
-                }
-                FillRectangle(region.left, region.top, region.right, region.bottom, 0xFF, 0xFF, 0xFF);
                 OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xAB, 0xAB, 0xAB, 1.0);
             });
+
+        auto launchButton = make_shared<Button>();
+        {
+            header->AddChild(launchButton);
+            launchButton->SetArrangeCallback(
+                [](shared_ptr<Element> e)
+                {
+                    auto p = e->GetParent();
+                    e->SetCenterX(p->GetCenterX());
+                    e->SetCenterY(p->GetCenterY());
+                    e->SetWidth(150);
+                    e->SetHeight(25);
+                });
+            launchButton->SetDrawCallback(
+                [](Element* e, const boost::optional<Rect4>& redrawRegion)
+                {
+                    DrawButton(e);
+                    DrawText(e->GetCenterX(), e->GetCenterY(), "Launch Message");
+                });
+
+            launchButton->SetEventCallback(
+                [](shared_ptr<Button> b, Button::OutputEvent event)
+                {
+                    if (Button::OutputEvent::Clicked == event)
+                    {
+                        // launch the modal
+                        auto layer = b->GetElementManager()->AddLayer();
+                        {
+                            layer->SetArrangeCallback(
+                                [](shared_ptr<Element> e)
+                                {
+                                    e->SetCenterX(windowWidth / 2);
+                                    e->SetCenterY(windowHeight / 2);
+                                    e->SetWidth(300);
+                                    e->SetHeight(200);
+                                });
+                            layer->SetDrawCallback(
+                                [](Element* e, const boost::optional<Rect4>& redrawRegion)
+                                {
+                                    FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
+                                                  0xFF, 0xFF, 0xFF);
+                                    OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
+                                                     0xCB, 0xCB, 0xCB, 1.0);
+                                });
+
+                            auto okButton = make_shared<Button>();
+                            {
+                                layer->AddChild(okButton);
+                                okButton->SetArrangeCallback(
+                                    [](shared_ptr<Element> e)
+                                    {
+                                        auto p = e->GetParent();
+                                        e->SetHeight(41);
+                                        e->SetLeft(p->GetLeft());
+                                        e->SetRight(p->GetRight());
+                                        e->SetBottom(p->GetBottom());
+                                    });
+                                okButton->SetDrawCallback(
+                                    [](Element* e, const boost::optional<Rect4>& redrawRegion)
+                                    {
+                                        DrawButton(e);
+                                        DrawText(e->GetCenterX(), e->GetCenterY(), "Ok");
+                                    });
+                                okButton->SetEventCallback(
+                                    [](shared_ptr<Button> b2, Button::OutputEvent event2)
+                                    {
+                                        if (Button::OutputEvent::Clicked == event2)
+                                        {
+                                            auto l = b2->GetLayer();
+                                            b2->GetElementManager()->RemoveLayer(l);
+                                        }
+                                    });
+                            }
+
+                            auto messageLabel = make_shared<Element>();
+                            {
+                                layer->AddChild(messageLabel);
+                                messageLabel->SetArrangeCallback(
+                                    [](shared_ptr<Element> e)
+                                    {
+                                        auto ps = e->GetPrevSibling();
+                                        auto p  = e->GetParent();
+                                        e->SetLeft(p->GetLeft());
+                                        e->SetTop(p->GetTop());
+                                        e->SetRight(p->GetRight());
+                                        e->SetBottom(ps->GetTop());
+                                    });
+                                messageLabel->SetDrawCallback(
+                                    [](Element* e, const boost::optional<Rect4>&)
+                                    {
+                                        DrawText(e->GetCenterX(), e->GetCenterY(), "This is a message");
+                                    });
+                            }
+                        }
+                        layer->ArrangeAndDraw();
+                    }
+                });
+        }
+
     }
 
     auto footer = make_shared<Element>();
@@ -225,16 +337,6 @@ void InitElements()
         footer->SetDrawCallback(
             [](Element* e, const boost::optional<Rect4>& redrawRegion)
             {
-                Rect4 region;
-                if (redrawRegion)
-                {
-                    region = redrawRegion.get();
-                }
-                else
-                {
-                    region = Rect4(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom());
-                }
-                FillRectangle(region.left, region.top, region.right, region.bottom, 0xFF, 0xFF, 0xFF);
                 OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xAB, 0xAB, 0xAB, 1.0);
             });
     }
@@ -262,20 +364,6 @@ void InitElements()
                     e->SetRight(p->GetRight() - 10);
                 }
                 e->SetLeft(p->GetLeft() + gridScrollWidth);
-            });
-        grid->SetDrawCallback(
-            [](Element* e, const boost::optional<Rect4>& redrawRegion)
-            {
-                Rect4 region;
-                if (redrawRegion)
-                {
-                    region = redrawRegion.get();
-                }
-                else
-                {
-                    region = Rect4(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom());
-                }
-                FillRectangle(region.left, region.top, region.right, region.bottom, 0xFF, 0xFF, 0xFF);
             });
 
         grid->SetTopPadding(5);
@@ -556,6 +644,38 @@ void DrawText(double centerX, double centerY, std::string text)
     }
 
     mat4_set_identity(&model);
+}
+
+void DrawButton(Element* e)
+{
+    color_t outlineColor;
+    color_t fillColor;
+
+    auto b = dynamic_cast<Button*>(e);
+    switch (b->GetVisibleState())
+    {
+        case Button::Idle:
+            outlineColor = color_t{0xCB, 0xCB, 0xCB};
+            fillColor    = color_t{0xEB, 0xEB, 0xEB};
+            break;
+        case Button::Pending:
+            outlineColor = color_t{0x00, 0x00, 0x00};
+            fillColor    = color_t{0xEB, 0xEB, 0xEB};
+            break;
+        case Button::Engaged:
+            outlineColor = color_t{0x00, 0x00, 0x00};
+            fillColor    = color_t{0xCB, 0xCB, 0xCB};
+            break;
+        case Button::EngagedRemotely:
+            outlineColor = color_t{0x00, 0x00, 0x00};
+            fillColor    = color_t{0xEB, 0xEB, 0xEB};
+            break;
+    }
+
+    FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
+                  fillColor.r, fillColor.g, fillColor.b);
+    OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
+                     outlineColor.r, outlineColor.g, outlineColor.b, 1.0);
 }
 
 void display(GLFWwindow* window)

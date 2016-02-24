@@ -11,8 +11,52 @@ Layer* ElementManager::AddLayer()
     layer->_elementManager = this;
     layer->_layer          = layer;
 
+    if (!_layers.empty())
+    {
+        auto layerBelow = _layers.back().get();
+        layer->_layerBelow      = layerBelow;
+        layerBelow->_layerAbove = layer;
+    }
+
     _layers.push_back(std::shared_ptr<Layer>(layer));
     return layer;
+}
+
+void ElementManager::RemoveLayer(Layer* layer)
+{
+    layer->UpdateBeforeRemoval();
+
+    layer->VisitThisAndDescendents(
+        [](Element* e)
+        {
+            e->_isDetached = true;
+        });
+
+    auto layerBelow = layer->_layerBelow;
+    auto layerAbove = layer->_layerAbove;
+
+    // Most likely the higher layers will be removed before lower layers so
+    // we use a reverse iterator to search those layers first
+    for (auto it = _layers.rbegin(); it != _layers.rend(); ++it)
+    {
+        if ((*it).get() == layer)
+        {
+            ++it; // See http://www.drdobbs.com/cpp/three-guidelines-for-effective-iterator/184401406?pgno=3
+            _layers.erase(it.base());
+
+            // Update the layer pointers
+            if (layerBelow)
+            {
+                layerBelow->_layerAbove = layerAbove;
+            }
+            if (layerAbove)
+            {
+                layerAbove->_layerBelow = layerBelow;
+            }
+
+            break;
+        }
+    }
 }
 
 void ElementManager::ArrangeAndDrawAll()
@@ -32,7 +76,7 @@ void ElementManager::SetSystemCaptureCallback(const function<void(bool)>& system
 
 void ElementManager::NotifyNewPoint(InputId inputId, Point point)
 {
-    auto input = GetInput(inputId);
+    auto input                 = GetInput(inputId);
 
     // Loop through the layers from the top to the bottom
     ElementQueryInfo elementQueryInfo;

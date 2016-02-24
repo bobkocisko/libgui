@@ -46,7 +46,7 @@ bool Scrollbar::InitializeThis()
     auto delegateElement = dynamic_pointer_cast<Element>(_scrollDelegate);
     if (delegateElement)
     {
-        delegateElement->AddArrangeDependent(shared_from_this());
+        delegateElement->AddArrangeDependent(_thumb);
         _thumb->AddArrangeDependent(delegateElement);
     }
 

@@ -16,13 +16,15 @@ class ElementManager: public std::enable_shared_from_this<ElementManager>
 {
 public:
     // -------------------------------------------------------------------------------------
-    // Adding layers
+    // Layers
     // ------------------
     // Layers are the starting point where elements can be added to an ElementManager
     // instance.  Each layer represents a set of elements that are non-overlapping,
     // whereas layers themselves are meant to overlap other layers in a performant way.
 
     Layer* AddLayer();
+
+    void RemoveLayer(Layer* layer);
 
     // -------------------------------------------------------------------------------------
     // Arranging and drawing

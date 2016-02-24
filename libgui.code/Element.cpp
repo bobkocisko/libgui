@@ -4,6 +4,8 @@
 #include "libgui/Location.h"
 #include "libgui/Layer.h"
 
+#define DBG
+
 #ifdef DBG
 #include <typeinfo>
 #endif
@@ -275,13 +277,30 @@ void Element::DoDrawTasksCleanup()
 
 void Element::Update()
 {
+    // Elements that have been detached from the visual tree should no longer be updated.
+    // However, whenever an element is removed it should be updated via UpdateBeforeRemoval
+    // before removing it.  Then it and all its descendants should be marked as detached
+    // (see ElementManager::RemoveLayer)
+    if (_isDetached)
+    {
+        return;
+    }
+
     // Since we are beginning an update pass, clear the tracking of which elements have been updated
     _elementManager->ClearUpdateTracking();
 
-    UpdateHelper();
+    UpdateHelper(false);
 }
 
-void Element::UpdateHelper()
+void Element::UpdateBeforeRemoval()
+{
+    // Since we are beginning an update pass, clear the tracking of which elements have been updated
+    _elementManager->ClearUpdateTracking();
+
+    UpdateHelper(true);
+}
+
+void Element::UpdateHelper(bool willBeRemoved)
 {
     // Check that this element hasn't already been updated in this update pass
     if (!_elementManager->TryBeginUpdate(this))
@@ -304,6 +323,7 @@ void Element::UpdateHelper()
 
     // If the redraw region is totally hidden both before
     // and after the rearrangement, we don't have to do anything
+    // unless this element is about to be removed
     if ((!wasVisible && !GetIsVisible()) ||
         CoveredByLayerAbove(redrawRegion))
     {
@@ -352,47 +372,49 @@ void Element::UpdateHelper()
                            }
                        });
 
-        // Apply the current element clip, if any, before drawing this and children
-        if (ClipToBoundsIfNeeded())
+        // Now draw this element and its children unless it's going to be removed
+        if (!willBeRemoved)
         {
-            ++thisAndAncestorClips;
-        }
+            // Apply the current element clip, if any, before drawing this and children
+            if (ClipToBoundsIfNeeded())
+            {
+                ++thisAndAncestorClips;
+            }
 
-        // Now draw this element
-
-        #ifdef DBG
-        printf("Drawing %s\n", GetTypeName().c_str());
-        fflush(stdout);
-        #endif
-
-        Draw(boost::none);
-
-        if (moved || GetUpdateRearrangesDescendants())
-        {
             #ifdef DBG
-            printf("Rearranging all children after move\n");
+            printf("Drawing %s\n", GetTypeName().c_str());
             fflush(stdout);
             #endif
 
-            // Arrange all the children of this element since it is expected that
-            // children depend on their parent for arrangement
-            VisitChildren([](Element* e)
-                          {
-                              e->ArrangeAndDraw();
-                          });
-        }
-        else
-        {
-            #ifdef DBG
-            printf("Redrawing all children\n");
-            fflush(stdout);
-            #endif
+            Draw(boost::none);
 
-            // Element hasn't moved, so just redraw children without arranging
-            VisitChildren([](Element* child)
-                          {
-                              child->RedrawThisAndDescendents(boost::none);
-                          });
+            if (moved || GetUpdateRearrangesDescendants())
+            {
+                #ifdef DBG
+                printf("Rearranging all children after move\n");
+                fflush(stdout);
+                #endif
+
+                // Arrange all the children of this element since it is expected that
+                // children depend on their parent for arrangement
+                VisitChildren([](Element* e)
+                              {
+                                  e->ArrangeAndDraw();
+                              });
+            }
+            else
+            {
+                #ifdef DBG
+                printf("Redrawing all children\n");
+                fflush(stdout);
+                #endif
+
+                // Element hasn't moved, so just redraw children without arranging
+                VisitChildren([](Element* child)
+                              {
+                                  child->RedrawThisAndDescendents(boost::none);
+                              });
+            }
         }
 
         while (thisAndAncestorClips)
@@ -418,7 +440,7 @@ void Element::UpdateHelper()
 
     _elementManager->AddToRedrawnRegion(redrawRegion);
 
-    if (moved)
+    if (!willBeRemoved && moved)
     {
         // update any dependent elements in this same layer
         VisitArrangeDependents(
@@ -429,7 +451,7 @@ void Element::UpdateHelper()
                 fflush(stdout);
                 #endif
 
-                e->UpdateHelper();
+                e->UpdateHelper(false);
             });
     }
 }
@@ -908,6 +930,16 @@ void Element::VisitThisAndDescendents(const Rect4& region,
 
         postChildrenAction(this);
     }
+}
+
+void Element::VisitThisAndDescendents(const std::function<void(Element*)>& action)
+{
+    VisitChildren([&action](Element* child)
+                  {
+                      child->VisitThisAndDescendents(action);
+                  });
+
+    action(this);
 }
 
 bool Element::Intersects(const Rect4& region)
