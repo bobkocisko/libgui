@@ -14,19 +14,27 @@ using ::testing::Return;
 
 TEST(ButtonTests, WhenPointerEntering_StateIsPending)
 {
-    auto btn = make_shared<Button>();
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
 
     ASSERT_EQ(Button::VisibleState::Pending, btn->GetVisibleState());
 }
 
 TEST(ButtonTests, WhenPointerLeaving_StateIsIdle)
 {
-    auto btn = make_shared<Button>();
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Leave, Point(), updateScreen);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Leave, Point());
     ASSERT_EQ(Button::VisibleState::Idle, btn->GetVisibleState());
 }
 
@@ -38,18 +46,22 @@ TEST(ButtonTests, WhenPointerPushed_StateIsEngaged)
     root->AddChild(btn);
     root->InitializeAll();
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point());
     ASSERT_EQ(Button::VisibleState::Engaged, btn->GetVisibleState());
 }
 
 TEST(ButtonTests, WhenPointerReleased_StateIsPending)
 {
-    auto btn = make_shared<Button>();
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterPushed, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
+    auto em   = make_shared<ElementManager>();
+    auto root = em->AddLayer();
+    auto btn  = make_shared<Button>();
+    root->AddChild(btn);
+    root->InitializeAll();
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterPushed, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point());
     ASSERT_EQ(Button::VisibleState::Pending, btn->GetVisibleState());
 }
 
@@ -61,10 +73,10 @@ TEST(ButtonTests, WhenPointerPushedAndEscaping_StateIsEngagedRemotely)
     root->AddChild(btn);
     root->InitializeAll();
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point());
     ASSERT_EQ(Button::VisibleState::EngagedRemotely, btn->GetVisibleState());
 }
 
@@ -76,11 +88,11 @@ TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsEngaged)
     root->AddChild(btn);
     root->InitializeAll();
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::EngagedReturn, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedReturn, Point());
     ASSERT_EQ(Button::VisibleState::Engaged, btn->GetVisibleState());
 }
 
@@ -92,11 +104,11 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_StateIsIdle)
     root->AddChild(btn);
     root->InitializeAll();
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point());
     ASSERT_EQ(Button::VisibleState::Idle, btn->GetVisibleState());
 }
 
@@ -117,11 +129,11 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
                               }
                           });
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::EngagedEscape, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point());
     ASSERT_EQ(false, is_clicked);
 }
 
@@ -133,10 +145,10 @@ TEST(ButtonTests, AfterPointerClicked_StateIsPending)
     root->AddChild(btn);
     root->InitializeAll();
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point());
     ASSERT_EQ(Button::VisibleState::Pending, btn->GetVisibleState());
 }
 
@@ -157,10 +169,10 @@ TEST(ButtonTests, WhenTouchPushAndRelease_Click)
                               }
                           });
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Touch, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Touch, InputAction::Release, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Touch, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Touch, InputAction::Release, Point());
     ASSERT_EQ(true, isClicked);
 }
 
@@ -172,12 +184,12 @@ TEST(ButtonTests, WhenTouchDownEscapeReturnAndUp_StateIsPending)
     root->AddChild(btn);
     root->InitializeAll();
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Touch, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Touch, InputAction::EngagedEscape, Point(), updateScreen);
-    btn->NotifyInput(InputType::Touch, InputAction::EngagedReturn, Point(), updateScreen);
-    btn->NotifyInput(InputType::Touch, InputAction::Release, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Touch, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Touch, InputAction::EngagedEscape, Point());
+    btn->NotifyInput(InputType::Touch, InputAction::EngagedReturn, Point());
+    btn->NotifyInput(InputType::Touch, InputAction::Release, Point());
 
     ASSERT_EQ(Button::VisibleState::Pending, btn->GetVisibleState());
 }
@@ -199,15 +211,15 @@ TEST(ButtonTests, WhenMultiplePushAndRelease_MultipleOutputEvents)
                               }
                           });
 
-    bool updateScreen;
-    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
+
+    btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point());
     ASSERT_EQ(true, is_pushed);
 
     // Now do it again
     is_pushed = false;
-    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
-    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point(), updateScreen);
+    btn->NotifyInput(InputType::Pointer, InputAction::Push, Point());
+    btn->NotifyInput(InputType::Pointer, InputAction::Release, Point());
     ASSERT_EQ(true, is_pushed);
 }

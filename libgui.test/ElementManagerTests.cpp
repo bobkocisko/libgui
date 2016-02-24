@@ -87,10 +87,9 @@ public:
 
     void NotifyInput(InputType inputType,
                      InputAction inputAction,
-                     Point point,
-                     bool& updateScreen) override
+                     Point point) override
     {
-        Control::NotifyInput(inputType, inputAction, point, updateScreen);
+        Control::NotifyInput(inputType, inputAction, point);
         if (InputType::Pointer == inputType)
         {
             switch (inputAction)

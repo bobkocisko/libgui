@@ -25,9 +25,8 @@ TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 
     auto thumb = slider->GetThumb();
 
-    bool updateScreen;
-    thumb->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point(), updateScreen);
-    thumb->NotifyInput(InputType::Pointer, InputAction::Push, Point(), updateScreen);
+    thumb->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+    thumb->NotifyInput(InputType::Pointer, InputAction::Push, Point());
 
     ASSERT_EQ(Slider::Thumb::State::Engaged, thumb->GetState());
 }
@@ -42,9 +41,8 @@ TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 
     auto thumb = slider->GetThumb();
 
-    bool updateScreen;
-    thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point(), updateScreen);
-    thumb->NotifyInput(InputType::Touch, InputAction::Push, Point(), updateScreen);
+    thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point());
+    thumb->NotifyInput(InputType::Touch, InputAction::Push, Point());
 
     ASSERT_EQ(Slider::Thumb::State::Engaged, thumb->GetState());
 }
@@ -61,13 +59,12 @@ TEST(SliderTests, WhenTouchDragged_ValueChanges)
 
     auto originalValue = slider->GetValue();
 
-    bool updateScreen;
-    thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point{1, 1}, updateScreen);
-    thumb->NotifyInput(InputType::Touch, InputAction::Push, Point{1, 1}, updateScreen);
+    thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point{1, 1});
+    thumb->NotifyInput(InputType::Touch, InputAction::Push, Point{1, 1});
 
     ASSERT_EQ(originalValue, slider->GetValue());
 
-    thumb->NotifyInput(InputType::Touch, InputAction::Move, Point{0, 1}, updateScreen);
+    thumb->NotifyInput(InputType::Touch, InputAction::Move, Point{1, 2});
     ASSERT_NE(originalValue, slider->GetValue());
 
 }
