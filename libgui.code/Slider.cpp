@@ -252,9 +252,11 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
             break;
         case InputAction::EngagedEscape:
             stateMachine->process_event(SmSlider::EngagedEscape());
+            NotifyMove(point);
             break;
         case InputAction::EngagedReturn:
             stateMachine->process_event(SmSlider::EngagedReturn());
+            NotifyMove(point);
             break;
     }
 

@@ -244,9 +244,11 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
             break;
         case InputAction::EngagedEscape:
             stateMachine->process_event(SmScrollbar::EngagedEscape());
+            NotifyPointerMove(point);
             break;
         case InputAction::EngagedReturn:
             stateMachine->process_event(SmScrollbar::EngagedReturn());
+            NotifyPointerMove(point);
             break;
     }
 
