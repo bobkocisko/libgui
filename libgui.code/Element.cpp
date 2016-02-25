@@ -93,6 +93,45 @@ void Element::RemoveChildren()
     _childrenCount = 0;
 }
 
+void Element::RemoveChild(shared_ptr<Element> child)
+{
+    auto prevSibling = child->_prevsibling;
+    auto nextSibling = child->_nextsibling;
+
+    // First cleanup the child's children
+    child->RemoveChildren();
+
+    // Update the child's siblings and this
+    if (prevSibling)
+    {
+        prevSibling->_nextsibling = nextSibling;
+    }
+    else
+    {
+        // We're removing the first child
+        _firstChild = nextSibling;
+    }
+
+    if (nextSibling)
+    {
+        nextSibling->_prevsibling = prevSibling;
+    }
+    else
+    {
+        // We're removing the last child
+        _lastChild = prevSibling;
+    }
+
+    --_childrenCount;
+
+    // Remove the child's pointers to its relatives
+    child->_parent      = nullptr;
+    child->_nextsibling = nullptr;
+    child->_prevsibling = nullptr;
+
+    // The child should disappear as soon as all shared references to it are released
+}
+
 void Element::AddChild(shared_ptr<Element> element)
 {
     if (!_elementManager)

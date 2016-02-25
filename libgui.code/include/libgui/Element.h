@@ -69,6 +69,7 @@ public:
     // Visual tree
 
     void RemoveChildren();
+    void RemoveChild(shared_ptr<Element>);
     void AddChild(shared_ptr<Element>);
     void SetSingleChild(shared_ptr<Element> child);
     int  GetChildrenCount();
