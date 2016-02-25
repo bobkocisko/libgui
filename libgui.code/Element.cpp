@@ -4,14 +4,25 @@
 #include "libgui/Location.h"
 #include "libgui/Layer.h"
 
-#define DBG
-
 #ifdef DBG
 #include <typeinfo>
 #endif
 
 namespace libgui
 {
+
+Element::Element()
+    : _typeName("Element")
+{
+
+}
+
+Element::Element(const std::string& typeName)
+    : _typeName(typeName)
+{
+
+}
+
 // Element Manager
 ElementManager* Element::GetElementManager() const
 {
@@ -237,10 +248,31 @@ void Element::Arrange()
 
 void Element::ArrangeAndDraw()
 {
+    #ifdef DBG
+    printf("\n\nBeginning arrange and draw cycle for %s\n", GetTypeName().c_str());
+    fflush(stdout);
+    #endif
+
+    ArrangeAndDrawHelper();
+}
+
+void Element::ArrangeAndDrawHelper()
+{
     VisitThisAndDescendents(
         [](Element* e) // What to do for each element before visiting its children
         {
+            #ifdef DBG
+            printf("Arranging %s\n", e->GetTypeName().c_str());
+            fflush(stdout);
+            #endif
+
             e->DoArrangeTasks();
+
+            #ifdef DBG
+            printf("Drawing %s\n", e->GetTypeName().c_str());
+            fflush(stdout);
+            #endif
+
             return e->DoDrawTasksIfVisible(boost::none); // whether or not to visit its children
         },
         [](Element* e) // What to do for each element after visiting its children
@@ -286,6 +318,11 @@ void Element::Update()
         return;
     }
 
+    #ifdef DBG
+    printf("\n\nBeginning update cycle for %s\n", GetTypeName().c_str());
+    fflush(stdout);
+    #endif
+
     // Since we are beginning an update pass, clear the tracking of which elements have been updated
     _elementManager->ClearUpdateTracking();
 
@@ -294,6 +331,11 @@ void Element::Update()
 
 void Element::UpdateBeforeRemoval()
 {
+    #ifdef DBG
+    printf("\n\nBeginning update cycle (before removal) for %s\n", GetTypeName().c_str());
+    fflush(stdout);
+    #endif
+
     // Since we are beginning an update pass, clear the tracking of which elements have been updated
     _elementManager->ClearUpdateTracking();
 
@@ -309,7 +351,7 @@ void Element::UpdateHelper(bool willBeRemoved)
     }
 
     #ifdef DBG
-    printf("Updating %s\n", GetTypeName().c_str());
+    printf("\nUpdating %s\n", GetTypeName().c_str());
     fflush(stdout);
     #endif
 
@@ -341,8 +383,14 @@ void Element::UpdateHelper(bool willBeRemoved)
         auto currentLayer = GetLayer();
 
         currentLayer->VisitLowerLayersIf(
-            [&redrawRegion](Layer* currentLayer2)
+            [&redrawRegion, currentLayer, willBeRemoved](Layer* currentLayer2)
             {
+                // Special case: if we are removing this layer then always
+                // visit lower layers regardless of the opaque area
+                if (currentLayer2 == currentLayer && willBeRemoved)
+                {
+                    return true;
+                }
                 return !currentLayer2->OpaqueAreaContains(redrawRegion);
             },
             [&redrawRegion](Layer* lowerLayer)
@@ -391,7 +439,7 @@ void Element::UpdateHelper(bool willBeRemoved)
             if (moved || GetUpdateRearrangesDescendants())
             {
                 #ifdef DBG
-                printf("Rearranging all children after move\n");
+                printf("Rearranging all children of %s after move\n", GetTypeName().c_str());
                 fflush(stdout);
                 #endif
 
@@ -399,13 +447,13 @@ void Element::UpdateHelper(bool willBeRemoved)
                 // children depend on their parent for arrangement
                 VisitChildren([](Element* e)
                               {
-                                  e->ArrangeAndDraw();
+                                  e->ArrangeAndDrawHelper();
                               });
             }
             else
             {
                 #ifdef DBG
-                printf("Redrawing all children\n");
+                printf("Redrawing all children of %s\n", GetTypeName().c_str());
                 fflush(stdout);
                 #endif
 
@@ -461,8 +509,14 @@ void Element::RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegio
     VisitThisAndDescendents(
         [&redrawRegion](Element* e) // What to do for each element before visiting its children
         {
+            if (redrawRegion && !e->TotalBoundsIntersects(redrawRegion.get()))
+            {
+                // Ignore any element hierarchy that doesn't intersect with the redraw region
+                return false;
+            }
+
             #ifdef DBG
-            printf("Redrawing descendent %s\n", e->GetTypeName().c_str());
+            printf("Redrawing this or descendent %s\n", e->GetTypeName().c_str());
             fflush(stdout);
             #endif
 
@@ -755,13 +809,18 @@ VPixels Element::GetHeight()
     return VPixels(_height, _elementManager->GetDpiY());
 }
 
+Rect4 Element::GetBounds()
+{
+    return Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
+}
+
 // Drawing
 void Element::Draw(const boost::optional<Rect4>& updateArea)
 {
     if (_drawCallback)
     {
         #ifdef DBG
-        printf("Calling draw callback for %s\n", GetTypeName().c_str());
+        printf("Draw callback for %s\n", GetTypeName().c_str());
         fflush(stdout);
         #endif
 
@@ -791,14 +850,12 @@ ElementQueryInfo Element::GetElementAtPointHelper(const Point& point, bool hasDi
         return ElementQueryInfo();
     }
 
-    // This algorithm relies on a fundamental expectation that each element's visual bounds is contained
-    // by all its ancestors' visual bounds
+    // This algorithm relies on a fundamental expectation that each element's bounds is contained
+    // by all its ancestors' bounds
     // Because of that, we don't have to check the child of any ancestor that falls outside of the search point
 
-    auto& totalBounds = GetTotalBounds();
-
-    if (point.X >= totalBounds.left && point.X <= totalBounds.right &&
-        point.Y >= totalBounds.top && point.Y <= totalBounds.bottom)
+    if (point.X >= GetLeft() && point.X <= GetRight() &&
+        point.Y >= GetTop() && point.Y <= GetBottom())
     {
         if (_firstChild)
         {
@@ -945,9 +1002,10 @@ void Element::VisitThisAndDescendents(const std::function<void(Element*)>& actio
 bool Element::Intersects(const Rect4& region)
 {
     // Thanks to http://stackoverflow.com/a/306332/4307047 for the rectangle intersection logic
-    // but including equality with each operator so that identical rectangles would succeed
+    // but including equality with each operator so that identical rectangles would succeed,
+    // and also flipping the comparisons for top and bottom since we're using top-down coordinates
     return (region.left <= GetRight() && region.right >= GetLeft() &&
-            region.top >= GetBottom() && region.bottom <= GetTop());
+            region.top <= GetBottom() && region.bottom >= GetTop());
 }
 
 bool Element::Intersects(const Point& point)
@@ -962,8 +1020,9 @@ bool Element::TotalBoundsIntersects(const Rect4& region)
 
     // Thanks to http://stackoverflow.com/a/306332/4307047 for the rectangle intersection logic
     // but including equality with each operator so that identical rectangles would succeed
+    // and also flipping the comparisons for top and bottom since we're using top-down coordinates
     return (region.left <= totalBounds.right && region.right >= totalBounds.left &&
-            region.top >= totalBounds.bottom && region.bottom <= totalBounds.top);
+            region.top <= totalBounds.bottom && region.bottom >= totalBounds.top);
 }
 
 Element* Element::FindLastChild(const Point& point)
@@ -1070,7 +1129,7 @@ bool Element::ThisOrAncestors(const std::function<bool(Element*)>& predicate)
     return false;
 }
 
-void Element::SetVisualBounds(const Rect4& bounds)
+void Element::SetVisualBounds(const boost::optional<Rect4>& bounds)
 {
     _visualBounds = bounds;
 }
@@ -1084,15 +1143,11 @@ const Rect4 Element::GetTotalBounds()
 {
     if (_visualBounds)
     {
-        auto& visualBounds = _visualBounds.get();
-        return Rect4(GetLeft() + visualBounds.left,
-                     GetTop() + visualBounds.top,
-                     GetRight() + visualBounds.right,
-                     GetBottom() + visualBounds.bottom);
+        return _visualBounds.get();
     }
     else
     {
-        return Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
+        return GetBounds();
     }
 }
 
@@ -1156,7 +1211,12 @@ bool Element::CoveredByLayerAbove(const Rect4& region)
 
 std::string Element::GetTypeName()
 {
-    return "Element";
+    return _typeName;
+}
+
+void Element::SetTypeName(const std::string& name)
+{
+    _typeName = name;
 }
 
 void Element::SetUpdateRearrangesDescendants(bool updateRearrangesDescendents)

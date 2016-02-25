@@ -23,6 +23,7 @@ public:
     // whereas layers themselves are meant to overlap other layers in a performant way.
 
     Layer* AddLayer();
+    Layer* AddLayer(const std::string& typeName);
 
     void RemoveLayer(Layer* layer);
 

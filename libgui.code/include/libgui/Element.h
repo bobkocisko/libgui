@@ -42,6 +42,11 @@ class Element: public enable_shared_from_this<Element>
 {
     friend class ElementManager;
 public:
+    // -----------------------------------------------------------------
+    // Constructors
+    Element();
+
+    Element(const std::string& typeName);
 
     // -----------------------------------------------------------------
     // Objects shared among multiple elements
@@ -129,15 +134,16 @@ public:
     // Bounds
 
     // Set visual bounds, if drawing outside the active area of the element
-    // The values are relative to the corresponding edge of the element (ie not absolute)
-    void SetVisualBounds(const Rect4& bounds);
+    void SetVisualBounds(const boost::optional<Rect4>& bounds);
 
     // Returns the visual bounds outside the active area of the element (if any)
-    // The values are relative to the corresponding edge of the element (ie not absolute)
     const boost::optional<Rect4>& GetVisualBounds();
 
     // Get the total bounds, including any excess visual bounds, of this element
     const Rect4 GetTotalBounds();
+
+    // Gets the bounds of this element used for arrangement and hit testing
+    Rect4 GetBounds();
 
     // -----------------------------------------------------------------
     // Dirty
@@ -223,6 +229,15 @@ public:
     // default brute force search
     virtual Element* FindLastChild(const Point& point);
 
+    // Returns whether this element intersects with the specified region
+    bool Intersects(const Rect4& region);
+
+    // Returns whether the TotalBounds of this element intersects with the specified region
+    bool TotalBoundsIntersects(const Rect4& region);
+
+    // Returns whether this element intersects with the specified point
+    bool Intersects(const Point& point);
+
     // -----------------------------------------------------------------
     // Visitors
 
@@ -258,6 +273,7 @@ public:
     // -----------------------------------------------------------------
     // Debugging
     virtual std::string GetTypeName();
+    void                SetTypeName(const std::string& name);
 
     // -----------------------------------------------------------------
     // Destructor
@@ -353,6 +369,10 @@ private:
     bool _isHeightSet  = false;
 
     // -----------------------------------------------------------------
+    // Debugging
+    std::string _typeName;
+
+    // -----------------------------------------------------------------
     // Drawing
 
     function<void(Element*, const boost::optional<Rect4>&)>
@@ -368,9 +388,6 @@ private:
 
     bool CoveredByLayerAbove(const Rect4& region);
     void RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegion);
-    bool Intersects(const Rect4& region);
-    bool TotalBoundsIntersects(const Rect4& region);
-    bool Intersects(const Point& point);
 
     void VisitAncestorsHelper(const std::function<void(Element*)>& action, bool isCallee);
 
@@ -385,5 +402,6 @@ private:
     bool ClipToBoundsIfNeeded();
 
     void UpdateHelper(bool willBeRemoved);
+    void ArrangeAndDrawHelper();
 };
 }

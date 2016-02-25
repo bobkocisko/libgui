@@ -214,4 +214,9 @@ Button::VisibleState Button::GetVisibleState()
     auto stateMachine = (SmButton::StateMachine*) _stateMachine;
     return (VisibleState) stateMachine->current_state()[0];
 }
+
+std::string Button::GetTypeName()
+{
+    return "Button";
+}
 }

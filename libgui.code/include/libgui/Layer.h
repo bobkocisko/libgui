@@ -15,8 +15,8 @@ namespace libgui
 class Layer: public Element
 {
     friend class ElementManager;
-
 public:
+
     // Set the area of the layer that is fully opaque.  This is an optional
     // and recommended optimization so that layers under this opaque area
     // do not need to redraw themselves.

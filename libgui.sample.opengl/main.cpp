@@ -116,7 +116,7 @@ int windowHeight = -1;
 
 bool firstWindowRefresh = true;
 
-void FillRectangle(double left, double top, double right, double bottom, int r, int g, int b);
+void FillRectangle(double left, double top, double right, double bottom, int r, int g, int b, float a = 1.0);
 void OutlineRectangle(double left, double top, double right, double bottom, int r, int g, int b, double lineWidth);
 void DrawText(double centerX, double centerY, std::string text);
 
@@ -177,7 +177,7 @@ void InitElements()
     auto itemsVm = make_shared<ItemsViewModel>();
 
     // Set up the root element to match the window size
-    auto root = elementManager->AddLayer();
+    auto root = elementManager->AddLayer("Main Layer");
     root->SetViewModel(itemsVm);
     root->SetArrangeCallback(
         [](shared_ptr<Element> e)
@@ -204,7 +204,7 @@ void InitElements()
 
 
     // Build the screen elements
-    auto header = make_shared<Element>();
+    auto header = make_shared<Element>("Header");
     {
         root->AddChild(header);
         header->SetArrangeCallback(
@@ -247,23 +247,49 @@ void InitElements()
                     if (Button::OutputEvent::Clicked == event)
                     {
                         // launch the modal
-                        auto layer = b->GetElementManager()->AddLayer();
+                        auto layer = b->GetElementManager()->AddLayer("Popup Layer");
                         {
                             layer->SetArrangeCallback(
-                                [](shared_ptr<Element> e)
+                                [layer](shared_ptr<Element> e)
                                 {
                                     e->SetCenterX(windowWidth / 2);
                                     e->SetCenterY(windowHeight / 2);
                                     e->SetWidth(300);
                                     e->SetHeight(200);
+
+                                    // Optimize drawing updates
+                                    layer->SetOpaqueArea(e->GetBounds());
+
+                                    // Notify libgui of drawing that exceeds bounds
+                                    e->SetVisualBounds(Rect4(0, 0, windowWidth, windowHeight));
                                 });
                             layer->SetDrawCallback(
                                 [](Element* e, const boost::optional<Rect4>& redrawRegion)
                                 {
-                                    FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
-                                                  0xFF, 0xFF, 0xFF);
-                                    OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
-                                                     0xCB, 0xCB, 0xCB, 1.0);
+                                    bool drawOpaqueArea;
+
+                                    // Cover the other elements with transparent layer
+                                    Rect4 region;
+                                    if (redrawRegion)
+                                    {
+                                        region         = redrawRegion.get();
+                                        drawOpaqueArea = e->Intersects(redrawRegion.get());
+                                    }
+                                    else
+                                    {
+                                        region         = e->GetVisualBounds().get();
+                                        drawOpaqueArea = true;
+                                    }
+                                    FillRectangle(region.left, region.top, region.right, region.bottom,
+                                                  0xFF, 0xFF, 0xFF, 0.7);
+
+                                    if (drawOpaqueArea)
+                                    {
+                                        FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
+                                                      0xFF, 0xFF, 0xFF);
+                                        OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
+                                                         0xCB, 0xCB, 0xCB, 1.0);
+                                    }
                                 });
 
                             auto okButton = make_shared<Button>();
@@ -285,17 +311,20 @@ void InitElements()
                                         DrawText(e->GetCenterX(), e->GetCenterY(), "Ok");
                                     });
                                 okButton->SetEventCallback(
-                                    [](shared_ptr<Button> b2, Button::OutputEvent event2)
+                                    [b](shared_ptr<Button> b2, Button::OutputEvent event2)
                                     {
                                         if (Button::OutputEvent::Clicked == event2)
                                         {
                                             auto l = b2->GetLayer();
                                             b2->GetElementManager()->RemoveLayer(l);
+
+                                            // Re-enable the main layer
+                                            b->GetLayer()->SetIsEnabled(true);
                                         }
                                     });
                             }
 
-                            auto messageLabel = make_shared<Element>();
+                            auto messageLabel = make_shared<Element>("Message");
                             {
                                 layer->AddChild(messageLabel);
                                 messageLabel->SetArrangeCallback(
@@ -315,6 +344,9 @@ void InitElements()
                                     });
                             }
                         }
+
+                        // Disable this layer and draw the new layer
+                        b->GetLayer()->SetIsEnabled(false);
                         layer->ArrangeAndDraw();
                     }
                 });
@@ -322,7 +354,7 @@ void InitElements()
 
     }
 
-    auto footer = make_shared<Element>();
+    auto footer = make_shared<Element>("Footer");
     {
         root->AddChild(footer);
         footer->SetArrangeCallback(
@@ -376,7 +408,7 @@ void InitElements()
         grid->SetCellCreateCallback(
             [](shared_ptr<Element> cellContainer)
             {
-                auto cell_background = make_shared<Element>();
+                auto cell_background = make_shared<Element>("Cell Background");
                 {
                     cellContainer->AddChild(cell_background);
                     cell_background->SetArrangeCallback(
@@ -396,7 +428,7 @@ void InitElements()
                             FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xEB, 0xEB, 0xEB);
                         });
 
-                    auto text = make_shared<Element>();
+                    auto text = make_shared<Element>("Cell Text");
                     {
                         cell_background->AddChild(text);
                         text->SetDrawCallback(
@@ -404,6 +436,10 @@ void InitElements()
                             {
                                 auto ivm = dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
                                 DrawText(e->GetCenterX(), e->GetCenterY(), ivm->GetName());
+
+                                #ifdef DBG
+                                printf("%s\n", ivm->GetName().c_str()); fflush(stdout);
+                                #endif
                             });
                     }
                 }
@@ -504,7 +540,7 @@ void InitElements()
             });
     }
 
-    auto sliderValueText = make_shared<Element>();
+    auto sliderValueText = make_shared<Element>("Slider Value Text");
     {
         footer->AddChild(sliderValueText);
         sliderValueText->SetDrawCallback(
@@ -539,7 +575,7 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
     }
 }
 
-void FillRectangle(double left, double top, double right, double bottom, int r, int g, int b)
+void FillRectangle(double left, double top, double right, double bottom, int r, int g, int b, float a)
 {
     auto rf = float(r) / 255.0;
     auto gf = float(g) / 255.0;
@@ -547,10 +583,10 @@ void FillRectangle(double left, double top, double right, double bottom, int r, 
 
     vertex_buffer_t* buffer;
     buffer = vertex_buffer_new("vertex:3f,color:4f");
-    vertex_t vertices[] = {{left,  top,    0, rf, gf, bf, 1},  // 0
-                           {right, top,    0, rf, gf, bf, 1},  // 1
-                           {right, bottom, 0, rf, gf, bf, 1},  // 2
-                           {left,  bottom, 0, rf, gf, bf, 1}}; // 3
+    vertex_t vertices[] = {{left,  top,    0, rf, gf, bf, a},  // 0
+                           {right, top,    0, rf, gf, bf, a},  // 1
+                           {right, bottom, 0, rf, gf, bf, a},  // 2
+                           {left,  bottom, 0, rf, gf, bf, a}}; // 3
 
     GLuint indices[] = {3, 0, 2, 1};
     vertex_buffer_push_back(buffer, vertices, 4, indices, 4);

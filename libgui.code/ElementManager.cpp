@@ -5,11 +5,18 @@
 
 namespace libgui
 {
+
 Layer* ElementManager::AddLayer()
+{
+    return AddLayer("Layer");
+}
+
+Layer* ElementManager::AddLayer(const std::string& typeName)
 {
     auto layer = new Layer();
     layer->_elementManager = this;
     layer->_layer          = layer;
+    layer->_typeName       = typeName;
 
     if (!_layers.empty())
     {
@@ -76,11 +83,12 @@ void ElementManager::SetSystemCaptureCallback(const function<void(bool)>& system
 
 void ElementManager::NotifyNewPoint(InputId inputId, Point point)
 {
-    auto input                 = GetInput(inputId);
+    auto input = GetInput(inputId);
 
     // Loop through the layers from the top to the bottom
     ElementQueryInfo elementQueryInfo;
-    for (auto        layerIter = _layers.rbegin(); layerIter != _layers.rend(); ++layerIter)
+
+    for (auto layerIter = _layers.rbegin(); layerIter != _layers.rend(); ++layerIter)
     {
         auto& layer = *layerIter;
         elementQueryInfo = layer->GetElementAtPoint(point);

@@ -178,4 +178,14 @@ void Grid::SetCellCreateCallback(const function<void(shared_ptr<Element>)>& cell
 {
     _cellCreateCallback = cellCreateCallback;
 }
+
+std::string Grid::GetTypeName()
+{
+    return "Grid";
+}
+
+std::string Grid::Cell::GetTypeName()
+{
+    return "Cell";
+}
 }

@@ -36,7 +36,7 @@ public:
 
     void SetCellCreateCallback(const function<void(shared_ptr<Element> cellContainer)>& cellCreateCallback);
 
-
+    virtual std::string GetTypeName() override;
 private:
     int    _columns                      = 3;
     double _cellHeight;
@@ -58,6 +58,8 @@ private:
 
         void PrepareViewModel() override;
         void Arrange() override;
+
+        virtual std::string GetTypeName() override;
     private:
         shared_ptr<Grid> _grid;
         int              _index;

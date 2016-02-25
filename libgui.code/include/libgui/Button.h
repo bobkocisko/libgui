@@ -36,6 +36,7 @@ namespace libgui
         virtual void OnEvent(OutputEvent outputEvent);
         void         SetEventCallback(function<void(shared_ptr<Button>, OutputEvent)>);
 
+        virtual std::string GetTypeName() override;
     private:
         void * _stateMachine;
 
