@@ -95,6 +95,8 @@ void Element::RemoveChildren()
 
 void Element::RemoveChild(shared_ptr<Element> child)
 {
+    child->Update(UpdateType::Removing);
+
     auto prevSibling = child->_prevsibling;
     auto nextSibling = child->_nextsibling;
 
