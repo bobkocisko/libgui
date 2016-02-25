@@ -768,4 +768,9 @@ boost::any& Input::GetActiveEvent()
 {
     return _activeEvent;
 }
+
+bool Input::GetIsDown() const
+{
+    return _isDown;
+}
 }

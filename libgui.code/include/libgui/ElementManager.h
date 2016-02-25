@@ -119,6 +119,7 @@ public:
 
     const vector<Input*>& GetActiveInputs() const;
     void EnableDebugLogging();
+    Input* GetInput(const InputId& inputId);
 
     // -------------------------------------------------------------------------------------
 
@@ -151,6 +152,5 @@ private:
     boost::optional<Rect4>            _redrawnRegion;
     std::deque<Element*>              _updatedElements;
 
-    Input* GetInput(const InputId& inputId);
 };
 }

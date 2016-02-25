@@ -26,14 +26,15 @@ public:
     void NotifyUp();
 
     // Debugging
-    const Point    & GetPoint() const;
-    const InputType& GetInputType() const;
-    bool                GetIsActive() const;
     struct LogEntry
     {
         Point point;
         bool  IsActive;
     };
+    const Point    & GetPoint() const;
+    const InputType& GetInputType() const;
+    bool                GetIsDown() const;
+    bool                GetIsActive() const;
     void                EnableDebugLogging();
     std::list<LogEntry> GetRecentDebugLogEntries();
 
