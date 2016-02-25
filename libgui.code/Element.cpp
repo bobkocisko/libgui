@@ -854,8 +854,7 @@ ElementQueryInfo Element::GetElementAtPointHelper(const Point& point, bool hasDi
     // by all its ancestors' bounds
     // Because of that, we don't have to check the child of any ancestor that falls outside of the search point
 
-    if (point.X >= GetLeft() && point.X <= GetRight() &&
-        point.Y >= GetTop() && point.Y <= GetBottom())
+    if (Intersects(point))
     {
         if (_firstChild)
         {
