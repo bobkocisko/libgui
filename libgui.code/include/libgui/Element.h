@@ -77,8 +77,8 @@ public:
     // -----------------------------------------------------------------
     // Cache Management
 
-    virtual void ClearCache(int cacheLevel);
-    virtual void ClearElementCache(int cacheLevel);
+    void         ClearCacheAll(int cacheLevel);
+    virtual void ClearCacheThis(int cacheLevel);
 
     // -----------------------------------------------------------------
     // Arrangement
@@ -93,25 +93,40 @@ public:
     // -----------------------------------------------------------------
     // Arrange cycle
     // -------------
+    // The cycle of arranging and drawing is what powers the display logic of this library.
+    // The arrangement determines the location, size and custom logic of elements, while
+    // drawing is just drawing.  Individual elements can be updated to reflect new positions,
+    // sizes or display data.  If the elements move or change size during an update, then all
+    // children are automatically re-arranged.  If the element has arrange dependents then
+    // those are also updated.
     // Regarding updating of descendants, the default update logic is that
     // an updated element's descendents will be rearranged only if the
     // element is moved or resized, otherwise its descendants will be redrawn
     // and not rearranged.  This behavior can be changed by setting
     // SetUpdateRearrangesDescendants to true.
 
-    // Arranges and draws this element and all descendants.  Prefer
-    // Update() except where the entire set of elements should be updated
-    // or arranged and drawn for the first time.
-    virtual void ArrangeAndDraw();
+    // Specifies the type of update to be performed.  It is important to specify the correct type of
+    // update so that the arranging and drawing logic will work correctly and provide the best
+    // performance.
+    enum class UpdateType
+    {
+        // Indicates that the element is in the process of being added to the element hierarchy
+            Adding,
 
-    // Updates this element and all its dependents.  Should be called
-    // whenever data has changed that would affect the position, size
-    // or display of this element.
-    virtual void Update();
+        // Indicates that the element is in the process of being removed from the element hierarchy
+            Removing,
 
-    // Updates this element and all its dependents.  Should be called
-    // before removing any element from the element hierarchy.
-    virtual void UpdateBeforeRemoval();
+        // Indicates that the position, size or other data contributing to arrangement or drawing
+        // has changed
+            Modifying,
+
+        // Update the whole element tree at once.  This is reserved for internal use by
+        // the ElementManager class.
+            Everything
+    };
+
+    // Updates this element and all its dependents.
+    void Update(UpdateType updateType);
 
     // Called during each arrange cycle to set or update the position and size of the element
     // (unless the Arrange method is overridden)
@@ -155,7 +170,7 @@ public:
     // Optional post-construction initialization pass that some elements require
 
     // Initializes this element and all its descendants
-    virtual void InitializeAll();
+    void InitializeAll();
 
     // Initializes this element and returns whether this is the first initialization
     virtual bool InitializeThis();
@@ -402,7 +417,7 @@ private:
 
     bool ClipToBoundsIfNeeded();
 
-    void UpdateHelper(bool willBeRemoved);
+    void UpdateHelper(UpdateType updateType);
     void ArrangeAndDrawHelper();
 };
 }

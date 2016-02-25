@@ -35,7 +35,7 @@ public:
     // drawing is just drawing.  There are two types of arrangement and drawing supported.
     // The first is a brute force mechanism whereby all the elements in all layers are
     // arranged and drawn.  This should not be necessary except at application startup or
-    // when the parent window itself is resized.  The other type is and update.  Individual
+    // when the parent window itself is resized.  The other type is an update.  Individual
     // elements can be updated one at a time to reflect new positions, sizes or display
     // data.  If the elements move or change size during an update, then all children are
     // automatically re-arranged.  If the element has arrange dependents then those are
@@ -43,7 +43,7 @@ public:
     // preferred unless in situations where a brute force arrangement would actually be
     // more efficient.  This would need to be decided on a case by case basis.
 
-    void ArrangeAndDrawAll();
+    void UpdateEverything();
 
     // -------------------------------------------------------------------------------------
     // Input notification

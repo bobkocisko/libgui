@@ -345,9 +345,9 @@ void InitElements()
                             }
                         }
 
-                        // Disable this layer and draw the new layer
+                        // Disable this layer and update the new layer
                         b->GetLayer()->SetIsEnabled(false);
-                        layer->ArrangeAndDraw();
+                        layer->Update(Element::UpdateType::Adding);
                     }
                 });
         }
@@ -753,7 +753,7 @@ void RefreshEntireWindow(GLFWwindow* window, int width, int height)
 
     windowWidth  = width;
     windowHeight = height;
-    elementManager->ArrangeAndDrawAll();
+    elementManager->UpdateEverything();
 
 }
 

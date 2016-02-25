@@ -31,7 +31,7 @@ Layer* ElementManager::AddLayer(const std::string& typeName)
 
 void ElementManager::RemoveLayer(Layer* layer)
 {
-    layer->UpdateBeforeRemoval();
+    layer->Update(Element::UpdateType::Removing);
 
     layer->VisitThisAndDescendents(
         [](Element* e)
@@ -66,13 +66,11 @@ void ElementManager::RemoveLayer(Layer* layer)
     }
 }
 
-void ElementManager::ArrangeAndDrawAll()
+void ElementManager::UpdateEverything()
 {
     for (auto& layer: _layers)
     {
-        layer->ArrangeAndDraw();
-
-        AddToRedrawnRegion(layer->GetTotalBounds());
+        layer->Update(Element::UpdateType::Everything);
     }
 }
 

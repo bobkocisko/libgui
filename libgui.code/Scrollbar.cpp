@@ -255,7 +255,7 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
     if (InputAction::Move != inputAction)
     {
         // After any state changes except moving, we update the control (move updates are handled separately)
-        Update();
+        Update(UpdateType::Modifying);
     }
 }
 
@@ -280,7 +280,7 @@ void Scrollbar::Thumb::NotifyPointerMove(Point point)
             if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
             {
                 scrollDelegate->MoveToOffsetPercent(offsetPercent);
-                Update();
+                Update(UpdateType::Modifying);
             }
         }
     }

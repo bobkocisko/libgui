@@ -263,7 +263,7 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
     if (InputAction::Move != inputAction)
     {
         // After any state changes except moving, we update the control (move updates are handled separately)
-        Update();
+        Update(UpdateType::Modifying);
     }
 }
 
@@ -289,7 +289,7 @@ void Slider::Thumb::NotifyMove(Point point)
             if (slider->GetRawFromValue() != offsetPercent)
             {
                 slider->SetValueFromRaw(offsetPercent);
-                Update();
+                Update(UpdateType::Modifying);
             }
         }
     }

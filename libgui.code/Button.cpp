@@ -191,7 +191,7 @@ void Button::NotifyInput(InputType inputType, InputAction inputAction, Point poi
     if (InputAction::Move != inputAction)
     {
         // After any state changes except moving, we update the control
-        Update();
+        Update(UpdateType::Modifying);
     }
 }
 

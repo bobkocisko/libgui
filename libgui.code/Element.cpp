@@ -191,21 +191,21 @@ shared_ptr<Element> Element::GetSingleChild()
 }
 
 // Cache Management
-void Element::ClearCache(int cacheLevel)
+void Element::ClearCacheAll(int cacheLevel)
 {
-    ClearElementCache(cacheLevel);
+    ClearCacheThis(cacheLevel);
 
     // Recurse to children
     if (_firstChild)
     {
         for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
         {
-            e->ClearCache(cacheLevel);
+            e->ClearCacheAll(cacheLevel);
         }
     }
 }
 
-void Element::ClearElementCache(int cacheLevel)
+void Element::ClearCacheThis(int cacheLevel)
 {
     // This is intended to be overridden as needed for OS-specific needs.
 }
@@ -285,16 +285,6 @@ void Element::Arrange()
     }
 }
 
-void Element::ArrangeAndDraw()
-{
-    #ifdef DBG
-    printf("\n\nBeginning arrange and draw cycle for %s\n", GetTypeName().c_str());
-    fflush(stdout);
-    #endif
-
-    ArrangeAndDrawHelper();
-}
-
 void Element::ArrangeAndDrawHelper()
 {
     VisitThisAndDescendents(
@@ -346,12 +336,19 @@ void Element::DoDrawTasksCleanup()
     }
 }
 
-void Element::Update()
+void Element::Update(UpdateType updateType)
 {
+    // Special case: if we are updating the whole element tree at once then
+    // most of the special update logic isn't necessary and would actually
+    // be a performance loss
+    if (UpdateType::Everything == updateType)
+    {
+        ArrangeAndDrawHelper();
+        _elementManager->AddToRedrawnRegion(GetTotalBounds());
+        return;
+    }
+
     // Elements that have been detached from the visual tree should no longer be updated.
-    // However, whenever an element is removed it should be updated via UpdateBeforeRemoval
-    // before removing it.  Then it and all its descendants should be marked as detached
-    // (see ElementManager::RemoveLayer)
     if (_isDetached)
     {
         return;
@@ -365,23 +362,10 @@ void Element::Update()
     // Since we are beginning an update pass, clear the tracking of which elements have been updated
     _elementManager->ClearUpdateTracking();
 
-    UpdateHelper(false);
+    UpdateHelper(updateType);
 }
 
-void Element::UpdateBeforeRemoval()
-{
-    #ifdef DBG
-    printf("\n\nBeginning update cycle (before removal) for %s\n", GetTypeName().c_str());
-    fflush(stdout);
-    #endif
-
-    // Since we are beginning an update pass, clear the tracking of which elements have been updated
-    _elementManager->ClearUpdateTracking();
-
-    UpdateHelper(true);
-}
-
-void Element::UpdateHelper(bool willBeRemoved)
+void Element::UpdateHelper(UpdateType updateType)
 {
     // Check that this element hasn't already been updated in this update pass
     if (!_elementManager->TryBeginUpdate(this))
@@ -421,46 +405,50 @@ void Element::UpdateHelper(bool willBeRemoved)
     {
         auto currentLayer = GetLayer();
 
-        currentLayer->VisitLowerLayersIf(
-            [&redrawRegion, currentLayer, willBeRemoved](Layer* currentLayer2)
-            {
-                // Special case: if we are removing this layer then always
-                // visit lower layers regardless of the opaque area
-                if (currentLayer2 == currentLayer && willBeRemoved)
-                {
-                    return true;
-                }
-                return !currentLayer2->OpaqueAreaContains(redrawRegion);
-            },
-            [&redrawRegion](Layer* lowerLayer)
-            {
-                #ifdef DBG
-                printf("Redrawing lower layer\n");
-                fflush(stdout);
-                #endif
-
-                lowerLayer->RedrawThisAndDescendents(redrawRegion);
-            });
-
-
         int thisAndAncestorClips = 0;
 
-        VisitAncestors([&redrawRegion, &thisAndAncestorClips](Element* ancestor)
-                       {
-                           #ifdef DBG
-                           printf("Redrawing ancestor %s\n", ancestor->GetTypeName().c_str());
-                           fflush(stdout);
-                           #endif
+        if (UpdateType::Adding != updateType)
+        {
+            currentLayer->VisitLowerLayersIf(
+                [&redrawRegion, currentLayer, updateType](Layer* currentLayer2)
+                {
+                    // Special case: if we are removing this layer then always
+                    // visit lower layers regardless of the opaque area
+                    if (currentLayer2 == currentLayer && UpdateType::Removing == updateType)
+                    {
+                        return true;
+                    }
+                    return !currentLayer2->OpaqueAreaContains(redrawRegion);
+                },
+                [&redrawRegion](Layer* lowerLayer)
+                {
+                    #ifdef DBG
+                    printf("Redrawing lower layer\n");
+                    fflush(stdout);
+                    #endif
 
-                           ancestor->DoDrawTasksIfVisible(redrawRegion);
-                           if (ancestor->GetClipToBounds())
-                           {
-                               ++thisAndAncestorClips;
-                           }
-                       });
+                    lowerLayer->RedrawThisAndDescendents(redrawRegion);
+                });
+
+            VisitAncestors(
+                [&redrawRegion, &thisAndAncestorClips](Element* ancestor)
+                {
+                    #ifdef DBG
+                    printf("Redrawing ancestor %s\n", ancestor->GetTypeName().c_str());
+                    fflush(stdout);
+                    #endif
+
+                    ancestor->DoDrawTasksIfVisible(redrawRegion);
+                    if (ancestor->GetClipToBounds())
+                    {
+                        ++thisAndAncestorClips;
+                    }
+                });
+
+        }
 
         // Now draw this element and its children unless it's going to be removed
-        if (!willBeRemoved)
+        if (UpdateType::Removing != updateType)
         {
             // Apply the current element clip, if any, before drawing this and children
             if (ClipToBoundsIfNeeded())
@@ -475,15 +463,16 @@ void Element::UpdateHelper(bool willBeRemoved)
 
             Draw(boost::none);
 
-            if (moved || GetUpdateRearrangesDescendants())
+            if (UpdateType::Adding == updateType ||
+                moved ||
+                GetUpdateRearrangesDescendants())
             {
                 #ifdef DBG
                 printf("Rearranging all children of %s after move\n", GetTypeName().c_str());
                 fflush(stdout);
                 #endif
 
-                // Arrange all the children of this element since it is expected that
-                // children depend on their parent for arrangement
+                // Arrange and draw all the children of this element
                 VisitChildren([](Element* e)
                               {
                                   e->ArrangeAndDrawHelper();
@@ -527,18 +516,18 @@ void Element::UpdateHelper(bool willBeRemoved)
 
     _elementManager->AddToRedrawnRegion(redrawRegion);
 
-    if (!willBeRemoved && moved)
+    if (UpdateType::Modifying == updateType && moved)
     {
         // update any dependent elements in this same layer
         VisitArrangeDependents(
-            [](Element* e)
+            [updateType](Element* e)
             {
                 #ifdef DBG
                 printf("Discovered arrange dependent %s\n", e->GetTypeName().c_str());
                 fflush(stdout);
                 #endif
 
-                e->UpdateHelper(false);
+                e->UpdateHelper(updateType);
             });
     }
 }
