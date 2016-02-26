@@ -183,9 +183,9 @@ void InitElements()
         [](shared_ptr<Element> e)
         {
             e->SetLeft(0);
-            e->SetRight(windowWidth);
+            e->SetRight(elementManager->GetWidth());
             e->SetTop(0);
-            e->SetBottom(windowHeight);
+            e->SetBottom(elementManager->GetHeight());
         });
     root->SetDrawCallback(
         [](Element* e, const boost::optional<Rect4>& redrawRegion)
@@ -252,8 +252,8 @@ void InitElements()
                             layer->SetArrangeCallback(
                                 [layer](shared_ptr<Element> e)
                                 {
-                                    e->SetCenterX(windowWidth / 2);
-                                    e->SetCenterY(windowHeight / 2);
+                                    e->SetCenterX(elementManager->GetWidth() / 2);
+                                    e->SetCenterY(elementManager->GetHeight() / 2);
                                     e->SetWidth(300);
                                     e->SetHeight(200);
 
@@ -261,7 +261,8 @@ void InitElements()
                                     layer->SetOpaqueArea(e->GetBounds());
 
                                     // Notify libgui of drawing that exceeds bounds
-                                    e->SetVisualBounds(Rect4(0, 0, windowWidth, windowHeight));
+                                    e->SetVisualBounds(Rect4(0, 0,
+                                                             elementManager->GetWidth(), elementManager->GetHeight()));
                                 });
                             layer->SetDrawCallback(
                                 [](Element* e, const boost::optional<Rect4>& redrawRegion)
@@ -753,6 +754,9 @@ void RefreshEntireWindow(GLFWwindow* window, int width, int height)
 
     windowWidth  = width;
     windowHeight = height;
+
+    elementManager->SetSize(Size(width, height));
+
     elementManager->UpdateEverything();
 
 }

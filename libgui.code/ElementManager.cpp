@@ -261,4 +261,24 @@ bool ElementManager::TryBeginUpdate(Element* element)
     _updatedElements.push_back(element);
     return true;
 }
+
+const Size& ElementManager::GetSize() const
+{
+    return _size;
+}
+
+void ElementManager::SetSize(const Size& size)
+{
+    _size = size;
+}
+
+double ElementManager::GetWidth() const
+{
+    return _size.width;
+}
+
+double ElementManager::GetHeight() const
+{
+    return _size.height;
+}
 }

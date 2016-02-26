@@ -16,6 +16,26 @@ class ElementManager: public std::enable_shared_from_this<ElementManager>
 {
 public:
     // -------------------------------------------------------------------------------------
+    // Size
+    // -----
+    // The ElementManager has an overall size which typically matches the window size
+    // of the window that it manages.  There should be a one-to-one relationship between
+    // the ElementManager and a window.  Whenever the window is resized, the ElementManager's
+    // size should be updated to reflect the new size.
+
+    // Sets the overall size of the ElementManager.  Typically this is the window size.
+    void SetSize(const Size& size);
+
+    // Returns the overall size of the ElementManager.  Typically this is the window size.
+    const Size& GetSize() const;
+
+    // Returns the overall width of the ElementManager.  Typically this is the window width.
+    double GetWidth() const;
+
+    // Returns the overall height of the ElementManager.  Typically this is the window height.
+    double GetHeight() const;
+
+    // -------------------------------------------------------------------------------------
     // Layers
     // ------------------
     // Layers are the starting point where elements can be added to an ElementManager
@@ -139,7 +159,6 @@ public:
     bool TryBeginUpdate(Element* element);
 
 
-
 private:
     std::vector<Input*>               _activeInputs;
     std::list<std::shared_ptr<Layer>> _layers;
@@ -151,6 +170,7 @@ private:
     function<void()>                  _popClipCallback;
     boost::optional<Rect4>            _redrawnRegion;
     std::deque<Element*>              _updatedElements;
+    Size                              _size;
 
 };
 }
