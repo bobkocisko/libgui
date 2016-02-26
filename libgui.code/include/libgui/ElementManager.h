@@ -53,6 +53,17 @@ public:
     Layer* AddLayerAbove(Layer* existing = nullptr,
                          const std::string& typeName = "Layer");
 
+    // AddLayerBelow
+    // --------
+    // Add a new layer.  Note that this layer is neither initialized nor updated,
+    // so it is up to the client to perform these tasks at a later time, typically
+    // after adding additional descendents to the layer.
+    // existing: an optional existing layer above which to add the new layer.  If this
+    //           is nullptr, the layer will be added on bottom of all other layers.
+    // typeName: an optional debugging tool to assign a specific name to this layer.
+    Layer* AddLayerBelow(Layer* existing = nullptr,
+                         const std::string& typeName = "Layer");
+
     // RemoveLayer
     // -----------
     // Removes the specified layer, automatically performing an update during the removal

@@ -81,6 +81,76 @@ Layer* ElementManager::AddLayerAbove(Layer* existing, const string& typeName)
     return adding;
 }
 
+Layer* ElementManager::AddLayerBelow(Layer* existing, const string& typeName)
+{
+    LayerList::iterator existingIter = _layers.end();
+
+    if (existing)
+    {
+        for (existingIter = _layers.begin(); existingIter != _layers.end(); ++existingIter)
+        {
+            auto existingLayer = *existingIter;
+            if (existingLayer.get() == existing)
+            {
+                // We've found the insertion location
+                break;
+            }
+        }
+    }
+
+    Layer* higher = nullptr;
+
+    if (_layers.end() == existingIter)
+    {
+        // No matching lower layer specified, so add to the end
+        if (!_layers.empty())
+        {
+            higher = _layers.front().get();
+        }
+    }
+    else
+    {
+        // We found a matching higher layer
+        higher = existing;
+    }
+
+
+    Layer* lower = nullptr;
+
+    if (higher)
+    {
+        lower = higher->_layerBelow;
+    }
+
+    Layer* adding = new Layer();
+
+    adding->_elementManager = this;
+    adding->_layer          = adding;
+    adding->_typeName       = typeName;
+    adding->_layerBelow     = lower;
+    adding->_layerAbove     = higher;
+
+    if (higher)
+    {
+        higher->_layerBelow = adding;
+    }
+    if (lower)
+    {
+        lower->_layerAbove = adding;
+    }
+
+    if (_layers.end() == existingIter)
+    {
+        _layers.push_back(std::shared_ptr<Layer>(adding));
+    }
+    else
+    {
+        _layers.insert(existingIter, std::shared_ptr<Layer>(adding));
+    }
+
+    return adding;
+}
+
 void ElementManager::RemoveLayer(Layer* layer)
 {
     layer->Update(Element::UpdateType::Removing);
