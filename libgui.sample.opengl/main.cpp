@@ -177,7 +177,7 @@ void InitElements()
     auto itemsVm = make_shared<ItemsViewModel>();
 
     // Set up the root element to match the window size
-    auto root = elementManager->AddLayer("Main Layer");
+    auto root = elementManager->AddLayerAbove(nullptr, "Main Layer");
     root->SetViewModel(itemsVm);
     root->SetArrangeCallback(
         [](shared_ptr<Element> e)
@@ -247,7 +247,7 @@ void InitElements()
                     if (Button::OutputEvent::Clicked == event)
                     {
                         // launch the modal
-                        auto layer = b->GetElementManager()->AddLayer("Popup Layer");
+                        auto layer = b->GetElementManager()->AddLayerAbove(nullptr, "Popup Layer");
                         {
                             layer->SetArrangeCallback(
                                 [layer](shared_ptr<Element> e)

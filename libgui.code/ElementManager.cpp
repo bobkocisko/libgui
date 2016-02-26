@@ -6,27 +6,79 @@
 namespace libgui
 {
 
-Layer* ElementManager::AddLayer()
+Layer* ElementManager::AddLayerAbove(Layer* existing, const string& typeName)
 {
-    return AddLayer("Layer");
-}
+    LayerList::iterator existingIter = _layers.end();
 
-Layer* ElementManager::AddLayer(const std::string& typeName)
-{
-    auto layer = new Layer();
-    layer->_elementManager = this;
-    layer->_layer          = layer;
-    layer->_typeName       = typeName;
-
-    if (!_layers.empty())
+    if (existing)
     {
-        auto layerBelow = _layers.back().get();
-        layer->_layerBelow      = layerBelow;
-        layerBelow->_layerAbove = layer;
+        for (existingIter = _layers.begin(); existingIter != _layers.end(); ++existingIter)
+        {
+            auto existingLayer = *existingIter;
+            if (existingLayer.get() == existing)
+            {
+                // We've found the insertion location
+                break;
+            }
+        }
     }
 
-    _layers.push_back(std::shared_ptr<Layer>(layer));
-    return layer;
+    Layer* lower = nullptr;
+    LayerList::iterator insertionIter = _layers.end();
+
+    if (_layers.end() == existingIter)
+    {
+        // No matching lower layer specified, so add to the end
+        if (!_layers.empty())
+        {
+            lower = _layers.back().get();
+        }
+    }
+    else
+    {
+        // We found a matching lower layer
+        lower = existing;
+
+        // Have to move next to be ready for insertion
+        insertionIter = existingIter;
+        ++insertionIter;
+    }
+
+    Layer* higher = nullptr;
+
+    if (lower)
+    {
+        higher = lower->_layerAbove;
+    }
+
+    Layer* adding = new Layer();
+
+    adding->_elementManager = this;
+    adding->_layer          = adding;
+    adding->_typeName       = typeName;
+    adding->_layerBelow     = lower;
+    adding->_layerAbove     = higher;
+
+    if (lower)
+    {
+        lower->_layerAbove = adding;
+    }
+    if (higher)
+    {
+        higher->_layerBelow = adding;
+    }
+
+
+    if (_layers.end() == insertionIter)
+    {
+        _layers.push_back(std::shared_ptr<Layer>(adding));
+    }
+    else
+    {
+        _layers.insert(insertionIter, std::shared_ptr<Layer>(adding));
+    }
+
+    return adding;
 }
 
 void ElementManager::RemoveLayer(Layer* layer)

@@ -42,9 +42,20 @@ public:
     // instance.  Each layer represents a set of elements that are non-overlapping,
     // whereas layers themselves are meant to overlap other layers in a performant way.
 
-    Layer* AddLayer();
-    Layer* AddLayer(const std::string& typeName);
+    // AddLayerAbove
+    // --------
+    // Add a new layer.  Note that this layer is neither initialized nor updated,
+    // so it is up to the client to perform these tasks at a later time, typically
+    // after adding additional descendents to the layer.
+    // existing: an optional existing layer above which to add the new layer.  If this
+    //           is nullptr, the layer will be added on top of all other layers.
+    // typeName: an optional debugging tool to assign a specific name to this layer.
+    Layer* AddLayerAbove(Layer* existing = nullptr,
+                         const std::string& typeName = "Layer");
 
+    // RemoveLayer
+    // -----------
+    // Removes the specified layer, automatically performing an update during the removal
     void RemoveLayer(Layer* layer);
 
     // -------------------------------------------------------------------------------------
@@ -160,17 +171,19 @@ public:
 
 
 private:
-    std::vector<Input*>               _activeInputs;
-    std::list<std::shared_ptr<Layer>> _layers;
-    function<void(bool)>              _systemCaptureCallback;
-    bool                              _isDebugLoggingEnabled;
-    double                            _dpiX = 96.0;
-    double                            _dpiY = 96.0;
-    function<void(const Rect4&)>      _pushClipCallback;
-    function<void()>                  _popClipCallback;
-    boost::optional<Rect4>            _redrawnRegion;
-    std::deque<Element*>              _updatedElements;
-    Size                              _size;
+    typedef std::list<std::shared_ptr<Layer>> LayerList;
+
+    std::vector<Input*>          _activeInputs;
+    LayerList                    _layers;
+    function<void(bool)>         _systemCaptureCallback;
+    bool                         _isDebugLoggingEnabled;
+    double                       _dpiX = 96.0;
+    double                       _dpiY = 96.0;
+    function<void(const Rect4&)> _pushClipCallback;
+    function<void()>             _popClipCallback;
+    boost::optional<Rect4>       _redrawnRegion;
+    std::deque<Element*>         _updatedElements;
+    Size                         _size;
 
 };
 }

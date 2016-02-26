@@ -7,6 +7,11 @@
 namespace libgui
 {
 
+Layer::Layer()
+{
+
+}
+
 void Layer::SetOpaqueArea(const boost::optional<Rect4>& opaqueArea)
 {
     _opaqueArea = opaqueArea;

@@ -30,7 +30,7 @@ private:
 TEST(ElementTests, WhenRemovingChildren_AllReferencesAreCleaned)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayer();
+    auto root = em->AddLayerAbove();
 
     auto child1 = make_shared<Element>();
     root->AddChild(child1);
@@ -57,7 +57,7 @@ TEST(ElementTests, WhenRemovingChildren_AllReferencesAreCleaned)
 TEST(ElementTests, WhenElementDisabled_ChildControlsDisabledAlso)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayer();
+    auto root = em->AddLayerAbove();
 
     root->SetTop(5);
     root->SetLeft(5);

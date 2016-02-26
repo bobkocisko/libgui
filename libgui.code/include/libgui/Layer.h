@@ -15,6 +15,9 @@ namespace libgui
 class Layer: public Element
 {
     friend class ElementManager;
+
+    // Layer can only be created by ElementManager
+    Layer();
 public:
 
     // Set the area of the layer that is fully opaque.  This is an optional

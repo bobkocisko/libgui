@@ -18,7 +18,7 @@ using ::testing::Return;
 TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 {
     auto em     = make_shared<ElementManager>();
-    auto root   = em->AddLayer();
+    auto root   = em->AddLayerAbove();
     auto slider = make_shared<Slider>();
     root->AddChild(slider);
     root->InitializeAll();
@@ -34,7 +34,7 @@ TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 {
     auto em     = make_shared<ElementManager>();
-    auto root   = em->AddLayer();
+    auto root   = em->AddLayerAbove();
     auto slider = make_shared<Slider>();
     root->AddChild(slider);
     root->InitializeAll();
@@ -50,7 +50,7 @@ TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 TEST(SliderTests, WhenTouchDragged_ValueChanges)
 {
     auto em     = make_shared<ElementManager>();
-    auto root   = em->AddLayer();
+    auto root   = em->AddLayerAbove();
     auto slider = make_shared<Slider>();
     root->AddChild(slider);
     root->InitializeAll();
