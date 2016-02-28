@@ -14,3 +14,11 @@ Flexible and performant C++ user interface library
 #Limitations
 
 * Single threaded.  All access to the library from multiple threads must be manually synchronized.
+
+#Dependencies
+* Boost.MSM.  This excellent header-only state machine library is used extensively to simplify logic processing for inputs and controls.
+* Boost.Optional.  Header-only library that provides a simple solution to convey optional values as value types.
+
+#Optional dependencies
+* gtest and gmock.  Needed to run the test suite.
+* GLFW.  Needed to run the demo application.
