@@ -1,5 +1,5 @@
 #libgui
-High performance C++ user interface library
+Flexible and performant C++ user interface library
 
 #Features
 
