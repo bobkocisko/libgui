@@ -22,3 +22,4 @@ Flexible and performant C++ user interface library
 #Optional dependencies
 * gtest and gmock.  Needed to run the test suite.
 * GLFW.  Needed to run the demo application.
+* Freetype-gl.  Needed to run the demo application.
