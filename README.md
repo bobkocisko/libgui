@@ -17,6 +17,7 @@ Flexible and performant C++ user interface library
 * This library is a work in progress.  Priority of improvements depends on the needs that drive the current projects that use this library.  Currently, for example, there has not been a need to implement a TextBox control and so that is missing.  Also, no text input logic processing, such as a space bar or the enter key has yet been taken into consideration because it hasn't been needed.  Eventually it is expected that these limitations will be overcome, and certainly in the meantime any contributions, recommendations or votes would be appreciated.
 
 #Dependencies
+* C++ compiler supporting C++ 11, 14, 17 or greater.
 * Boost.MSM.  This excellent header-only state machine library is used extensively to simplify logic processing for inputs and controls.
 * Boost.Optional.  Header-only library that provides a simple solution to convey optional values as value types.
 
@@ -44,12 +45,14 @@ em->SetPopClipCallback(
 ```
 Note that some drawing technologies, such as OpenGL, do not provide native support for pushing and popping clip regions, but rather support only enabling or disabling a single region.  In that case libgui provides the IntersectionStack class which can be used to process the stack logic and then it provides a callback to actually set the region.  See the sample application for an example of using this class.
 
-We must call ElementManager's SetSize method whenever the containing window has been resized, including the first time that the screen is displayed:
+We must call ElementManager's SetSize and UpdateEverything methods whenever the containing window has been resized, including the first time that the screen is displayed.  The UpdateEverything method of ElementManager is a way to force an arrangement and painting of all Elements in all Layers.  This method should be used very sparingly because it is usually overkill when specific Elements move or change contents over the course of the application's lifetime.  It should, however, be called when the window is displayed for the first time and also whenever the window is resized because it is likely that most of the Elements in the window will have to be updated and it is then more performant to update everything:
+
 ```
 em->SetSize(Size(windowWidth, windowHeight));
+em->UpdateEverything();
 ```
 
-We must listen for mouse and touch events and forward those to libgui as they are received:
+We must forward desired pointer events to libgui as they are received:
 ```
 em->NotifyNewPoint(PointerInputId, Point{x, y});
 em->NotifyDown(PointerInputId);
@@ -88,22 +91,32 @@ layer->SetDrawCallback(
     [](Element* e, const boost::optional<Rect4>& redrawRegion)
     {
         // Call your specific drawing mechanism to fill a rectangle with a color
-        // as follows
-        FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 
-                      0xFF, 0xFF, 0xFF);
+        // using the element bounds via the following methods
+        // e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom()
+        // e->GetWidth(), e->GetHeight()
     });
 
 layer->InitializeAll();
 ```
+This is admittedly a lot of work just to change the background color of the screen.  The good news is that the methods SetArrangeCallback and SetDrawCallback are used for almost all elements in the application, including Layers themselves, so once we understand this example we can apply the same principles to arrange and draw complex element hierarchies.
 
-and then when the window is displayed for the first time:
-
+Let's work through this example line by line.
 ```
-em->UpdateEverything();
+auto layer = em->AddLayerAbove();
 ```
-
-The UpdateEverything method of ElementManager is a way to force an arrangement and painting of all Elements in all Layers.  This method should be used very sparingly because it is usually overkill when specific Elements move or change contents over the course of the application's lifetime.  It should, however, be called when the window is displayed for the first time and also whenever the window is resized because it is likely that most of the Elements in the window will have to be updated and it is then more performant to update everything.
-
+As described before, libgui uses the concept of Layers to group hierarchies of elements that overlap one another.  However, Elements must always be added to a hierarchy that has a Layer as its root.  So we have to start by creating the first Layer in our application, which we do with the AddLayerAbove method.  This method has a few parameters which we do not need to worry about just now.
+```
+layer->SetArrangeCallback([](shared_ptr<Element> e){...});
+```
+Here we specify how the Layer will be arranged whenever libgui determines that it needs to be (re)arranged.  It is highly recommended, though not necessary, to use a lambda function to specify the arrangement so that it is easy to read the code and see how the element or layer will be arranged without having to jump to another method definition.  This becomes clearer when multiple elements are created, arranged and drawn all in one function or method using lambdas.  The end result is that the relationship between Elements is more easy to see just from reading the code.  We will go into this in greater detail later on.
+```
+layer->SetDrawCallback([](Element* e, const boost::optional<Rect4>& redrawRegion){...});
+```
+Here we specify how the Layer will be drawn whenever libgui determines that it needs to be (re)drawn.  Again it is highly recommended to use a lambda function to specify the drawing instructions for each element or layer for the same reasons mentioned before.  The draw callback has not only a pointer to the Element to be drawn (just like the arrange callback) but also a redrawRegion parameter.  The redrawRegion is a rectangle indicating the subregion within the Element which is being updated currently.  This is an important optimization which libgui provides so that we can redraw only a portion of our element whenever libgui determines that only that portion must be redrawn.  However, we do not have to take advantage of this optimization.  Sometimes in fact it may hurt performance to use it, depending on how we draw the element.  We are always free to draw the entire element and libgui will clip our drawing for us so that only the redrawRegion actually gets drawn.  Also, in certain situations libgui may determine that the entire element should be drawn.  In those cases the redrawRegion will evaluate to false.  We must always therefore check whether the redrawRegion is true before attempting to use it as an optimization.
+```
+layer->InitializeAll();
+```
+Each Element has a creation phase and a separate Initialization phase, and sometimes the lines between these phases can become blurred.  Suffice for now to say that after setting up the hierarchy of Elements in a given Layer and specifying the arrange and draw callbacks for each, the InitializeAll method of the Layer must be called to make sure that each Element is given a chance to initialize itself.
 
 #Acknowledgements
 * First, to give credit where it's due, I want to thank my Creator for providing the inspiration and ability both to begin and continue developing this library.
