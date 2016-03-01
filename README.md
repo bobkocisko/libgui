@@ -26,7 +26,8 @@ Flexible and performant C++ user interface library
 * GLFW.  Needed to run the demo application.
 * Freetype-gl.  Needed to run the demo application.
 
-#Getting started
+# Tutorial
+## Initializing the library
 In order to support complete presentation flexibility, libgui requires the windowing and drawing aspects of the application to be handled separately.  So to start we must choose how we will get a window to draw into and what drawing technology we will draw with (OpenGL, Direct2D, cairo, etc).  The sample application provided shows the usage of GLFW and OpenGL.  Once we have a window available to draw into and have the drawing technology initialized, we must do the following to initialize libgui.
 
 ```
@@ -67,7 +68,7 @@ em->NotifyUp(FirstTouchId + touchIndex);
 
 At this point libgui is initialized.  Next we must create and add elements to the ElementManager instance.
 
-#Layers and Elements
+## Adding a layer
 libgui tracks the entire visual hierarchy of all elements in your window and provides support for arranging, drawing, updating, hit testing and control-specific logic.  There are two ways to group elements together, via layers and parent/child relationships.  Because performance is an important goal of libgui, there are some requirements and assumptions that the library makes throughout its processing:
 * Every Element's bounds must be contained by its parent's bounds.  Conversely, every Element's descendents must be arranged within the bounds of that element.  This allows libgui to achieve O(log N) performance for hit testing. The performance of hit testing can be increased even more if needed by overriding some of the methods of Element.
 * Every Element's visual bounds must be contained by its parent's visual bounds.  This requirement allows libgui to achieve O(log N) performance for redrawing adjacent layers.  Again, performance can be increased more if needed by overriding some of the methods of Element.
@@ -117,6 +118,9 @@ Here we specify how the Layer will be drawn whenever libgui determines that it n
 layer->InitializeAll();
 ```
 Each Element has a creation phase and a separate Initialization phase, and sometimes the lines between these phases can become blurred.  Suffice for now to say that after setting up the hierarchy of Elements in a given Layer and specifying the arrange and draw callbacks for each, the InitializeAll method of the Layer must be called to make sure that each Element is given a chance to initialize itself.
+
+## Adding elements to the layer
+TODO
 
 #Acknowledgements
 * First, to give credit where it's due, I want to thank my Creator for providing the inspiration and ability both to begin and continue developing this library.
