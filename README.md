@@ -14,6 +14,7 @@ Flexible and performant C++ user interface library
 #Limitations
 
 * Single threaded.  All access to the library from multiple threads must be manually synchronized.
+* This library is a work in progress.  Priority of improvements depends on the needs that drive the current projects that use this library.  Currently, for example, there has not been a need to implement a TextBox control and so that is missing.  Also, no text input logic processing, such as a space bar or the enter key has yet been taken into consideration because it hasn't been needed.  Eventually it is expected that these limitations will be overcome, and certainly in the meantime any contributions, recommendations or votes would be appreciated.
 
 #Dependencies
 * Boost.MSM.  This excellent header-only state machine library is used extensively to simplify logic processing for inputs and controls.
@@ -25,11 +26,10 @@ Flexible and performant C++ user interface library
 * Freetype-gl.  Needed to run the demo application.
 
 #Getting started
-In order to support complete presentation flexibility, libgui requires the windowing and drawing aspects of the application to be handled separately.  So to start you must choose how you will get a window to draw into and what drawing technology you will draw with (OpenGL, Direct2D, cairo, etc).  The sample application provided shows the usage of GLFW and OpenGL.  Once you have a window available to draw into and have the drawing technology initialized, you must do the following to initialize libgui.
+In order to support complete presentation flexibility, libgui requires the windowing and drawing aspects of the application to be handled separately.  So to start we must choose how we will get a window to draw into and what drawing technology we will draw with (OpenGL, Direct2D, cairo, etc).  The sample application provided shows the usage of GLFW and OpenGL.  Once we have a window available to draw into and have the drawing technology initialized, we must do the following to initialize libgui.
 
 ```
 auto em = make_shared<ElementManager>();
-em->SetSize(Size(windowWidth, windowHeight));
 em->SetPushClipCallback(
     [](const Rect4& region)
     {
@@ -42,15 +42,30 @@ em->SetPopClipCallback(
         // call draw technology-specific clip popping function
     });
 ```
-
-Also, you must call ElementManager's SetSize method whenever the containing window has been resized.
-
 Note that some drawing technologies, such as OpenGL, do not provide native support for pushing and popping clip regions, but rather support only enabling or disabling a single region.  In that case libgui provides the IntersectionStack class which can be used to process the stack logic and then it provides a callback to actually set the region.  See the sample application for an example of using this class.
+
+We must call ElementManager's SetSize method whenever the containing window has been resized, including the first time that the screen is displayed:
+```
+em->SetSize(Size(windowWidth, windowHeight));
+```
+
+We must listen for mouse and touch events and forward those to libgui as they are received:
+```
+em->NotifyNewPoint(PointerInputId, Point{x, y});
+em->NotifyDown(PointerInputId);
+em->NotifyUp(PointerInputId);
+```
+or for touch input:
+```
+em->NotifyNewPoint(FirstTouchId + touchIndex, Point{x, y});
+em->NotifyDown(FirstTouchId + touchIndex);
+em->NotifyUp(FirstTouchId + touchIndex);
+```
 
 At this point libgui is initialized.  Next we must create and add elements to the ElementManager instance.
 
 #Layers and Elements
-libgui tracks the entire visual hierarchy of all elements in your window and provides support for arranging, drawing, updating, hit testing and control-specific logic.  There are two ways to group elements together, via layers and parent/child relationships.  Because performance is a main goal of libgui, there are some requirements and assumptions that the library makes throughout its processing:
+libgui tracks the entire visual hierarchy of all elements in your window and provides support for arranging, drawing, updating, hit testing and control-specific logic.  There are two ways to group elements together, via layers and parent/child relationships.  Because performance is an important goal of libgui, there are some requirements and assumptions that the library makes throughout its processing:
 * Every Element's bounds must be contained by its parent's bounds.  Conversely, every Element's descendents must be arranged within the bounds of that element.  This allows libgui to achieve O(log N) performance for hit testing. The performance of hit testing can be increased even more if needed by overriding some of the methods of Element.
 * Every Element's visual bounds must be contained by its parent's visual bounds.  This requirement allows libgui to achieve O(log N) performance for redrawing adjacent layers.  Again, performance can be increased more if needed by overriding some of the methods of Element.
 * Sibling Elements within one layer are not currently permitted to overlap.  In the future libgui will support this via a specific Element overlap registration method but currently it is not supported.
@@ -87,6 +102,10 @@ and then when the window is displayed for the first time:
 em->UpdateEverything();
 ```
 
-The UpdateEverything method of ElementManager is a way to force an arrangement and painting of all Elements in all Layers.  This method should be used very sparingly because it is usually overkill when specific Elements move or change contents over the course of the application's lifetime.  It should, however, be called whenever the window is resized because it is likely that most of the Elements in the window will have to be updated and it is then more performant to update everything.
+The UpdateEverything method of ElementManager is a way to force an arrangement and painting of all Elements in all Layers.  This method should be used very sparingly because it is usually overkill when specific Elements move or change contents over the course of the application's lifetime.  It should, however, be called when the window is displayed for the first time and also whenever the window is resized because it is likely that most of the Elements in the window will have to be updated and it is then more performant to update everything.
 
 
+#Acknowledgements
+* First, to give credit where it's due, I want to thank my Creator for providing the inspiration and ability both to begin and continue developing this library.
+* Some of the ideas for element management and arrangement as well as the MVVM support are borrowed from Microsoft's Windows Presentation Foundation, which I used extensively for a number of years in various projects.
+* Some of the ideas of element arrangement are borrowed from observations of the Qt Quick QML syntax.
