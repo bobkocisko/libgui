@@ -68,4 +68,14 @@ bool Rect4::IsEmpty()
            right == 0 &&
            bottom == 0;
 }
+
+void Rect4::IntersectWith(const Rect4& other)
+{
+    // This algorithm assumes that this and other actually do
+    // intersect.  If they do not then this will become a deformed rectangle.
+    left   = max(left, other.left);
+    top    = max(top, other.top);
+    right  = min(right, other.right);
+    bottom = min(bottom, other.bottom);
+}
 }

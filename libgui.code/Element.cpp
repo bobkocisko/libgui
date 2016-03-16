@@ -324,7 +324,22 @@ bool Element::DoDrawTasksIfVisible(const boost::optional<Rect4>& updateArea)
     if (GetIsVisible())
     {
         ClipToBoundsIfNeeded();
-        Draw(updateArea);
+
+        // Pass to Draw only the part of the updateArea that intersects
+        // with this Element, so that the Draw callbacks can make the assumption
+        // that if they draw exactly in the updateArea they will not exceed their
+        // own bounds.
+        if (updateArea)
+        {
+            auto elementUpdateArea = GetTotalBounds();
+            elementUpdateArea.IntersectWith(updateArea.get());
+            Draw(elementUpdateArea);
+        }
+        else
+        {
+            Draw(boost::none);
+        }
+
         return true;
     }
     return false;

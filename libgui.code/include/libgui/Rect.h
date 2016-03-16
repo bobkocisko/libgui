@@ -32,5 +32,10 @@ struct Rect4
 
     bool operator==(const Rect4& other) const;
     bool operator!=(const Rect4& other) const;
+
+    // Changes this Rect4 to become the intersection of itself
+    // and the specified Rect4.  The two Rect4's must intersect
+    // or else the result will be a deformed Rect4.
+    void IntersectWith(const Rect4& other);
 };
 }
