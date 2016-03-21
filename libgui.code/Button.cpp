@@ -1,7 +1,6 @@
 #include <libgui/InputAction.h>
 #include <libgui/InputType.h>
 #include <libgui/Point.h>
-#include "libgui/Common.h"
 #include "libgui/Button.h"
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
@@ -200,11 +199,11 @@ void Button::OnEvent(OutputEvent outputEvent)
     // Default implementation: invoke the callback
     if (_eventCallback)
     {
-        _eventCallback(dynamic_pointer_cast<Button>(shared_from_this()), outputEvent);
+        _eventCallback(std::dynamic_pointer_cast<Button>(shared_from_this()), outputEvent);
     }
 }
 
-void Button::SetEventCallback(function<void(shared_ptr<Button>, OutputEvent)> clickCallback)
+void Button::SetEventCallback(std::function<void(std::shared_ptr<Button>, OutputEvent)> clickCallback)
 {
     _eventCallback = clickCallback;
 }

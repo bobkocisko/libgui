@@ -103,7 +103,7 @@ public:
     // no point has been notified for that input yet.
     const Point& GetCurrentPoint(InputId inputId);
 
-    void SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback);
+    void SetSystemCaptureCallback(const std::function<void(bool)>& systemCaptureCallback);
 
     // -------------------------------------------------------------------------------------
     // Clipping support
@@ -114,8 +114,8 @@ public:
     // For an example of an OpenGL implementation of such a stack, refer to the examples
     // in this library.
 
-    void SetPushClipCallback(const function<void(const Rect4&)>& callback);
-    void SetPopClipCallback(const function<void()>& callback);
+    void SetPushClipCallback(const std::function<void(const Rect4&)>& callback);
+    void SetPopClipCallback(const std::function<void()>& callback);
 
     void PushClip(const Rect4& clip);
     void PopClip();
@@ -159,7 +159,7 @@ public:
     // It is useful when debugging the logic or some of the touch hardware to be able to see
     // on screen where the inputs are being reported as occurring
 
-    const vector<Input*>& GetActiveInputs() const;
+    const std::vector<Input*>& GetActiveInputs() const;
     void EnableDebugLogging();
     Input* GetInput(const InputId& inputId);
 
@@ -184,17 +184,17 @@ public:
 private:
     typedef std::list<std::shared_ptr<Layer>> LayerList;
 
-    std::vector<Input*>          _activeInputs;
-    LayerList                    _layers;
-    function<void(bool)>         _systemCaptureCallback;
-    bool                         _isDebugLoggingEnabled;
-    double                       _dpiX = 96.0;
-    double                       _dpiY = 96.0;
-    function<void(const Rect4&)> _pushClipCallback;
-    function<void()>             _popClipCallback;
-    boost::optional<Rect4>       _redrawnRegion;
-    std::deque<Element*>         _updatedElements;
-    Size                         _size;
+    std::vector<Input*>               _activeInputs;
+    LayerList                         _layers;
+    std::function<void(bool)>         _systemCaptureCallback;
+    bool                              _isDebugLoggingEnabled;
+    double                            _dpiX = 96.0;
+    double                            _dpiY = 96.0;
+    std::function<void(const Rect4&)> _pushClipCallback;
+    std::function<void()>             _popClipCallback;
+    boost::optional<Rect4>            _redrawnRegion;
+    std::deque<Element*>              _updatedElements;
+    Size                              _size;
 
 };
 }

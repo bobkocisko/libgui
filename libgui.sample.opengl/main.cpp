@@ -101,8 +101,8 @@ void CheckOpenGLError(const char* expression)
     auto result = glGetError();
     if (GL_NO_ERROR != result)
     {
-        throw runtime_error(std::string("OpenGL error for statement ") +
-                            expression + ": " + (char*) gluErrorString(result));
+        throw std::runtime_error(std::string("OpenGL error for statement ") +
+                                 expression + ": " + (char*) gluErrorString(result));
     }
 }
 
@@ -124,7 +124,7 @@ void DrawButton(Element* e);
 
 void InitElements()
 {
-    elementManager = make_shared<ElementManager>();
+    elementManager = std::make_shared<ElementManager>();
 
     // OpenGL does not support stacking scissor regions, so we use a helper class
     // IntersectionStack to manage the stack and then we forward the final current
@@ -174,13 +174,13 @@ void InitElements()
         });
 
     // Main view model
-    auto itemsVm = make_shared<ItemsViewModel>();
+    auto itemsVm = std::make_shared<ItemsViewModel>();
 
     // Set up the root element to match the window size
     auto root = elementManager->AddLayerAbove(nullptr, "Main Layer");
     root->SetViewModel(itemsVm);
     root->SetArrangeCallback(
-        [](shared_ptr<Element> e)
+        [](std::shared_ptr<Element> e)
         {
             e->SetLeft(0);
             e->SetRight(elementManager->GetWidth());
@@ -204,11 +204,11 @@ void InitElements()
 
 
     // Build the screen elements
-    auto header = make_shared<Element>("Header");
+    auto header = std::make_shared<Element>("Header");
     {
         root->AddChild(header);
         header->SetArrangeCallback(
-            [](shared_ptr<Element> e)
+            [](std::shared_ptr<Element> e)
             {
                 auto p = e->GetParent();
                 e->SetLeft(p->GetLeft());
@@ -222,11 +222,11 @@ void InitElements()
                 OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xAB, 0xAB, 0xAB, 1.0);
             });
 
-        auto launchButton = make_shared<Button>();
+        auto launchButton = std::make_shared<Button>();
         {
             header->AddChild(launchButton);
             launchButton->SetArrangeCallback(
-                [](shared_ptr<Element> e)
+                [](std::shared_ptr<Element> e)
                 {
                     auto p = e->GetParent();
                     e->SetCenterX(p->GetCenterX());
@@ -242,7 +242,7 @@ void InitElements()
                 });
 
             launchButton->SetEventCallback(
-                [](shared_ptr<Button> b, Button::OutputEvent event)
+                [](std::shared_ptr<Button> b, Button::OutputEvent event)
                 {
                     if (Button::OutputEvent::Clicked == event)
                     {
@@ -250,7 +250,7 @@ void InitElements()
                         auto layer = b->GetElementManager()->AddLayerAbove(nullptr, "Popup Layer");
                         {
                             layer->SetArrangeCallback(
-                                [layer](shared_ptr<Element> e)
+                                [layer](std::shared_ptr<Element> e)
                                 {
                                     e->SetCenterX(elementManager->GetWidth() / 2);
                                     e->SetCenterY(elementManager->GetHeight() / 2);
@@ -293,11 +293,11 @@ void InitElements()
                                     }
                                 });
 
-                            auto okButton = make_shared<Button>();
+                            auto okButton = std::make_shared<Button>();
                             {
                                 layer->AddChild(okButton);
                                 okButton->SetArrangeCallback(
-                                    [](shared_ptr<Element> e)
+                                    [](std::shared_ptr<Element> e)
                                     {
                                         auto p = e->GetParent();
                                         e->SetHeight(41);
@@ -312,7 +312,7 @@ void InitElements()
                                         DrawText(e->GetCenterX(), e->GetCenterY(), "Ok");
                                     });
                                 okButton->SetEventCallback(
-                                    [b](shared_ptr<Button> b2, Button::OutputEvent event2)
+                                    [b](std::shared_ptr<Button> b2, Button::OutputEvent event2)
                                     {
                                         if (Button::OutputEvent::Clicked == event2)
                                         {
@@ -325,11 +325,11 @@ void InitElements()
                                     });
                             }
 
-                            auto messageLabel = make_shared<Element>("Message");
+                            auto messageLabel = std::make_shared<Element>("Message");
                             {
                                 layer->AddChild(messageLabel);
                                 messageLabel->SetArrangeCallback(
-                                    [](shared_ptr<Element> e)
+                                    [](std::shared_ptr<Element> e)
                                     {
                                         auto ps = e->GetPrevSibling();
                                         auto p  = e->GetParent();
@@ -355,11 +355,11 @@ void InitElements()
 
     }
 
-    auto footer = make_shared<Element>("Footer");
+    auto footer = std::make_shared<Element>("Footer");
     {
         root->AddChild(footer);
         footer->SetArrangeCallback(
-            [](shared_ptr<Element> e)
+            [](std::shared_ptr<Element> e)
             {
                 auto p = e->GetParent();
                 e->SetLeft(p->GetLeft());
@@ -376,18 +376,18 @@ void InitElements()
 
     auto gridScrollWidth = 32;
 
-    auto grid = make_shared<Grid>();
+    auto grid = std::make_shared<Grid>();
     {
         root->AddChild(grid);
         grid->SetArrangeCallback(
-            [header, footer, gridScrollWidth](shared_ptr<Element> e)
+            [header, footer, gridScrollWidth](std::shared_ptr<Element> e)
             {
                 auto p = e->GetParent();
                 e->SetTop(header->GetBottom());
                 e->SetBottom(footer->GetTop());
 
                 // CanScroll method depends on the height to be specified first
-                auto can_scroll = dynamic_pointer_cast<Grid>(e)->CanScroll();
+                auto can_scroll = std::dynamic_pointer_cast<Grid>(e)->CanScroll();
                 if (can_scroll)
                 {
                     e->SetRight(p->GetRight() - gridScrollWidth - 10);
@@ -407,13 +407,13 @@ void InitElements()
         grid->SetItemsProvider(itemsVm);
 
         grid->SetCellCreateCallback(
-            [](shared_ptr<Element> cellContainer)
+            [](std::shared_ptr<Element> cellContainer)
             {
-                auto cell_background = make_shared<Element>("Cell Background");
+                auto cell_background = std::make_shared<Element>("Cell Background");
                 {
                     cellContainer->AddChild(cell_background);
                     cell_background->SetArrangeCallback(
-                        [](shared_ptr<Element> e)
+                        [](std::shared_ptr<Element> e)
                         {
                             auto p = e->GetParent();
                             e->SetLeft(p->GetLeft() + 10);
@@ -429,13 +429,13 @@ void InitElements()
                             FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xEB, 0xEB, 0xEB);
                         });
 
-                    auto text = make_shared<Element>("Cell Text");
+                    auto text = std::make_shared<Element>("Cell Text");
                     {
                         cell_background->AddChild(text);
                         text->SetDrawCallback(
                             [](Element* e, const boost::optional<Rect4>& redrawRegion)
                             {
-                                auto ivm = dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
+                                auto ivm = std::dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
                                 DrawText(e->GetCenterX(), e->GetCenterY(), ivm->GetName());
 
                                 #ifdef DBG
@@ -447,14 +447,14 @@ void InitElements()
             });
     }
 
-    auto grid_scroll = make_shared<Scrollbar>(grid);
+    auto grid_scroll = std::make_shared<Scrollbar>(grid);
     {
         root->AddChild(grid_scroll);
         grid_scroll->SetArrangeCallback(
-            [grid, gridScrollWidth, header, footer](shared_ptr<Element> e)
+            [grid, gridScrollWidth, header, footer](std::shared_ptr<Element> e)
             {
                 auto p          = e->GetParent();
-                auto can_scroll = dynamic_pointer_cast<Grid>(grid)->CanScroll();
+                auto can_scroll = std::dynamic_pointer_cast<Grid>(grid)->CanScroll();
 
                 if (can_scroll)
                 {
@@ -480,7 +480,7 @@ void InitElements()
         grid_scroll->InitializeThis();
         auto track = grid_scroll->GetTrack();
         track->SetArrangeCallback(
-            [](shared_ptr<Element> e)
+            [](std::shared_ptr<Element> e)
             {
                 auto p = e->GetParent();
                 e->SetLeft(p->GetLeft() + 5);
@@ -498,14 +498,14 @@ void InitElements()
 
     }
 
-    shared_ptr<Slider::Thumb> slider_thumb;
+    std::shared_ptr<Slider::Thumb> slider_thumb;
 
-    auto slider = make_shared<Slider>();
+    auto slider = std::make_shared<Slider>();
     {
         root->AddChild(slider);
         slider->SetThumbHeight(50);
         slider->SetArrangeCallback(
-            [gridScrollWidth, header, footer](shared_ptr<Element> e)
+            [gridScrollWidth, header, footer](std::shared_ptr<Element> e)
             {
                 auto p = e->GetParent();
                 e->SetWidth(gridScrollWidth);
@@ -524,7 +524,7 @@ void InitElements()
         slider->InitializeThis();
         auto slider_track = slider->GetTrack();
         slider_track->SetArrangeCallback(
-            [](shared_ptr<Element> e)
+            [](std::shared_ptr<Element> e)
             {
                 auto p = e->GetParent();
                 e->SetLeft(p->GetLeft() + 5);
@@ -541,7 +541,7 @@ void InitElements()
             });
     }
 
-    auto sliderValueText = make_shared<Element>("Slider Value Text");
+    auto sliderValueText = std::make_shared<Element>("Slider Value Text");
     {
         footer->AddChild(sliderValueText);
         sliderValueText->SetDrawCallback(

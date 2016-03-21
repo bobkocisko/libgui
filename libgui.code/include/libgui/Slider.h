@@ -21,15 +21,15 @@ public:
     const Inches GetThumbHeightInches() const;
     void         SetThumbHeight(Inches thumbHeight);
 
-    const function<void(shared_ptr<Slider>)>& GetValueChangedCallback() const;
-    void SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback);
+    const std::function<void(std::shared_ptr<Slider>)>& GetValueChangedCallback() const;
+    void SetValueChangedCallback(const std::function<void(std::shared_ptr<Slider>)>& valueChangedCallback);
 
     class Thumb;
     class Track;
 
-    const shared_ptr<Thumb>& GetThumb() const;
+    const std::shared_ptr<Thumb>& GetThumb() const;
 
-    const shared_ptr<Track>& GetTrack() const;
+    const std::shared_ptr<Track>& GetTrack() const;
 
     virtual std::string GetTypeName() override;
 
@@ -42,7 +42,7 @@ public:
     class Thumb: public Control
     {
     public:
-        explicit Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track);
+        explicit Thumb(std::weak_ptr<Slider> slider, std::weak_ptr<Track> track);
         virtual ~Thumb();
 
         // Input events
@@ -61,7 +61,7 @@ public:
 
         void Arrange() override;
 
-        const weak_ptr<Slider>& GetSlider() const;
+        const std::weak_ptr<Slider>& GetSlider() const;
 
         void RecordAnchor();
 
@@ -69,10 +69,10 @@ public:
 
     private:
         void* _stateMachine;
-        weak_ptr<Slider> _slider;
-        weak_ptr<Track>  _track;
-        double           _anchorOffset;
-        Point            _inputPoint;
+        std::weak_ptr<Slider> _slider;
+        std::weak_ptr<Track>  _track;
+        double                _anchorOffset;
+        Point                 _inputPoint;
 
         void NotifyMove(Point point);
     };
@@ -90,12 +90,12 @@ protected:
     virtual void   SetValueFromRaw(double raw);
 
 private:
-    shared_ptr<Thumb> _thumb;
-    shared_ptr<Track> _track;
-    double            _value = 0.0;
+    std::shared_ptr<Thumb> _thumb;
+    std::shared_ptr<Track> _track;
+    double                 _value = 0.0;
 
     double _thumbHeight = 10.0; // Some default so that it is visible
-    function<void(shared_ptr<Slider>)>
+    std::function<void(std::shared_ptr<Slider>)>
            _valueChangedCallback;
 };
 }

@@ -1,7 +1,6 @@
 ﻿#include <libgui/InputAction.h>
 #include <libgui/InputType.h>
 #include <libgui/Point.h>
-#include "libgui/Common.h"
 #include "libgui/Slider.h"
 #include "libgui/ElementManager.h"
 
@@ -27,11 +26,11 @@ bool Slider::InitializeThis()
         return false;
     }
 
-    _track = make_shared<Track>();
+    _track = std::make_shared<Track>();
     this->AddChild(_track);
 
-    _thumb = make_shared<Thumb>(
-        dynamic_pointer_cast<Slider>(shared_from_this()),
+    _thumb = std::make_shared<Thumb>(
+        std::dynamic_pointer_cast<Slider>(shared_from_this()),
         _track);
     _track->AddChild(_thumb);
 
@@ -70,22 +69,22 @@ void Slider::SetThumbHeight(double thumbHeight)
     _thumbHeight = thumbHeight;
 }
 
-const function<void(shared_ptr<Slider>)>& Slider::GetValueChangedCallback() const
+const std::function<void(std::shared_ptr<Slider>)>& Slider::GetValueChangedCallback() const
 {
     return _valueChangedCallback;
 }
 
-void Slider::SetValueChangedCallback(const function<void(shared_ptr<Slider>)>& valueChangedCallback)
+void Slider::SetValueChangedCallback(const std::function<void(std::shared_ptr<Slider>)>& valueChangedCallback)
 {
     _valueChangedCallback = valueChangedCallback;
 }
 
-const shared_ptr<Slider::Thumb>& Slider::GetThumb() const
+const std::shared_ptr<Slider::Thumb>& Slider::GetThumb() const
 {
     return _thumb;
 }
 
-const shared_ptr<Slider::Track>& Slider::GetTrack() const
+const std::shared_ptr<Slider::Track>& Slider::GetTrack() const
 {
     return _track;
 }
@@ -189,7 +188,7 @@ private:
 typedef state_machine<StateMachineFrontEnd> StateMachine;
 }
 
-Slider::Thumb::Thumb(weak_ptr<Slider> slider, weak_ptr<Track> track)
+Slider::Thumb::Thumb(std::weak_ptr<Slider> slider, std::weak_ptr<Track> track)
     : _slider(slider),
       _track(track)
 {
@@ -284,8 +283,8 @@ void Slider::Thumb::NotifyMove(Point point)
         {
             auto offsetPercent = ((point.Y - _anchorOffset) - track->GetTop()) /
                                  (track->GetHeight() - slider->GetThumbHeight());
-            offsetPercent = max(0.0, offsetPercent);
-            offsetPercent = min(1.0, offsetPercent);
+            offsetPercent = std::max(0.0, offsetPercent);
+            offsetPercent = std::min(1.0, offsetPercent);
             if (slider->GetRawFromValue() != offsetPercent)
             {
                 slider->SetValueFromRaw(offsetPercent);
@@ -295,7 +294,7 @@ void Slider::Thumb::NotifyMove(Point point)
     }
 }
 
-const weak_ptr<Slider>& Slider::Thumb::GetSlider() const
+const std::weak_ptr<Slider>& Slider::Thumb::GetSlider() const
 {
     return _slider;
 }
@@ -304,7 +303,7 @@ void Slider::OnValueChanged()
 {
     if (_valueChangedCallback)
     {
-        _valueChangedCallback(dynamic_pointer_cast<Slider>(shared_from_this()));
+        _valueChangedCallback(std::dynamic_pointer_cast<Slider>(shared_from_this()));
     }
 }
 

@@ -1,4 +1,3 @@
-#include "libgui/Common.h"
 #include "libgui/Control.h"
 
 namespace libgui

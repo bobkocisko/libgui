@@ -1,4 +1,3 @@
-#include "libgui/Common.h"
 #include "libgui/Element.h"
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
@@ -36,38 +35,38 @@ Layer* Element::GetLayer() const
 }
 
 // View Model
-void Element::SetViewModel(shared_ptr<ViewModelBase> viewModel)
+void Element::SetViewModel(std::shared_ptr<ViewModelBase> viewModel)
 {
     _viewModel = viewModel;
 }
 
-shared_ptr<ViewModelBase> Element::GetViewModel()
+std::shared_ptr<ViewModelBase> Element::GetViewModel()
 {
     return _viewModel;
 }
 
 // Visual tree
-shared_ptr<Element> Element::GetParent()
+std::shared_ptr<Element> Element::GetParent()
 {
     return _parent;
 }
 
-shared_ptr<Element> Element::GetFirstChild()
+std::shared_ptr<Element> Element::GetFirstChild()
 {
     return _firstChild;
 }
 
-shared_ptr<Element> Element::GetLastChild()
+std::shared_ptr<Element> Element::GetLastChild()
 {
     return _lastChild;
 }
 
-shared_ptr<Element> Element::GetPrevSibling()
+std::shared_ptr<Element> Element::GetPrevSibling()
 {
     return _prevsibling;
 }
 
-shared_ptr<Element> Element::GetNextSibling()
+std::shared_ptr<Element> Element::GetNextSibling()
 {
     return _nextsibling;
 }
@@ -93,7 +92,7 @@ void Element::RemoveChildren()
     _childrenCount = 0;
 }
 
-void Element::RemoveChild(shared_ptr<Element> child)
+void Element::RemoveChild(std::shared_ptr<Element> child)
 {
     child->Update(UpdateType::Removing);
 
@@ -134,7 +133,7 @@ void Element::RemoveChild(shared_ptr<Element> child)
     // The child should disappear as soon as all shared references to it are released
 }
 
-void Element::AddChild(shared_ptr<Element> element)
+void Element::AddChild(std::shared_ptr<Element> element)
 {
     if (!_elementManager)
     {
@@ -170,14 +169,14 @@ int Element::GetChildrenCount()
     return _childrenCount;
 }
 
-void Element::SetSingleChild(shared_ptr<Element> child)
+void Element::SetSingleChild(std::shared_ptr<Element> child)
 {
     // Could be optimized to improve performance
     RemoveChildren();
     AddChild(child);
 }
 
-shared_ptr<Element> Element::GetSingleChild()
+std::shared_ptr<Element> Element::GetSingleChild()
 {
     if (_childrenCount == 1)
     {
@@ -234,7 +233,7 @@ void Element::ResetArrangement()
     _isHeightSet  = false;
 }
 
-void Element::SetSetViewModelCallback(const function<void(shared_ptr<Element>)>& setViewModelCallback)
+void Element::SetSetViewModelCallback(const std::function<void(std::shared_ptr<Element>)>& setViewModelCallback)
 {
     _setViewModelCallback = setViewModelCallback;
 }
@@ -255,12 +254,12 @@ void Element::PrepareViewModel()
     }
 }
 
-void Element::SetArrangeCallback(const function<void(shared_ptr<Element>)>& arrangeCallback)
+void Element::SetArrangeCallback(const std::function<void(std::shared_ptr<Element>)>& arrangeCallback)
 {
     _arrangeCallback = arrangeCallback;
 }
 
-void Element::AddArrangeDependent(shared_ptr<Element> dependent)
+void Element::AddArrangeDependent(std::shared_ptr<Element> dependent)
 {
     if (dependent->GetLayer() != GetLayer())
     {
@@ -877,7 +876,7 @@ void Element::Draw(const boost::optional<Rect4>& updateArea)
     }
 }
 
-void Element::SetDrawCallback(const function<void(Element*, const boost::optional<Rect4>&)>& drawCallback)
+void Element::SetDrawCallback(const std::function<void(Element*, const boost::optional<Rect4>&)>& drawCallback)
 {
     _drawCallback = drawCallback;
 }

@@ -30,11 +30,11 @@ public:
     void SetTopPadding(double topPadding);
     void SetBottomPadding(double bottomPadding);
 
-    const shared_ptr<ItemsProvider>& GetItemsProvider() const;
+    const std::shared_ptr<ItemsProvider>& GetItemsProvider() const;
 
-    void SetItemsProvider(const shared_ptr<ItemsProvider>& itemsProvider);
+    void SetItemsProvider(const std::shared_ptr<ItemsProvider>& itemsProvider);
 
-    void SetCellCreateCallback(const function<void(shared_ptr<Element> cellContainer)>& cellCreateCallback);
+    void SetCellCreateCallback(const std::function<void(std::shared_ptr<Element> cellContainer)>& cellCreateCallback);
 
     virtual std::string GetTypeName() override;
 private:
@@ -48,21 +48,21 @@ private:
     double _topPadding                   = 0.0;
     double _bottomPadding                = 0.0;
 
-    shared_ptr<ItemsProvider>           _itemsProvider;
-    function<void(shared_ptr<Element>)> _cellCreateCallback;
+    std::shared_ptr<ItemsProvider>                _itemsProvider;
+    std::function<void(std::shared_ptr<Element>)> _cellCreateCallback;
 
     class Cell: public Element
     {
     public:
-        Cell(const shared_ptr<Grid>& parent, int index);
+        Cell(const std::shared_ptr<Grid>& parent, int index);
 
         void PrepareViewModel() override;
         void Arrange() override;
 
         virtual std::string GetTypeName() override;
     private:
-        shared_ptr<Grid> _grid;
-        int              _index;
+        std::shared_ptr<Grid> _grid;
+        int                   _index;
     };
 };
 }

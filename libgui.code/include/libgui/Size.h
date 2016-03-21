@@ -4,17 +4,12 @@
 
 #pragma once
 
-#include "Length.h"
-
 class Size
 {
 public:
     Size();
+    Size(double width, double height);
 
-    Size(const Length& width, const Length& height);
-
-    Size(Length& width, Length& height);
-
-    Length width;
-    Length height;
+    double width;
+    double height;
 };

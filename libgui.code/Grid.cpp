@@ -1,5 +1,4 @@
-﻿#include "libgui/Common.h"
-#include "libgui/Grid.h"
+﻿#include "libgui/Grid.h"
 
 namespace libgui
 {
@@ -33,12 +32,12 @@ void Grid::Arrange()
     auto childrenCount   = GetChildrenCount();
     int  visibleRows     = ceil(GetHeight() / _cellHeight) + 1; // Need an extra for partial rows
     auto visibleItems    = visibleRows * _columns;
-    auto missingChildren = min(totalCount, visibleItems) - childrenCount;
+    auto missingChildren = std::min(totalCount, visibleItems) - childrenCount;
 
     for (int i = 0; i < missingChildren; i++)
     {
-        auto fromThis      = dynamic_pointer_cast<Grid>(shared_from_this());
-        auto cellContainer = make_shared<Cell>(fromThis, childrenCount + i);
+        auto fromThis      = std::dynamic_pointer_cast<Grid>(shared_from_this());
+        auto cellContainer = std::make_shared<Cell>(fromThis, childrenCount + i);
         AddChild(cellContainer);
         _cellCreateCallback(cellContainer);
     }
@@ -53,7 +52,7 @@ void Grid::Arrange()
     int currentRow = int(floor((totalHeightOffset - _topPadding) / _cellHeight));
     _rowOffset = fmod(totalHeightOffset - _topPadding, _cellHeight);
 
-    currentRow     = max(0, currentRow);
+    currentRow     = std::max(0, currentRow);
     _baseItemIndex = currentRow * _columns;
 
 }
@@ -67,7 +66,7 @@ double Grid::GetThumbSizePercent()
 {
     auto totalRows          = ceil(double(_itemsProvider->GetTotalItems()) / _columns);
     auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
-    return min(1.0, GetHeight() / totalContentHeight);
+    return std::min(1.0, GetHeight() / totalContentHeight);
 }
 
 void Grid::MoveToOffsetPercent(double offsetPercent)
@@ -82,7 +81,7 @@ bool Grid::CanScroll()
     return totalContentHeight > GetHeight();
 }
 
-Grid::Cell::Cell(const shared_ptr<Grid>& grid, int index)
+Grid::Cell::Cell(const std::shared_ptr<Grid>& grid, int index)
     :
     _grid(grid), _index(index)
 {
@@ -164,17 +163,17 @@ void Grid::SetBottomPadding(double bottomPadding)
     _bottomPadding = bottomPadding;
 }
 
-const shared_ptr<ItemsProvider>& Grid::GetItemsProvider() const
+const std::shared_ptr<ItemsProvider>& Grid::GetItemsProvider() const
 {
     return _itemsProvider;
 }
 
-void Grid::SetItemsProvider(const shared_ptr<ItemsProvider>& itemsProvider)
+void Grid::SetItemsProvider(const std::shared_ptr<ItemsProvider>& itemsProvider)
 {
     _itemsProvider = itemsProvider;
 }
 
-void Grid::SetCellCreateCallback(const function<void(shared_ptr<Element>)>& cellCreateCallback)
+void Grid::SetCellCreateCallback(const std::function<void(std::shared_ptr<Element>)>& cellCreateCallback)
 {
     _cellCreateCallback = cellCreateCallback;
 }

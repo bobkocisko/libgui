@@ -24,7 +24,7 @@ public:
 
     void PopRegion();
 
-    void SetRegionChangedCallback(const function<void(const OptRegion&)>& regionChangedCallback);
+    void SetRegionChangedCallback(const std::function<void(const OptRegion&)>& regionChangedCallback);
 
 private:
     std::stack<Rect4> _stack;

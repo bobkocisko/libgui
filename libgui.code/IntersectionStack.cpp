@@ -10,7 +10,7 @@ namespace libgui
 
 const Rect4 IntersectionStack::EmptyRegion = Rect4();
 
-void IntersectionStack::SetRegionChangedCallback(const function<void(const OptRegion&)>& regionChangedCallback)
+void IntersectionStack::SetRegionChangedCallback(const std::function<void(const OptRegion&)>& regionChangedCallback)
 {
     _regionChangedCallback = regionChangedCallback;
 }
@@ -36,10 +36,10 @@ void IntersectionStack::PushRegion(const Rect4& newRegion)
         else
         {
             Rect4 intersection;
-            intersection.left   = max(currentRegion.left, newRegion.left);
-            intersection.top    = max(currentRegion.top, newRegion.top);
-            intersection.right  = min(currentRegion.right, newRegion.right);
-            intersection.bottom = min(currentRegion.bottom, newRegion.bottom);
+            intersection.left   = std::max(currentRegion.left, newRegion.left);
+            intersection.top    = std::max(currentRegion.top, newRegion.top);
+            intersection.right  = std::min(currentRegion.right, newRegion.right);
+            intersection.bottom = std::min(currentRegion.bottom, newRegion.bottom);
 
             if (intersection.left < intersection.right &&
                 intersection.top < intersection.bottom)

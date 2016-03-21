@@ -1,4 +1,3 @@
-#include "libgui/Common.h"
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
 #include "libgui/Layer.h"
@@ -6,7 +5,7 @@
 namespace libgui
 {
 
-Layer* ElementManager::AddLayerAbove(Layer* existing, const string& typeName)
+Layer* ElementManager::AddLayerAbove(Layer* existing, const std::string& typeName)
 {
     LayerList::iterator existingIter = _layers.end();
 
@@ -81,7 +80,7 @@ Layer* ElementManager::AddLayerAbove(Layer* existing, const string& typeName)
     return adding;
 }
 
-Layer* ElementManager::AddLayerBelow(Layer* existing, const string& typeName)
+Layer* ElementManager::AddLayerBelow(Layer* existing, const std::string& typeName)
 {
     LayerList::iterator existingIter = _layers.end();
 
@@ -196,7 +195,7 @@ void ElementManager::UpdateEverything()
     }
 }
 
-void ElementManager::SetSystemCaptureCallback(const function<void(bool)>& systemCaptureCallback)
+void ElementManager::SetSystemCaptureCallback(const std::function<void(bool)>& systemCaptureCallback)
 {
     _systemCaptureCallback = systemCaptureCallback;
 }
@@ -262,7 +261,7 @@ Input* ElementManager::GetInput(const InputId& inputId)
     return result;
 }
 
-const vector<Input*>& ElementManager::GetActiveInputs() const
+const std::vector<Input*>& ElementManager::GetActiveInputs() const
 {
     return _activeInputs;
 }
@@ -292,12 +291,12 @@ void ElementManager::SetDpiY(double dpiY)
     _dpiY = dpiY;
 }
 
-void ElementManager::SetPushClipCallback(const function<void(const Rect4&)>& callback)
+void ElementManager::SetPushClipCallback(const std::function<void(const Rect4&)>& callback)
 {
     _pushClipCallback = callback;
 }
 
-void ElementManager::SetPopClipCallback(const function<void()>& callback)
+void ElementManager::SetPopClipCallback(const std::function<void()>& callback)
 {
     _popClipCallback = callback;
 }

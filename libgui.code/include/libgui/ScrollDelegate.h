@@ -14,8 +14,8 @@ namespace libgui
 
 		void LimitToBounds(double& offsetPercent)
 		{
-			offsetPercent = max(0.0, offsetPercent);
-			offsetPercent = min(1.0 - GetThumbSizePercent(), offsetPercent);
+			offsetPercent = std::max(0.0, offsetPercent);
+			offsetPercent = std::min(1.0 - GetThumbSizePercent(), offsetPercent);
 		}
 	};
 }

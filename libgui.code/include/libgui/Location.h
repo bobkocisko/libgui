@@ -4,17 +4,12 @@
 
 #pragma once
 
-#include "Length.h"
-
 class Location
 {
 public:
-
     Location();
+    Location(double x, double y);
 
-    Location(const Length& x, const Length& y);
-    Location(Length& x, Length& y);
-
-    Length x;
-    Length y;
+    double x;
+    double y;
 };

@@ -9,12 +9,7 @@ Size::Size()
 {
 }
 
-Size::Size(const Length& width, const Length& height)
-    : width(width), height(height)
-{
-}
-
-Size::Size(Length& width, Length& height)
+Size::Size(double width, double height)
     : width(width), height(height)
 {
 }

@@ -10,18 +10,18 @@ namespace libgui
 class Scrollbar: public libgui::Element
 {
 public:
-    explicit Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate);
+    explicit Scrollbar(const std::shared_ptr<ScrollDelegate>& scrollDelegate);
 
     bool InitializeThis() override;
 
     class Thumb;
     class Track;
 
-    const shared_ptr<Thumb>& GetThumb() const;
-    const shared_ptr<Track>& GetTrack() const;
+    const std::shared_ptr<Thumb>& GetThumb() const;
+    const std::shared_ptr<Track>& GetTrack() const;
 
-    const shared_ptr<ScrollDelegate>& GetScrollDelegate() const;
-    void SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate);
+    const std::shared_ptr<ScrollDelegate>& GetScrollDelegate() const;
+    void SetScrollDelegate(const std::shared_ptr<ScrollDelegate>& scrollDelegate);
 
     virtual std::string GetTypeName() override;
 
@@ -34,7 +34,7 @@ public:
     class Thumb: public Control
     {
     public:
-        explicit Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track);
+        explicit Thumb(std::weak_ptr<Scrollbar> scrollbar, std::weak_ptr<Track> track);
         virtual ~Thumb();
 
         // Input events
@@ -54,7 +54,7 @@ public:
 
         void Arrange() override;
 
-        const weak_ptr<Scrollbar>& GetScrollbar() const;
+        const std::weak_ptr<Scrollbar>& GetScrollbar() const;
 
         void RecordAnchor();
 
@@ -62,17 +62,17 @@ public:
 
     private:
         void* _stateMachine;
-        weak_ptr<Scrollbar> _scrollbar;
-        weak_ptr<Track>     _track;
-        double              _anchorOffset;
-        Point               _pointer;
+        std::weak_ptr<Scrollbar> _scrollbar;
+        std::weak_ptr<Track>     _track;
+        double                   _anchorOffset;
+        Point                    _pointer;
 
         void NotifyPointerMove(Point point);
     };
 private:
-    shared_ptr<Thumb>          _thumb;
-    shared_ptr<Track>          _track;
-    shared_ptr<ScrollDelegate> _scrollDelegate;
+    std::shared_ptr<Thumb>          _thumb;
+    std::shared_ptr<Track>          _track;
+    std::shared_ptr<ScrollDelegate> _scrollDelegate;
 };
 }
 

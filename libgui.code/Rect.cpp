@@ -1,7 +1,7 @@
-#include "libgui/Common.h"
 #include "libgui/Rect.h"
 #include "libgui/Size.h"
 #include "libgui/Location.h"
+#include <algorithm>
 
 namespace libgui
 {
@@ -73,9 +73,9 @@ void Rect4::IntersectWith(const Rect4& other)
 {
     // This algorithm assumes that this and other actually do
     // intersect.  If they do not then this will become a deformed rectangle.
-    left   = max(left, other.left);
-    top    = max(top, other.top);
-    right  = min(right, other.right);
-    bottom = min(bottom, other.bottom);
+    left   = std::max(left, other.left);
+    top    = std::max(top, other.top);
+    right  = std::min(right, other.right);
+    bottom = std::min(bottom, other.bottom);
 }
 }

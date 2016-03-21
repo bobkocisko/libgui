@@ -6,8 +6,7 @@
 #include "Rect.h"
 #include <boost/optional.hpp>
 #include <deque>
-
-using namespace std;
+#include <memory>
 
 namespace libgui
 {
@@ -38,7 +37,7 @@ struct ElementQueryInfo
     bool HasDisabledAncestor;
 };
 
-class Element: public enable_shared_from_this<Element>
+class Element: public std::enable_shared_from_this<Element>
 {
     friend class ElementManager;
 public:
@@ -57,21 +56,21 @@ public:
     // -----------------------------------------------------------------
     // View Model
 
-    void                      SetViewModel(shared_ptr<ViewModelBase>);
-    shared_ptr<ViewModelBase> GetViewModel();
+    void                           SetViewModel(std::shared_ptr<ViewModelBase>);
+    std::shared_ptr<ViewModelBase> GetViewModel();
 
     // Called during each arrange cycle to set or update the attached view model
     // (unless the PrepareViewModel method is overridden)
-    void SetSetViewModelCallback(const function<void(shared_ptr<Element>)>&);
+    void SetSetViewModelCallback(const std::function<void(std::shared_ptr<Element>)>&);
 
 
     // -----------------------------------------------------------------
     // Visual tree
 
     void RemoveChildren();
-    void RemoveChild(shared_ptr<Element>);
-    void AddChild(shared_ptr<Element>);
-    void SetSingleChild(shared_ptr<Element> child);
+    void RemoveChild(std::shared_ptr<Element>);
+    void AddChild(std::shared_ptr<Element>);
+    void SetSingleChild(std::shared_ptr<Element> child);
     int  GetChildrenCount();
 
     // -----------------------------------------------------------------
@@ -83,12 +82,12 @@ public:
     // -----------------------------------------------------------------
     // Arrangement
 
-    shared_ptr<Element> GetParent();
-    shared_ptr<Element> GetSingleChild();
-    shared_ptr<Element> GetFirstChild();
-    shared_ptr<Element> GetLastChild();
-    shared_ptr<Element> GetPrevSibling();
-    shared_ptr<Element> GetNextSibling();
+    std::shared_ptr<Element> GetParent();
+    std::shared_ptr<Element> GetSingleChild();
+    std::shared_ptr<Element> GetFirstChild();
+    std::shared_ptr<Element> GetLastChild();
+    std::shared_ptr<Element> GetPrevSibling();
+    std::shared_ptr<Element> GetNextSibling();
 
     // -----------------------------------------------------------------
     // Arrange cycle
@@ -130,7 +129,7 @@ public:
 
     // Called during each arrange cycle to set or update the position and size of the element
     // (unless the Arrange method is overridden)
-    void SetArrangeCallback(const function<void(shared_ptr<Element>)>&);
+    void SetArrangeCallback(const std::function<void(std::shared_ptr<Element>)>&);
 
     // Set whether calling update on this element will automatically rearrange all of its descendants.
     // If this is false, descendents are only rearranged when the updated element is moved or resized.
@@ -144,7 +143,7 @@ public:
 
     // Add an element which will be updated whenever this element is arranged
     // in such a way that its position or size is modified
-    void AddArrangeDependent(shared_ptr<Element> dependent);
+    void AddArrangeDependent(std::shared_ptr<Element> dependent);
 
     // -----------------------------------------------------------------
     // Bounds
@@ -226,7 +225,7 @@ public:
     virtual void Draw(const boost::optional<Rect4>& updateArea);
 
     // Called during each arrange cycle to draw this element (unless the Draw method is overridden)
-    void SetDrawCallback(const function<void(Element* e, const boost::optional<Rect4>& updateArea)>&);
+    void SetDrawCallback(const std::function<void(Element* e, const boost::optional<Rect4>& updateArea)>&);
 
 
     // -----------------------------------------------------------------
@@ -315,32 +314,32 @@ private:
     // -----------------------------------------------------------------
     // View model
 
-    shared_ptr<ViewModelBase> _viewModel;
+    std::shared_ptr<ViewModelBase> _viewModel;
 
     // -----------------------------------------------------------------
     // Arrange cycle
 
-    std::deque<weak_ptr<Element>> _arrangeDependents;
+    std::deque<std::weak_ptr<Element>> _arrangeDependents;
 
     bool _updateRearrangesDescendents  = false;
 
     // -----------------------------------------------------------------
     // Visual tree
 
-    shared_ptr<Element> _parent;
-    shared_ptr<Element> _firstChild;
-    shared_ptr<Element> _lastChild;
-    shared_ptr<Element> _prevsibling;
-    shared_ptr<Element> _nextsibling;
-    int                 _childrenCount = 0;
+    std::shared_ptr<Element> _parent;
+    std::shared_ptr<Element> _firstChild;
+    std::shared_ptr<Element> _lastChild;
+    std::shared_ptr<Element> _prevsibling;
+    std::shared_ptr<Element> _nextsibling;
+    int                      _childrenCount = 0;
 
     // -----------------------------------------------------------------
     // Arrangement
 
-    function<void(shared_ptr<Element>)>
-                        _setViewModelCallback;
-    function<void(shared_ptr<Element>)>
-                        _arrangeCallback;
+    std::function<void(std::shared_ptr<Element>)>
+                             _setViewModelCallback;
+    std::function<void(std::shared_ptr<Element>)>
+                             _arrangeCallback;
 
     // -----------------------------------------------------------------
     // Bounds
@@ -391,7 +390,7 @@ private:
     // -----------------------------------------------------------------
     // Drawing
 
-    function<void(Element*, const boost::optional<Rect4>&)>
+    std::function<void(Element*, const boost::optional<Rect4>&)>
          _drawCallback;
 
     // -----------------------------------------------------------------

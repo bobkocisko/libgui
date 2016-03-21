@@ -1,7 +1,6 @@
 ﻿#include <libgui/InputAction.h>
 #include <libgui/InputType.h>
 #include <libgui/Point.h>
-#include "libgui/Common.h"
 #include "libgui/Scrollbar.h"
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
@@ -21,7 +20,7 @@ using boost::msm::TerminateFlag;
 
 namespace libgui
 {
-Scrollbar::Scrollbar(const shared_ptr<ScrollDelegate>& scrollDelegate)
+Scrollbar::Scrollbar(const std::shared_ptr<ScrollDelegate>& scrollDelegate)
     : _scrollDelegate(scrollDelegate)
 {
 }
@@ -33,17 +32,17 @@ bool Scrollbar::InitializeThis()
         return false;
     }
 
-    _track = make_shared<Track>();
+    _track = std::make_shared<Track>();
     this->AddChild(_track);
 
-    _thumb = make_shared<Thumb>(
-        dynamic_pointer_cast<Scrollbar>(shared_from_this()),
+    _thumb = std::make_shared<Thumb>(
+        std::dynamic_pointer_cast<Scrollbar>(shared_from_this()),
         _track);
     _track->AddChild(_thumb);
 
     // Add bidirectional arrange dependencies between this element and its scroll delegate,
     // if the scroll delegate is also an element
-    auto delegateElement = dynamic_pointer_cast<Element>(_scrollDelegate);
+    auto delegateElement = std::dynamic_pointer_cast<Element>(_scrollDelegate);
     if (delegateElement)
     {
         delegateElement->AddArrangeDependent(_thumb);
@@ -53,22 +52,22 @@ bool Scrollbar::InitializeThis()
     return true;
 }
 
-const shared_ptr<Scrollbar::Thumb>& Scrollbar::GetThumb() const
+const std::shared_ptr<Scrollbar::Thumb>& Scrollbar::GetThumb() const
 {
     return _thumb;
 }
 
-const shared_ptr<Scrollbar::Track>& Scrollbar::GetTrack() const
+const std::shared_ptr<Scrollbar::Track>& Scrollbar::GetTrack() const
 {
     return _track;
 }
 
-const shared_ptr<ScrollDelegate>& Scrollbar::GetScrollDelegate() const
+const std::shared_ptr<ScrollDelegate>& Scrollbar::GetScrollDelegate() const
 {
     return _scrollDelegate;
 }
 
-void Scrollbar::SetScrollDelegate(const shared_ptr<ScrollDelegate>& scrollDelegate)
+void Scrollbar::SetScrollDelegate(const std::shared_ptr<ScrollDelegate>& scrollDelegate)
 {
     _scrollDelegate = scrollDelegate;
 }
@@ -173,7 +172,7 @@ private:
 typedef state_machine<StateMachineFrontEnd> StateMachine;
 }
 
-Scrollbar::Thumb::Thumb(weak_ptr<Scrollbar> scrollbar, weak_ptr<Track> track)
+Scrollbar::Thumb::Thumb(std::weak_ptr<Scrollbar> scrollbar, std::weak_ptr<Track> track)
     : _scrollbar(scrollbar),
       _track(track)
 {
@@ -286,7 +285,7 @@ void Scrollbar::Thumb::NotifyPointerMove(Point point)
     }
 }
 
-const weak_ptr<Scrollbar>& Scrollbar::Thumb::GetScrollbar() const
+const std::weak_ptr<Scrollbar>& Scrollbar::Thumb::GetScrollbar() const
 {
     return _scrollbar;
 }
