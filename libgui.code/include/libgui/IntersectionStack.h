@@ -1,7 +1,3 @@
-//
-// Created by sjm-kociskobd on 2/20/16.
-//
-
 #pragma once
 
 #include "Rect.h"
@@ -25,6 +21,8 @@ public:
     void PopRegion();
 
     void SetRegionChangedCallback(const std::function<void(const OptRegion&)>& regionChangedCallback);
+
+    OptRegion GetCurrentRegion();
 
 private:
     std::stack<Rect4> _stack;

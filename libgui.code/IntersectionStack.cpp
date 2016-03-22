@@ -62,15 +62,8 @@ void IntersectionStack::PushRegion(const Rect4& newRegion)
 void IntersectionStack::PopRegion()
 {
     _stack.pop();
-    if (_stack.empty())
-    {
-        SignalChangeIfNeeded(boost::none);
-    }
-    else
-    {
-        auto& clip = _stack.top();
-        SignalChangeIfNeeded(clip);
-    }
+
+    SignalChangeIfNeeded(GetCurrentRegion());
 }
 
 void IntersectionStack::OnRegionChanged(const OptRegion& region)
@@ -100,4 +93,17 @@ void IntersectionStack::SignalChangeIfNeeded(const OptRegion& region)
 
     _lastNotification = region;
 }
+
+IntersectionStack::OptRegion IntersectionStack::GetCurrentRegion()
+{
+    if (_stack.empty())
+    {
+        return boost::none;
+    }
+    else
+    {
+        return _stack.top();
+    }
+}
+
 }
