@@ -2,9 +2,11 @@
 
 namespace libgui
 {
-	class ViewModelBase
+
+class ViewModelBase
 	{
 	public:
 		virtual ~ViewModelBase();
 	};
+
 }

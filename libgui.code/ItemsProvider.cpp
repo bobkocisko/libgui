@@ -1,5 +1,10 @@
 ﻿#include "libgui/ItemsProvider.h"
 
-libgui::ItemsProvider::~ItemsProvider()
+namespace libgui
 {
+
+ItemsProvider::~ItemsProvider()
+{
+}
+
 }

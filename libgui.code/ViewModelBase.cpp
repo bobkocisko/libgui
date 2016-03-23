@@ -1,5 +1,10 @@
-
 #include "libgui/ViewModelBase.h"
 
-libgui::ViewModelBase::~ViewModelBase()
-{ }
+namespace libgui
+{
+
+ViewModelBase::~ViewModelBase()
+{
+}
+
+}

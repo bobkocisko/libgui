@@ -19,6 +19,7 @@ using boost::msm::TerminateFlag;
 
 namespace libgui
 {
+
 bool Slider::InitializeThis()
 {
     if (!Element::InitializeThis())

@@ -68,6 +68,8 @@ using libgui::Grid;
 using libgui::Scrollbar;
 using libgui::Slider;
 using libgui::Button;
+using libgui::PointerInputId;
+using libgui::Size;
 
 typedef struct
 {

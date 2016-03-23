@@ -4,6 +4,9 @@
 
 #pragma once
 
+namespace libgui
+{
+
 class Location
 {
 public:
@@ -13,3 +16,5 @@ public:
     double x;
     double y;
 };
+
+}

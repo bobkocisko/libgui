@@ -10,6 +10,9 @@
  *
  */
 
+namespace libgui
+{
+
 InputIdentifier::InputIdentifier(int inputId)
     : _inputId(inputId)
 {
@@ -33,4 +36,6 @@ InputIdentifier::operator int() const
 bool InputIdentifier::operator==(const InputIdentifier other)
 {
     return _inputId == other._inputId;
+}
+
 }

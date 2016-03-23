@@ -4,6 +4,9 @@
 
 #pragma once
 
+namespace libgui
+{
+
 class Size
 {
 public:
@@ -13,3 +16,5 @@ public:
     double width;
     double height;
 };
+
+}

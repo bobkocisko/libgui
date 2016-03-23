@@ -4,6 +4,9 @@
 
 #include "libgui/Location.h"
 
+namespace libgui
+{
+
 Location::Location()
     : Location(0.0, 0.0)
 {
@@ -12,4 +15,6 @@ Location::Location()
 Location::Location(double x, double y)
     : x(x), y(y)
 {
+}
+
 }

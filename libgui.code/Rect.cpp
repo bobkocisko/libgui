@@ -5,6 +5,7 @@
 
 namespace libgui
 {
+
 Rect::Rect(Location location, Size size)
     : location(location),
       size(size)
