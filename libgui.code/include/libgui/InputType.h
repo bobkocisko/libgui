@@ -4,8 +4,13 @@
 
 #pragma once
 
+namespace libgui
+{
+
 enum class InputType
 {
     Pointer,
     Touch
 };
+
+}

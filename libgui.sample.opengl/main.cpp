@@ -70,6 +70,7 @@ using libgui::Slider;
 using libgui::Button;
 using libgui::PointerInputId;
 using libgui::Size;
+using libgui::Point;
 
 typedef struct
 {

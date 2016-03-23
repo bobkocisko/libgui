@@ -4,6 +4,9 @@
 
 #pragma once
 
+namespace libgui
+{
+
 enum class InputAction
 {
     EnterReleased,
@@ -15,3 +18,5 @@ enum class InputAction
     EngagedEscape,
     EngagedReturn
 };
+
+}

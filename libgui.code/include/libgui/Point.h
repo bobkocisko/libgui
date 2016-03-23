@@ -4,6 +4,9 @@
 
 #pragma once
 
+namespace libgui
+{
+
 struct Point
 {
     double X;
@@ -20,3 +23,5 @@ struct Point
         return !(*this == other);
     }
 };
+
+}
