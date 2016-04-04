@@ -9,6 +9,7 @@ namespace libgui
 {
 class Slider: public libgui::Element
 {
+    friend class Thumb;
 public:
     bool InitializeThis() override;
 
@@ -21,8 +22,8 @@ public:
     const Inches GetThumbHeightInches() const;
     void         SetThumbHeight(Inches thumbHeight);
 
-    const std::function<void(std::shared_ptr<Slider>)>& GetValueChangedCallback() const;
-    void SetValueChangedCallback(const std::function<void(std::shared_ptr<Slider>)>& valueChangedCallback);
+    void SetValueChangedByInputCallback(
+        const std::function<void(std::shared_ptr<Slider>)>& valueChangedByInputCallback);
 
     class Thumb;
     class Track;
@@ -78,7 +79,7 @@ public:
     };
 
 protected:
-    virtual void OnValueChanged();
+    virtual void OnValueChangedByInput();
 
     // Support transformations of the value from the raw 0.0-1.0 scale meaning a
     // linear top to bottom value.  The default transformation that makes 0.0 values
@@ -92,11 +93,12 @@ protected:
 private:
     std::shared_ptr<Thumb> _thumb;
     std::shared_ptr<Track> _track;
-    double                 _value = 0.0;
+    double                 _value                  = 0.0;
+    bool                   _valueIsChangingByInput = false;
+    double                 _thumbHeight            = 10.0; // Some default so that it is visible
 
-    double _thumbHeight = 10.0; // Some default so that it is visible
     std::function<void(std::shared_ptr<Slider>)>
-           _valueChangedCallback;
+                           _valueChangedByInputCallback;
 };
 }
 

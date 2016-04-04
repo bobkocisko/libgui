@@ -8,6 +8,7 @@
 #include <boost/msm/front/state_machine_def.hpp>
 #include <boost/msm/back/state_machine.hpp>
 #include <boost/msm/front/euml/euml.hpp>
+#include <libgui/ScopeExit.h>
 
 using namespace boost::msm::front;
 using namespace boost::msm::back;
@@ -54,9 +55,9 @@ void Slider::SetValue(double value)
 
     _value = value;
 
-    if (value != oldValue)
+    if (_valueIsChangingByInput && (value != oldValue))
     {
-        OnValueChanged();
+        OnValueChangedByInput();
     }
 }
 
@@ -70,14 +71,10 @@ void Slider::SetThumbHeight(double thumbHeight)
     _thumbHeight = thumbHeight;
 }
 
-const std::function<void(std::shared_ptr<Slider>)>& Slider::GetValueChangedCallback() const
+void Slider::SetValueChangedByInputCallback(
+    const std::function<void(std::shared_ptr<Slider>)>& valueChangedByInputCallback)
 {
-    return _valueChangedCallback;
-}
-
-void Slider::SetValueChangedCallback(const std::function<void(std::shared_ptr<Slider>)>& valueChangedCallback)
-{
-    _valueChangedCallback = valueChangedCallback;
+    _valueChangedByInputCallback = valueChangedByInputCallback;
 }
 
 const std::shared_ptr<Slider::Thumb>& Slider::GetThumb() const
@@ -288,7 +285,12 @@ void Slider::Thumb::NotifyMove(Point point)
             offsetPercent = std::min(1.0, offsetPercent);
             if (slider->GetRawFromValue() != offsetPercent)
             {
-                slider->SetValueFromRaw(offsetPercent);
+                {
+                    slider->_valueIsChangingByInput = true;
+                    ScopeExit onScopeExit([slider]()
+                                          { slider->_valueIsChangingByInput = false; });
+                    slider->SetValueFromRaw(offsetPercent);
+                }
                 Update(UpdateType::Modifying);
             }
         }
@@ -300,11 +302,11 @@ const std::weak_ptr<Slider>& Slider::Thumb::GetSlider() const
     return _slider;
 }
 
-void Slider::OnValueChanged()
+void Slider::OnValueChangedByInput()
 {
-    if (_valueChangedCallback)
+    if (_valueChangedByInputCallback)
     {
-        _valueChangedCallback(std::dynamic_pointer_cast<Slider>(shared_from_this()));
+        _valueChangedByInputCallback(std::dynamic_pointer_cast<Slider>(shared_from_this()));
     }
 }
 
