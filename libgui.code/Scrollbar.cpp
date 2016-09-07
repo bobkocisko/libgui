@@ -9,6 +9,7 @@
 #include <boost/msm/front/state_machine_def.hpp>
 #include <boost/msm/back/state_machine.hpp>
 #include <boost/msm/front/euml/euml.hpp>
+#include <cmath>
 
 using namespace boost::msm::front;
 using namespace boost::msm::back;
@@ -203,8 +204,8 @@ void Scrollbar::Thumb::Arrange()
         auto trackHeight = p->GetHeight();
         auto height      = scrollDelegate->GetThumbSizePercent() * trackHeight;
         auto top         = p->GetTop() + (scrollDelegate->GetCurrentOffsetPercent() * trackHeight);
-        SetTop(round(top));
-        SetBottom(round(top + height));
+        SetTop(std::round(top));
+        SetBottom(std::round(top + height));
     }
 }
 

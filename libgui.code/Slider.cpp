@@ -216,8 +216,8 @@ void Slider::Thumb::Arrange()
         auto boundsTop    = p->GetTop();
         auto boundsHeight = p->GetHeight() - thumbHeight;
         auto top          = boundsTop + (slider->GetRawFromValue() * boundsHeight);
-        SetTop(round(top));
-        SetBottom(round(top + thumbHeight));
+        SetTop(std::round(top));
+        SetBottom(std::round(top + thumbHeight));
     }
 }
 

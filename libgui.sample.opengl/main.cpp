@@ -53,6 +53,7 @@
 #include "shader.h"
 #include "mat4.h"
 
+#include <cmath>
 #include <GLFW/glfw3.h>
 #include <vec234.h>
 #include <stdio.h>
@@ -152,10 +153,10 @@ void InitElements()
             {
                 auto region = regionOpt.get();
 
-                auto left   = int(round(region.left));
-                auto bottom = int(round(region.bottom));
-                auto width  = int(round(region.right)) - left;
-                auto height = bottom - int(round(region.top));
+                auto left   = int(std::round(region.left));
+                auto bottom = int(std::round(region.bottom));
+                auto width  = int(std::round(region.right)) - left;
+                auto height = bottom - int(std::round(region.top));
                 GLERR(glScissor(left, windowHeight - bottom, width, height));
 
                 // Enable the scissor test if not already enabled
@@ -615,14 +616,14 @@ void OutlineRectangle(double left, double top, double right, double bottom, int 
     auto gf = float(g) / 255.0;
     auto bf = float(b) / 255.0;
 
-    lineWidth = round(lineWidth);
+    lineWidth = std::round(lineWidth);
     GLERR(glLineWidth((float) lineWidth));
     auto halfLineWidth = lineWidth / 2;
 
-    auto x1 = float(round(left) + halfLineWidth);
-    auto x2 = float(round(right) - halfLineWidth);
-    auto y1 = float(round(top) + halfLineWidth);
-    auto y2 = float(round(bottom) - halfLineWidth);
+    auto x1 = float(std::round(left) + halfLineWidth);
+    auto x2 = float(std::round(right) - halfLineWidth);
+    auto y1 = float(std::round(top) + halfLineWidth);
+    auto y2 = float(std::round(bottom) - halfLineWidth);
 
     vertex_buffer_t* buffer;
     buffer = vertex_buffer_new("vertex:3f,color:4f");
@@ -670,7 +671,7 @@ void DrawText(double centerX, double centerY, std::string text)
     mat4_set_scaling(&model, 1, -1, 1);
 
     // Now translate to the appropriate location
-    mat4_translate(&model, round(x), round(y), 0);
+    mat4_translate(&model, std::round(x), std::round(y), 0);
 
     glUseProgram(text_buffer->shader);
     {
@@ -731,10 +732,10 @@ void display(GLFWwindow* window)
 
         auto& redrawnRegion = redrawnRegionOpt.get();
 
-        auto left   = int(round(redrawnRegion.left));
-        auto top    = int(round(redrawnRegion.top));
-        auto right  = int(round(redrawnRegion.right));
-        auto bottom = int(round(redrawnRegion.bottom));
+        auto left   = int(std::round(redrawnRegion.left));
+        auto top    = int(std::round(redrawnRegion.top));
+        auto right  = int(std::round(redrawnRegion.right));
+        auto bottom = int(std::round(redrawnRegion.bottom));
 
         GLERR(glBlitFramebuffer(left, bottom, right, top,
                                 left, bottom, right, top,

@@ -1,5 +1,7 @@
 ﻿#include "libgui/Grid.h"
 
+#include <cmath>
+
 namespace libgui
 {
 Grid::Grid()
@@ -30,7 +32,7 @@ void Grid::Arrange()
 
     auto totalCount      = _itemsProvider->GetTotalItems();
     auto childrenCount   = GetChildrenCount();
-    int  visibleRows     = ceil(GetHeight() / _cellHeight) + 1; // Need an extra for partial rows
+    int  visibleRows     = int(std::ceil(GetHeight() / _cellHeight)) + 1; // Need an extra for partial rows
     auto visibleItems    = visibleRows * _columns;
     auto missingChildren = std::min(totalCount, visibleItems) - childrenCount;
 
@@ -45,11 +47,11 @@ void Grid::Arrange()
     // Now do some calculations based on the current parameters
     _cellWidth = GetWidth() / _columns;
 
-    auto totalRows          = ceil(double(totalCount) / _columns);
+    auto totalRows          = std::ceil(double(totalCount) / _columns);
     auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
     auto totalHeightOffset  = totalContentHeight * _offsetPercent;
 
-    int currentRow = int(floor((totalHeightOffset - _topPadding) / _cellHeight));
+    int currentRow = int(std::floor((totalHeightOffset - _topPadding) / _cellHeight));
     _rowOffset = fmod(totalHeightOffset - _topPadding, _cellHeight);
 
     currentRow     = std::max(0, currentRow);
@@ -64,7 +66,7 @@ double Grid::GetCurrentOffsetPercent()
 
 double Grid::GetThumbSizePercent()
 {
-    auto totalRows          = ceil(double(_itemsProvider->GetTotalItems()) / _columns);
+    auto totalRows          = std::ceil(double(_itemsProvider->GetTotalItems()) / _columns);
     auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
     return std::min(1.0, GetHeight() / totalContentHeight);
 }
@@ -76,7 +78,7 @@ void Grid::MoveToOffsetPercent(double offsetPercent)
 
 bool Grid::CanScroll()
 {
-    auto totalRows          = ceil(double(_itemsProvider->GetTotalItems()) / _columns);
+    auto totalRows          = std::ceil(double(_itemsProvider->GetTotalItems()) / _columns);
     auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
     return totalContentHeight > GetHeight();
 }
@@ -117,10 +119,10 @@ void Grid::Cell::Arrange()
     auto bottom = top + _grid->_cellHeight;
 
     // Snap to pixel boundaries
-    SetLeft(round(left));
-    SetRight(round(right));
-    SetTop(round(top));
-    SetBottom(round(bottom));
+    SetLeft(std::round(left));
+    SetRight(std::round(right));
+    SetTop(std::round(top));
+    SetBottom(std::round(bottom));
 }
 
 const int& Grid::GetColumns() const
