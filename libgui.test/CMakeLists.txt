@@ -19,7 +19,7 @@ externalproject_add(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG d945d8c000a0ade73585d143532266968339bbb3
-    CONFIGURE_COMMAND cmake <SOURCE_DIR>/googlemock # gmock depends on gtest so both will get built
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} <SOURCE_DIR>/googlemock # gmock depends on gtest so both will get built
     INSTALL_COMMAND "" # There is no install target
 )
 externalproject_get_property(googletest SOURCE_DIR BINARY_DIR)

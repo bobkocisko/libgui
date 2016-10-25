@@ -18,8 +18,11 @@ if (NOT X11_FOUND)
     message(FATAL_ERROR "X11 not found")
 endif ()
 
-find_package(glfw3 REQUIRED)
-include_directories(${GLFW3_INCLUDE_DIR})
+find_package(GLFW REQUIRED)
+if (NOT GLFW_FOUND)
+    message(FATAL_ERROR "GLFW not found")
+endif()
+include_directories(${GLFW_INCLUDE_DIR})
 
 
 # External project freetypegl
@@ -52,7 +55,7 @@ set(SOURCE_FILES
     )
 
 add_executable(libgui.sample.opengl ${SOURCE_FILES})
-target_link_libraries(libgui.sample.opengl libgui libfreetypegl ${GLFW3_LIBRARY}
+target_link_libraries(libgui.sample.opengl libgui libfreetypegl ${GLFW_LIBRARIES}
     ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARIES}
     ${FREETYPE_LIBRARIES})
 
