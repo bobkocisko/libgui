@@ -41,9 +41,11 @@ public:
 
     // The layer above this one, if any
     Layer* GetLayerAbove();
+    bool AnyLayersAbove();
 
     // The layer below this one, if any
     Layer* GetLayerBelow();
+    bool AnyLayersBelow();
 
     // Returns whether the opaque area of this layer (if any) contains the specified region
     bool OpaqueAreaContains(const Rect4& region);

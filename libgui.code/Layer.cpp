@@ -72,9 +72,19 @@ Layer* Layer::GetLayerAbove()
     return _layerAbove;
 }
 
+bool Layer::AnyLayersAbove()
+{
+    return bool(_layerAbove);
+}
+
 Layer* Layer::GetLayerBelow()
 {
     return _layerBelow;
+}
+
+bool Layer::AnyLayersBelow()
+{
+    return bool(_layerBelow);
 }
 
 bool Layer::OpaqueAreaContains(const Rect4& region)

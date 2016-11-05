@@ -423,7 +423,7 @@ void Element::UpdateHelper(UpdateType updateType)
 
         int thisAndAncestorClips = 0;
 
-        if (UpdateType::Adding != updateType)
+        if (UpdateType::Adding != updateType || currentLayer->AnyLayersAbove())
         {
             currentLayer->VisitLowerLayersIf(
                 [&redrawRegion, currentLayer, updateType](Layer* currentLayer2)
