@@ -162,8 +162,8 @@ public:
 
     // -----------------------------------------------------------------
     // Dirty
-    void BeginDirtyTracking();
-    const Rect4& EndDirtyTracking(bool& moved);
+    void BeginDirtyTrackingIfApplicable(UpdateType updateType);
+    const Rect4& EndDirtyTracking(UpdateType updateType, bool& moved);
 
     // -----------------------------------------------------------------
     // Optional post-construction initialization pass that some elements require

@@ -395,12 +395,12 @@ void Element::UpdateHelper(UpdateType updateType)
     #endif
 
     auto wasVisible = GetIsVisible();
-    BeginDirtyTracking();
+    BeginDirtyTrackingIfApplicable(updateType);
     {
         DoArrangeTasks();
     }
     bool moved;
-    auto& redrawRegion = EndDirtyTracking(moved);
+    auto& redrawRegion = EndDirtyTracking(updateType, moved);
 
     // If the redraw region is totally hidden both before
     // and after the rearrangement, we don't have to do anything
@@ -1194,15 +1194,30 @@ const Rect4 Element::GetTotalBounds()
     }
 }
 
-void Element::BeginDirtyTracking()
+void Element::BeginDirtyTrackingIfApplicable(UpdateType updateType)
 {
+    if (UpdateType::Adding == updateType)
+    {
+        // When adding an element there's really no such thing as dirty tracking because
+        // a brand new element couldn't having moved.
+        return;
+    }
+
     // Store the dirty bounds for later
     _dirtyBounds      = Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
     _dirtyTotalBounds = GetTotalBounds();
 }
 
-const Rect4& Element::EndDirtyTracking(bool& moved)
+const Rect4& Element::EndDirtyTracking(UpdateType updateType, bool& moved)
 {
+    if (UpdateType::Adding == updateType)
+    {
+        // When adding an element there's really no such thing as dirty tracking because
+        // a brand new element couldn't having moved.  So we just return the new bounds.
+        moved = false;
+        return _dirtyTotalBounds = GetTotalBounds();
+    }
+
     auto currentTotalBounds = GetTotalBounds();
 
     auto currentBounds = Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
