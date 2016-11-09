@@ -15,7 +15,7 @@ using ::testing::Return;
 TEST(ButtonTests, WhenPointerEntering_StateIsPending)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -28,7 +28,7 @@ TEST(ButtonTests, WhenPointerEntering_StateIsPending)
 TEST(ButtonTests, WhenPointerLeaving_StateIsIdle)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -41,7 +41,7 @@ TEST(ButtonTests, WhenPointerLeaving_StateIsIdle)
 TEST(ButtonTests, WhenPointerPushed_StateIsEngaged)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -55,7 +55,7 @@ TEST(ButtonTests, WhenPointerPushed_StateIsEngaged)
 TEST(ButtonTests, WhenPointerReleased_StateIsPending)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -68,7 +68,7 @@ TEST(ButtonTests, WhenPointerReleased_StateIsPending)
 TEST(ButtonTests, WhenPointerPushedAndEscaping_StateIsEngagedRemotely)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -83,7 +83,7 @@ TEST(ButtonTests, WhenPointerPushedAndEscaping_StateIsEngagedRemotely)
 TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsEngaged)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -99,7 +99,7 @@ TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsEngaged)
 TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_StateIsIdle)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -115,7 +115,7 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_StateIsIdle)
 TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -140,7 +140,7 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
 TEST(ButtonTests, AfterPointerClicked_StateIsPending)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -155,7 +155,7 @@ TEST(ButtonTests, AfterPointerClicked_StateIsPending)
 TEST(ButtonTests, WhenTouchPushAndRelease_Click)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -179,7 +179,7 @@ TEST(ButtonTests, WhenTouchPushAndRelease_Click)
 TEST(ButtonTests, WhenTouchDownEscapeReturnAndUp_StateIsPending)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();
@@ -197,7 +197,7 @@ TEST(ButtonTests, WhenTouchDownEscapeReturnAndUp_StateIsPending)
 TEST(ButtonTests, WhenMultiplePushAndRelease_MultipleOutputEvents)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     auto btn  = make_shared<Button>();
     root->AddChild(btn);
     root->InitializeAll();

@@ -17,7 +17,7 @@ using ::testing::Return;
 TEST(TypesTest, InchesArithmetic)
 {
     auto em   = make_shared<ElementManager>();
-    auto root = em->AddLayerAbove();
+    auto root = em->AddLayerAbove(nullptr);
     em->SetDpiX(100.0);
     em->SetDpiY(100.0);
 
@@ -38,7 +38,7 @@ TEST(TypesTest, InchesArithmetic)
 TEST(TypesTest, ConvertInchesToPixels)
 {
     auto em      = make_shared<ElementManager>();
-    auto element = em->AddLayerAbove();
+    auto element = em->AddLayerAbove(nullptr);
     em->SetDpiX(100.0);
     em->SetDpiY(200.0);
 
@@ -52,7 +52,7 @@ TEST(TypesTest, ConvertInchesToPixels)
 TEST(TypesTest, CombineInchPixelMath)
 {
     auto em      = make_shared<ElementManager>();
-    auto element = em->AddLayerAbove();
+    auto element = em->AddLayerAbove(nullptr);
     em->SetDpiX(100.0);
     em->SetDpiY(200.0);
 
@@ -83,7 +83,7 @@ TEST(TypesTest, LocationConversions)
     ASSERT_EQ(20, location.y);
 
     auto em      = make_shared<ElementManager>();
-    auto element = em->AddLayerAbove();
+    auto element = em->AddLayerAbove(nullptr);
     em->SetDpiX(100.0);
     em->SetDpiY(200.0);
 

@@ -5,7 +5,7 @@
 namespace libgui
 {
 
-Layer* ElementManager::AddLayerAbove(Layer* existing, const std::string& typeName)
+Layer* ElementManager::AddLayerAboveHelper(Layer* existing, Layer* layerToAdd)
 {
     LayerList::iterator existingIter = _layers.end();
 
@@ -50,11 +50,11 @@ Layer* ElementManager::AddLayerAbove(Layer* existing, const std::string& typeNam
         higher = lower->_layerAbove;
     }
 
-    Layer* adding = new Layer();
+    Layer* adding = layerToAdd;
 
     adding->_elementManager = this;
     adding->_layer          = adding;
-    adding->_typeName       = typeName;
+    adding->_typeName       = "Layer";
     adding->_layerBelow     = lower;
     adding->_layerAbove     = higher;
 
@@ -80,7 +80,7 @@ Layer* ElementManager::AddLayerAbove(Layer* existing, const std::string& typeNam
     return adding;
 }
 
-Layer* ElementManager::AddLayerBelow(Layer* existing, const std::string& typeName)
+Layer* ElementManager::AddLayerBelowHelper(Layer* existing, Layer* layerToAdd)
 {
     LayerList::iterator existingIter = _layers.end();
 
@@ -121,11 +121,11 @@ Layer* ElementManager::AddLayerBelow(Layer* existing, const std::string& typeNam
         lower = higher->_layerBelow;
     }
 
-    Layer* adding = new Layer();
+    Layer* adding = layerToAdd;
 
     adding->_elementManager = this;
     adding->_layer          = adding;
-    adding->_typeName       = typeName;
+    adding->_typeName       = "Layer";
     adding->_layerBelow     = lower;
     adding->_layerAbove     = higher;
 

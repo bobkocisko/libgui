@@ -16,6 +16,7 @@ class Layer: public Element
 {
     friend class ElementManager;
 
+protected:
     // Layer can only be created by ElementManager
     Layer();
 public:

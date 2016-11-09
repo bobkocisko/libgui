@@ -42,27 +42,57 @@ public:
     // instance.  Each layer represents a set of elements that are non-overlapping,
     // whereas layers themselves are meant to overlap other layers in a performant way.
 
-    // AddLayerAbove
-    // --------
-    // Add a new layer.  Note that this layer is neither initialized nor updated,
-    // so it is up to the client to perform these tasks at a later time, typically
-    // after adding additional descendents to the layer.
-    // existing: an optional existing layer above which to add the new layer.  If this
-    //           is nullptr, the layer will be added on top of all other layers.
-    // typeName: an optional debugging tool to assign a specific name to this layer.
-    Layer* AddLayerAbove(Layer* existing = nullptr,
-                         const std::string& typeName = "Layer");
+    /***
+     * AddLayerAbove
+     *
+     * Create and add a new layer above the specified one.  Note that the new layer
+     * will be neither initialized nor updated, so it is up to the client to
+     * perform these tasks at a later time, typically after adding additional
+     * descendants to the layer.
+     *
+     * @tparam CreateLayerType
+     * The type of the layer that will be created.  By default the root class 'Layer'
+     * is used.
+     * @param existing
+     * An optional existing layer above which to add the new layer.
+     * If this is nullptr, the layer will be added on top of all other layers.
+     * @param typeName
+     * An optional debugging tool to assign a specific name to this layer.
+     * @return
+     * Returns the new layer which is either \p layerToAdd or else the layer created
+     * by this function.
+     */
+    template <class CreateLayerType=Layer, class... CreateLayerArgs>
+    Layer* AddLayerAbove(Layer* existing, CreateLayerArgs&&... args)
+    {
+        return AddLayerAboveHelper(existing, new CreateLayerType(std::forward<CreateLayerArgs>(args)...));
+    }
 
-    // AddLayerBelow
-    // --------
-    // Add a new layer.  Note that this layer is neither initialized nor updated,
-    // so it is up to the client to perform these tasks at a later time, typically
-    // after adding additional descendents to the layer.
-    // existing: an optional existing layer above which to add the new layer.  If this
-    //           is nullptr, the layer will be added on bottom of all other layers.
-    // typeName: an optional debugging tool to assign a specific name to this layer.
-    Layer* AddLayerBelow(Layer* existing = nullptr,
-                         const std::string& typeName = "Layer");
+    /***
+     * AddLayerBelow
+     *
+     * Create and add a new layer below the specified one.  Note that the new layer
+     * will be neither initialized nor updated, so it is up to the client to
+     * perform these tasks at a later time, typically after adding additional
+     * descendants to the layer.
+     *
+     * @tparam CreateLayerType
+     * The type of the layer that will be created.  By default the root class 'Layer'
+     * is used.
+     * @param existing
+     * An optional existing layer below which to add the new layer.
+     * If this is nullptr, the layer will be added on top of all other layers.
+     * @param typeName
+     * An optional debugging tool to assign a specific name to this layer.
+     * @return
+     * Returns the new layer which is either \p layerToAdd or else the layer created
+     * by this function.
+     */
+    template <class CreateLayerType=Layer, class... CreateLayerArgs>
+    Layer* AddLayerBelow(Layer* existing, CreateLayerArgs&&... args)
+    {
+        return AddLayerBelowHelper(existing, new CreateLayerType(std::forward<CreateLayerArgs>(args)...));
+    }
 
     // RemoveLayer
     // -----------
@@ -195,6 +225,13 @@ private:
     boost::optional<Rect4>            _redrawnRegion;
     std::deque<Element*>              _updatedElements;
     Size                              _size;
+
+private:
+    Layer* AddLayerAboveHelper(Layer* existing,
+                               Layer* layerToAdd);
+
+    Layer* AddLayerBelowHelper(Layer* existing,
+                               Layer* layerToAdd);
 
 };
 }
