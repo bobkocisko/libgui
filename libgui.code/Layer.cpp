@@ -54,16 +54,16 @@ void Layer::VisitHigherLayers(const std::function<void(Layer*)>& action)
 
 void Layer::VisitHigherLayersHelper(const std::function<void(Layer*)>& action, bool isFirst)
 {
-    auto nextLayerAbove = GetLayerAbove();
-    if (nextLayerAbove)
-    {
-        nextLayerAbove->VisitHigherLayersHelper(action, false);
-    }
-
     // Only perform this on the higher layers, not on the layer that launched this operation
     if (!isFirst)
     {
         action(this);
+    }
+
+    auto nextLayerAbove = GetLayerAbove();
+    if (nextLayerAbove)
+    {
+        nextLayerAbove->VisitHigherLayersHelper(action, false);
     }
 }
 
