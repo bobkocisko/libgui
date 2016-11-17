@@ -629,23 +629,43 @@ bool Input::TargetIsEnabled()
 
 bool Input::TargetIsBusy()
 {
+    if (!_target)
+    {
+        return false;
+    }
+
     return _target->HasActiveInput();
 }
 
 void Input::SendNotifyBusy()
 {
+    if (!_target)
+    {
+        return;
+    }
+
     // Lock this control so it is not used by another input
     _target->SetHasActiveInput(true);
 }
 
 void Input::SendNotifyAvailable()
 {
+    if (!_target)
+    {
+        return;
+    }
+
     // Free this control to be used by another input
     _target->SetHasActiveInput(false);
 }
 
 void Input::SendNotifyEnter()
 {
+    if (!_target)
+    {
+        return;
+    }
+
     // Notify the control that we've entered
     InputAction inputAction;
     if (InputType::Touch == _inputType)
@@ -674,6 +694,10 @@ void Input::SendNotifyEnter()
 
 void Input::SendNotifyLeave()
 {
+    if (!_target)
+    {
+        return;
+    }
 
     // Notify the control that we've left
     _target->NotifyInput(_inputType, InputAction::Leave, _point);
@@ -681,26 +705,51 @@ void Input::SendNotifyLeave()
 
 void Input::SendNotifyMove()
 {
+    if (!_target)
+    {
+        return;
+    }
+
     _target->NotifyInput(_inputType, InputAction::Move, _point);
 }
 
 void Input::SendNotifyDown()
 {
+    if (!_target)
+    {
+        return;
+    }
+
     _target->NotifyInput(_inputType, InputAction::Push, _point);
 }
 
 void Input::SendNotifyUp()
 {
+    if (!_target)
+    {
+        return;
+    }
+
     _target->NotifyInput(_inputType, InputAction::Release, _point);
 }
 
 void Input::SendNotifyEngagedEscape()
 {
+    if (!_target)
+    {
+        return;
+    }
+
     _target->NotifyInput(_inputType, InputAction::EngagedEscape, _point);
 }
 
 void Input::SendNotifyEngagedReturn()
 {
+    if (!_target)
+    {
+        return;
+    }
+
     _target->NotifyInput(_inputType, InputAction::EngagedReturn, _point);
 }
 
@@ -772,5 +821,20 @@ boost::any& Input::GetActiveEvent()
 bool Input::GetIsDown() const
 {
     return _isDown;
+}
+
+void Input::NotifyControlIsBeingDestroyed(Control* control)
+{
+    // Prevent SEGFAULTs by ensuring that we do not
+    // keep references to destroyed controls.
+    if (_atopControl == control)
+    {
+        _atopControl = nullptr;
+    }
+
+    if (_target == control)
+    {
+        _target = nullptr;
+    }
 }
 }

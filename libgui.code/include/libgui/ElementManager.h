@@ -233,5 +233,8 @@ private:
     Layer* AddLayerBelowHelper(Layer* existing,
                                Layer* layerToAdd);
 
+    friend class Control;
+    void NotifyControlIsBeingDestroyed(Control* control);
+
 };
 }

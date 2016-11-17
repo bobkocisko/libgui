@@ -1,13 +1,25 @@
 #include "libgui/Control.h"
 
+#include "libgui/ElementManager.h"
+
 namespace libgui
 {
+
+Control::~Control()
+{
+    auto em = GetElementManager();
+    if (em)
+    {
+        em->NotifyControlIsBeingDestroyed(this);
+    }
+}
+
 void Control::PreNotifyInput(InputAction inputAction,
                              InputType inputType,
                              Point point,
                              bool& notify)
 {
-    notify       = true;
+    notify = true;
 }
 
 void Control::NotifyInput(InputType inputType, InputAction inputAction, Point point)
@@ -23,4 +35,5 @@ void Control::SetHasActiveInput(bool hasActiveInput)
 {
     _hasActiveInput = hasActiveInput;
 }
+
 }

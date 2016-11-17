@@ -402,4 +402,14 @@ double ElementManager::GetHeight() const
 {
     return _size.height;
 }
+
+void ElementManager::NotifyControlIsBeingDestroyed(Control* control)
+{
+    for(int i = 1; i < _activeInputs.size(); ++i)
+    {
+        auto activeInput = _activeInputs[i];
+
+        activeInput->NotifyControlIsBeingDestroyed(control);
+    }
+}
 }

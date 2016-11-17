@@ -13,6 +13,8 @@ class Input;
 class Control: public Element
 {
 public:
+    virtual ~Control();
+
     // Called before NotifyInput and can optionally prevent the sending of NotifyInput event
     virtual void PreNotifyInput(InputAction inputAction,
                                 InputType inputType,

@@ -81,6 +81,9 @@ private:
 
     void CheckTargetEnabledStatus();
     bool CheckTargetEnabledStatusHelper() const;
+
+    friend class ElementManager;
+    void NotifyControlIsBeingDestroyed(Control* control);
 };
 
 }

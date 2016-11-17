@@ -10,6 +10,19 @@ using namespace libgui;
 class StubControl: public Control
 {
 public:
+    virtual ~StubControl()
+    {
+        if (_destructorCallback)
+        {
+            _destructorCallback();
+        }
+    }
+
+    void SetDesctructorCallback(const function<void()>& callback)
+    {
+        _destructorCallback = callback;
+    }
+
     bool GetNotifyPointerPushCalled() const
     {
         return _notifyPointerPushCalled;
@@ -173,6 +186,8 @@ public:
     }
 
 private:
+    function<void()> _destructorCallback;
+
     bool _notifyPointerPushCalled    = false;
     bool _notifyPointerMoveCalled    = false;
     bool _notifyPointerReleaseCalled = false;
@@ -591,3 +606,44 @@ TEST(ElementManagerTests, WhenControlIsTouchEngagedRemotelyThenDisabled_ItStopsR
     ASSERT_EQ(true, sc->GetNotifyTouchLeaveCalled());
 
 }
+
+TEST(ElementManagerTests, AfterControlIsDestroyed_ItIsNotSentNotifications)
+{
+    auto em    = make_shared<ElementManager>();
+    auto layer = em->AddLayerAbove(nullptr);
+    layer->SetLeft(0);
+    layer->SetRight(10);
+    layer->SetTop(0);
+    layer->SetBottom(10);
+    auto sc = make_shared<StubControl>();
+    layer->AddChild(sc);
+    layer->InitializeAll();
+
+    sc->SetLeft(1);
+    sc->SetRight(2);
+    sc->SetTop(1);
+    sc->SetBottom(2);
+
+    auto pointerInput = InputId(PointerInputId);
+
+    em->NotifyNewPoint(pointerInput, Point{1.5, 1.5});
+    ASSERT_EQ(true, sc->GetNotifyPointerEnterCalled());
+
+    em->NotifyDown(pointerInput);
+    ASSERT_EQ(true, sc->GetNotifyPointerPushCalled());
+
+    em->NotifyUp(pointerInput);
+    ASSERT_EQ(true, sc->GetNotifyPointerReleaseCalled());
+
+    bool isDestroyed = false;
+    sc->SetDesctructorCallback([&isDestroyed]() { isDestroyed = true; });
+
+    layer->RemoveChildren();
+    sc = nullptr;
+
+    ASSERT_EQ(true, isDestroyed);
+
+    // If any attempt is made to send notifications to the control, this test will SEGFAULT
+    em->NotifyNewPoint(pointerInput, Point{1.5, 1.5});
+}
+
