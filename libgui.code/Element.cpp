@@ -394,7 +394,7 @@ void Element::UpdateHelper(UpdateType updateType)
     fflush(stdout);
     #endif
 
-    auto wasVisible = GetIsVisible();
+    auto wasVisible = GetIsVisibleIncludingAncestors();
     BeginDirtyTrackingIfApplicable(updateType);
     {
         DoArrangeTasks();
@@ -405,7 +405,7 @@ void Element::UpdateHelper(UpdateType updateType)
     // If the redraw region is totally hidden both before
     // and after the rearrangement, we don't have to do anything
     // unless this element is about to be removed
-    if ((!wasVisible && !GetIsVisible()) ||
+    if ((!wasVisible && !GetIsVisibleIncludingAncestors()) ||
         CoveredByLayerAbove(redrawRegion))
     {
         return;
@@ -613,6 +613,11 @@ void Element::SetIsVisible(bool isVisible)
 bool Element::GetIsVisible()
 {
     return _isVisible;
+}
+
+bool Element::GetIsVisibleIncludingAncestors()
+{
+  return !ThisOrAncestors([](Element* e) { return !e->GetIsVisible(); });
 }
 
 void Element::SetIsEnabled(bool isEnabled)

@@ -179,6 +179,7 @@ public:
 
     void SetIsVisible(bool isVisible);
     bool GetIsVisible();
+    bool GetIsVisibleIncludingAncestors();
     void SetIsEnabled(bool isEnabled);
     bool GetIsEnabled();
     void SetClipToBounds(bool clipToBounds);
