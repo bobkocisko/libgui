@@ -72,7 +72,6 @@ At this point libgui is initialized.  Next we must create and add elements to th
 libgui tracks the entire visual hierarchy of all elements in your window and provides support for arranging, drawing, updating, hit testing and control-specific logic.  There are two ways to group elements together, via layers and parent/child relationships.  Because performance is an important goal of libgui, there are some requirements and assumptions that the library makes throughout its processing:
 * Every Element's bounds must be contained by its parent's bounds.  Conversely, every Element's descendents must be arranged within the bounds of that element.  This allows libgui to achieve O(log N) performance for hit testing. The performance of hit testing can be increased even more if needed by overriding some of the methods of Element.
 * Every Element's visual bounds must be contained by its parent's visual bounds.  This requirement allows libgui to achieve O(log N) performance for redrawing adjacent layers.  Again, performance can be increased more if needed by overriding some of the methods of Element.
-* Sibling Elements within one layer are not currently permitted to overlap.  In the future libgui will support this via a specific Element overlap registration method but currently it is not supported.
 * Layers are provided as a means to overlap entire hierarchies of Elements over other hierarchies.  Some examples of this would be to display popup dialog boxes, tool tips or context menus.
 * All Elements must be added to exactly one Layer.
 

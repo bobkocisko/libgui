@@ -357,6 +357,49 @@ void InitElements()
                 });
         }
 
+        auto overlapButton = std::make_shared<Button>();
+        {
+            header->AddChild(overlapButton);
+            overlapButton->SetArrangeCallback(
+                [](std::shared_ptr<Element> e)
+                {
+                    auto p = e->GetParent();
+                    e->SetCenterX(p->GetCenterX() + 140);
+                    e->SetCenterY(p->GetCenterY());
+                    e->SetWidth(150);
+                    e->SetHeight(20);
+                });
+            overlapButton->SetDrawCallback(
+                [](Element* e, const boost::optional<Rect4>& redrawRegion)
+                {
+                    DrawButton(e);
+                    DrawText(e->GetCenterX(), e->GetCenterY(), "Overlapper");
+                });
+
+        }
+        auto overlap2Button = std::make_shared<Button>();
+        {
+            header->AddChild(overlap2Button);
+            overlap2Button->SetArrangeCallback(
+                [](std::shared_ptr<Element> e)
+                {
+                    auto p = e->GetParent();
+                    e->SetCenterX(p->GetCenterX() + 100);
+                    e->SetCenterY(p->GetCenterY() + 12);
+                    e->SetWidth(150);
+                    e->SetHeight(15);
+                });
+            overlap2Button->SetDrawCallback(
+                [](Element* e, const boost::optional<Rect4>& redrawRegion)
+                {
+                    DrawButton(e);
+                    DrawText(e->GetCenterX(), e->GetCenterY(), "Overlap 2");
+                });
+
+            launchButton->RegisterOverlappingElement(overlap2Button);
+            launchButton->RegisterOverlappingElement(overlapButton); // Registering in non-natural order works fine
+            overlapButton->RegisterOverlappingElement(overlap2Button);
+        }
     }
 
     auto footer = std::make_shared<Element>("Footer");
@@ -554,7 +597,7 @@ void InitElements()
                 std::string valueString = std::to_string(slider->GetValue());
                 DrawText(e->GetCenterX(), e->GetCenterY(), valueString);
             });
-        slider_thumb->AddArrangeDependent(sliderValueText);
+        slider_thumb->RegisterArrangeDependent(sliderValueText);
     }
 
     root->InitializeAll();

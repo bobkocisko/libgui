@@ -259,7 +259,7 @@ void Element::SetArrangeCallback(const std::function<void(std::shared_ptr<Elemen
     _arrangeCallback = arrangeCallback;
 }
 
-void Element::AddArrangeDependent(std::shared_ptr<Element> dependent)
+void Element::RegisterArrangeDependent(std::shared_ptr<Element> dependent)
 {
     if (dependent->GetLayer() != GetLayer())
     {
@@ -267,6 +267,83 @@ void Element::AddArrangeDependent(std::shared_ptr<Element> dependent)
     }
 
     _arrangeDependents.push_back(dependent);
+}
+
+bool Element::ThisIsEarlierSiblingOf(Element* other)
+{
+    Element* nextSibling = _nextsibling.get();
+    if (nextSibling == other)
+    {
+        return true;
+    }
+
+    if (nextSibling)
+    {
+        return nextSibling->ThisIsEarlierSiblingOf(other);
+    }
+
+    return false;
+}
+
+void Element::RegisterOverlappingElement(std::shared_ptr<Element> other)
+{
+    if (other->GetParent() != GetParent() || other->GetLayer() != GetLayer())
+    {
+        throw std::runtime_error("Overlapping elements must be children of the same parent element. "
+            "They must also follow the drawing order, which means only siblings added to an element "
+            "later can overlap siblings added earlier.");
+    }
+    else if (!ThisIsEarlierSiblingOf(other.get()))
+    {
+        // Note that this test, while helping verify correct API usage, also simplifies the logic below
+        throw std::runtime_error("Overlapping elements must follow the drawing order, "
+                                   "which means only siblings added to an element "
+                                   "later can overlap siblings added earlier.");
+    }
+
+    if (_overlappedBy.empty())
+    {
+        _overlappedBy.push_back(other);
+    }
+    else
+    {
+        // Note that the preconditions checked for above help simplify this algorithm
+
+        // Since there are already one or more overlapping elements, find the appropriate
+        // place to insert into the list so that the elements maintain their natural order.
+        auto currentSibling = _nextsibling;
+        auto insertPos = _overlappedBy.begin();
+
+        // Avoid adding the same element multiple times
+        if ((*insertPos).lock() == other)
+        {
+            return;
+        }
+
+        while(currentSibling != other)
+        {
+            // Move to the next insert position whenever we pass the current insert position
+            if (currentSibling == (*insertPos).lock())
+            {
+                ++insertPos;
+                if (insertPos == _overlappedBy.end())
+                {
+                    break;
+                }
+
+                // Avoid adding the same element multiple times
+                if ((*insertPos).lock() == other)
+                {
+                    return;
+                }
+            }
+
+            currentSibling = currentSibling->_nextsibling;
+        }
+
+        // Now do the insert
+        _overlappedBy.insert(insertPos, other);
+    }
 }
 
 void Element::Arrange()
@@ -394,7 +471,7 @@ void Element::UpdateHelper(UpdateType updateType)
     fflush(stdout);
     #endif
 
-    auto wasVisible = GetIsVisibleIncludingAncestors();
+    auto wasVisible = GetIsVisible();
     BeginDirtyTrackingIfApplicable(updateType);
     {
         DoArrangeTasks();
@@ -403,9 +480,9 @@ void Element::UpdateHelper(UpdateType updateType)
     auto& redrawRegion = EndDirtyTracking(updateType, moved);
 
     // If the redraw region is totally hidden both before
-    // and after the rearrangement, we don't have to do anything
-    // unless this element is about to be removed
-    if ((!wasVisible && !GetIsVisibleIncludingAncestors()) ||
+    // and after the rearrangement, we don't have to do anything.
+    if ((!wasVisible && !GetIsVisible()) ||
+        !GetAreAncestorsVisible() ||
         CoveredByLayerAbove(redrawRegion))
     {
         return;
@@ -506,6 +583,15 @@ void Element::UpdateHelper(UpdateType updateType)
                               {
                                   child->RedrawThisAndDescendents(boost::none);
                               });
+            }
+
+            if (UpdateType::Modifying == updateType)
+            {
+                // Make sure overlapping elements and their children are drawn on top
+                VisitOverlappingElements([](Element* e)
+                                         {
+                                           e->RedrawThisAndDescendents(boost::none);
+                                         });
             }
         }
 
@@ -615,9 +701,16 @@ bool Element::GetIsVisible()
     return _isVisible;
 }
 
-bool Element::GetIsVisibleIncludingAncestors()
+bool Element::GetAreAncestorsVisible()
 {
-  return !ThisOrAncestors([](Element* e) { return !e->GetIsVisible(); });
+    auto parent = GetParent();
+    if (parent)
+    {
+        return !parent->ThisOrAncestors([](Element* e) { return !e->GetIsVisible(); });
+    }
+
+    // It seems that the API is most simple if we return true when there are no ancestors
+    return true;
 }
 
 void Element::SetIsEnabled(bool isEnabled)
@@ -973,6 +1066,27 @@ void Element::VisitArrangeDependents(const std::function<void(Element*)>& action
             auto eraseIter = iter;
             ++iter;
             _arrangeDependents.erase(eraseIter);
+        }
+    }
+}
+
+void Element::VisitOverlappingElements(const std::function<void(Element*)>& action)
+{
+    auto iter = _overlappedBy.begin();
+    while (iter != _overlappedBy.end())
+    {
+        auto& dependentWeakPtr = *iter;
+        if (auto dependent = dependentWeakPtr.lock())
+        {
+            action(dependent.get());
+            ++iter;
+        }
+        else
+        {
+            // The dependent has disappeared so we will remove it from our list
+            auto eraseIter = iter;
+            ++iter;
+            _overlappedBy.erase(eraseIter);
         }
     }
 }

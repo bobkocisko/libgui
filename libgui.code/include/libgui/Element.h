@@ -141,9 +141,16 @@ public:
     // Descendents of an updated element are always redrawn regardless of this setting.
     bool GetUpdateRearrangesDescendants();
 
-    // Add an element which will be updated whenever this element is arranged
+    // Register an element which will be updated whenever this element is arranged
     // in such a way that its position or size is modified
-    void AddArrangeDependent(std::shared_ptr<Element> dependent);
+    void RegisterArrangeDependent(std::shared_ptr<Element> dependent);
+
+    // Register a later sibling that overlaps this one. Note that this
+    // registration does not change the drawing order.  It simply ensures
+    // that when this element is being updated, overlapping elements get
+    // drawn as well.
+    void RegisterOverlappingElement(std::shared_ptr<Element> other);
+
 
     // -----------------------------------------------------------------
     // Bounds
@@ -166,7 +173,7 @@ public:
     const Rect4& EndDirtyTracking(UpdateType updateType, bool& moved);
 
     // -----------------------------------------------------------------
-    // Optional post-construction initialization pass that some elements require
+    // Post-construction initialization pass
 
     // Initializes this element and all its descendants
     void InitializeAll();
@@ -179,7 +186,7 @@ public:
 
     void SetIsVisible(bool isVisible);
     bool GetIsVisible();
-    bool GetIsVisibleIncludingAncestors();
+    bool GetAreAncestorsVisible();
     void SetIsEnabled(bool isEnabled);
     bool GetIsEnabled();
     void SetClipToBounds(bool clipToBounds);
@@ -239,6 +246,8 @@ public:
 
     bool ThisOrAncestors(const std::function<bool(Element*)>& predicate);
 
+    bool ThisIsEarlierSiblingOf(Element* other);
+
     // It is strongly recommended that this method be overridden in each container class
     // in order to increase efficiency of hit testing, assuming that the container class
     // has a more optimized mechanism for locating its children than this
@@ -264,6 +273,7 @@ public:
     void VisitAncestors(const std::function<void(Element*)>& action);
 
     void VisitArrangeDependents(const std::function<void(Element*)>& action);
+    void VisitOverlappingElements(const std::function<void(Element*)>& action);
 
     void VisitThisAndDescendents(const std::function<bool(Element*)>& preChildrenAction,
                                  const std::function<void(Element*)>& postChildrenAction);
@@ -321,6 +331,7 @@ private:
     // Arrange cycle
 
     std::deque<std::weak_ptr<Element>> _arrangeDependents;
+    std::deque<std::weak_ptr<Element>> _overlappedBy;
 
     bool _updateRearrangesDescendents  = false;
 
