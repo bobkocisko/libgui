@@ -14,11 +14,11 @@ state HasTarget: enter: SetTargetToAtopControl
 state HasTarget: leave: SetTargetToNothing
 
 state HasTarget {
-    [*] -> DecideTargetIsEnabled
-    DecideTargetIsEnabled --> HasEnabled : [TargetIsEnabled]
-    DecideTargetIsEnabled --> HasDisabled: [!TargetIsEnabled]
+    [*] -> DecideTargetIsActive
+    DecideTargetIsActive --> HasActive : [TargetIsActive]
+    DecideTargetIsActive --> HasInactive: [!TargetIsActive]
 
-    state HasEnabled {
+    state HasActive {
         [*] -> DecideTargetIsBusy
         DecideTargetIsBusy --> HasAvailable: [!TargetIsBusy]
         DecideTargetIsBusy --> HasBusy: [TargetIsBusy]
@@ -43,8 +43,8 @@ state HasTarget {
         }
     }
 
-    HasDisabled --> HasEnabled: TargetBecameEnabled
-    HasEnabled -l-> HasDisabled: TargetBecameDisabled \n [IsAtopTarget]
+    HasInactive --> HasActive: TargetBecameActive
+    HasActive -l-> HasInactive: TargetBecameInactive \n [IsAtopTarget]
 }
 
 

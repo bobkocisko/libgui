@@ -49,10 +49,10 @@ struct Up
 struct Down
 {
 };
-struct TargetBecameDisabled
+struct TargetBecameInactive
 {
 };
-struct TargetBecameEnabled
+struct TargetBecameActive
 {
 };
 
@@ -177,15 +177,15 @@ public:
         }
 
         // states
-        struct DecideTargetIsEnabled: public state<>
+        struct DecideTargetIsActive: public state<>
         {
-            DBG_ENTER_EXIT("DecideTargetIsEnabled")
+            DBG_ENTER_EXIT("DecideTargetIsActive")
         };
-        struct HasDisabled: public state<>
+        struct HasInactive: public state<>
         {
-            DBG_ENTER_EXIT("HasDisabled")
+            DBG_ENTER_EXIT("HasInactive")
         };
-        struct HasEnabled_: public state_machine_def<HasEnabled_>
+        struct HasActive_: public state_machine_def<HasActive_>
         {
             void SetParent(Input* parent)
             {
@@ -376,15 +376,15 @@ public:
             Input* _parent;
 
         };
-        typedef back::state_machine<HasEnabled_> HasEnabled;
+        typedef back::state_machine<HasActive_> HasActive;
 
         // guards
-        struct TargetIsEnabled
+        struct TargetIsActive
         {
             template<class EVT, class FSM, class SourceState, class TargetState>
             bool operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
             {
-                return fsm._parent->TargetIsEnabled();
+                return fsm._parent->TargetIsActive();
             }
         };
 
@@ -396,7 +396,7 @@ public:
         }
 
         // Set up the starting state of the state machine
-        typedef DecideTargetIsEnabled initial_state;
+        typedef DecideTargetIsActive initial_state;
 
         // Transition table for state machine
         // @formatter:off
@@ -404,12 +404,12 @@ public:
         struct transition_table : boost::mpl::vector<
         //    Start                    Event                   Next State      Action    Guard
         //  +------------------------+-----------------------+---------------+---------+------------------------+
-        Row < DecideTargetIsEnabled  , none                  , HasDisabled   , none    , Not_<TargetIsEnabled>  >,
-        Row < DecideTargetIsEnabled  , none                  , HasEnabled    , none    , TargetIsEnabled        >,
+        Row < DecideTargetIsActive   , none                  , HasInactive   , none    , Not_<TargetIsActive>   >,
+        Row < DecideTargetIsActive   , none                  , HasActive     , none    , TargetIsActive         >,
         //  +------------------------+-----------------------+---------------+---------+------------------------+
-        Row < HasDisabled            , TargetBecameEnabled   , HasEnabled    , none    , none                   >,
+        Row < HasInactive            , TargetBecameActive    , HasActive     , none    , none                   >,
         //  +------------------------+-----------------------+---------------+---------+------------------------+
-        Row < HasEnabled             , TargetBecameDisabled  , HasDisabled   , none    , IsAtopTarget           >
+        Row < HasActive              , TargetBecameInactive  , HasInactive   , none    , IsAtopTarget           >
         //  +------------------------+-----------------------+---------------+---------+------------------------+
         > {};
 
@@ -467,7 +467,7 @@ Input::Input(const InputId& inputId)
       _atopControl(nullptr),
       _target(nullptr),
       _atopElementInfo({}),
-      _targetEnabledState(false),
+      _targetActiveState(false),
       _isDown(false),
       _isDebugLoggingEnabled(false),
       _isActive(false),
@@ -491,9 +491,9 @@ Input::Input(const InputId& inputId)
     // Set submachine links back to the parent class instance
     auto& hasTarget = stateMachine->get_state<SmInput::StateMachineFrontEnd::HasTarget&>();
     hasTarget.SetParent(this);
-    auto& hasEnabled = hasTarget.get_state<SmInput::StateMachineFrontEnd::HasTarget_::HasEnabled&>();
-    hasEnabled.SetParent(this);
-    auto& hasAvailable = hasEnabled.get_state<SmInput::StateMachineFrontEnd::HasTarget_::HasEnabled_::HasAvailable&>();
+    auto& hasActive = hasTarget.get_state<SmInput::StateMachineFrontEnd::HasTarget_::HasActive&>();
+    hasActive.SetParent(this);
+    auto& hasAvailable = hasActive.get_state<SmInput::StateMachineFrontEnd::HasTarget_::HasActive_::HasAvailable&>();
     hasAvailable.SetParent(this);
 
     stateMachine->start();
@@ -520,7 +520,7 @@ void Input::NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo)
         _atopControl = dynamic_cast<Control*>(elementQueryInfo.ElementAtPoint);
     }
 
-    CheckTargetEnabledStatus();
+    CheckTargetActiveStatus();
 
     ProcessEvent(SmInput::Move());
 
@@ -534,7 +534,7 @@ void Input::NotifyDown()
 {
     _isDown = true;
 
-    CheckTargetEnabledStatus();
+    CheckTargetActiveStatus();
 
     ProcessEvent(SmInput::Down());
 }
@@ -550,7 +550,7 @@ void Input::NotifyUp()
         _atopControl     = nullptr;
     }
 
-    CheckTargetEnabledStatus();
+    CheckTargetActiveStatus();
 
     ProcessEvent(SmInput::Up());
 }
@@ -580,7 +580,7 @@ void Input::SetTargetToAtopControl()
     _target = _atopControl;
 
     // We need to check this now since the target has just changed
-    _targetEnabledState = CheckTargetEnabledStatusHelper();
+    _targetActiveState = CheckTargetActiveStatusHelper();
 }
 
 void Input::SetTargetToNothing()
@@ -588,43 +588,44 @@ void Input::SetTargetToNothing()
     _target = nullptr;
 }
 
-void Input::CheckTargetEnabledStatus()
+void Input::CheckTargetActiveStatus()
 {
     if (!_target)
     {
         return;
     }
 
-    bool isEnabled = CheckTargetEnabledStatusHelper();
+    bool isActive = CheckTargetActiveStatusHelper();
 
-    if (isEnabled != _targetEnabledState)
+    if (isActive != _targetActiveState)
     {
         // The state has changed since the last time we checked
-        _targetEnabledState = isEnabled;
+        _targetActiveState = isActive;
 
-        if (isEnabled)
+        if (isActive)
         {
-            ProcessEvent(SmInput::TargetBecameEnabled());
+            ProcessEvent(SmInput::TargetBecameActive());
         }
         else
         {
-            ProcessEvent(SmInput::TargetBecameDisabled());
+            ProcessEvent(SmInput::TargetBecameInactive());
         }
     }
 }
 
-bool Input::CheckTargetEnabledStatusHelper() const
+bool Input::CheckTargetActiveStatusHelper() const
 {
-    auto isDisabled = _target->ThisOrAncestors([](Element* e)
-                                               { return !e->GetIsEnabled(); });
+    auto isInactive = _target->ThisOrAncestors([](Element* e)
+                                               { return !e->GetIsEnabled() ||
+                                                        !e->GetIsVisible(); });
 
-    auto isEnabled = !isDisabled;
-    return isEnabled;
+    auto isActive = !isInactive;
+    return isActive;
 }
 
-bool Input::TargetIsEnabled()
+bool Input::TargetIsActive()
 {
-    return _targetEnabledState;
+    return _targetActiveState;
 }
 
 bool Input::TargetIsBusy()

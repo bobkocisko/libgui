@@ -52,7 +52,7 @@ public:
     void SetTargetToAtopControl();
     void SetTargetToNothing();
     bool IsAtopControl();
-    bool TargetIsEnabled();
+    bool TargetIsActive();
     bool TargetIsBusy();
     bool IsAtopTarget();
     bool IsPointer();
@@ -67,7 +67,7 @@ private:
     Control* _target;
 
     ElementQueryInfo _atopElementInfo;
-    bool             _targetEnabledState;
+    bool             _targetActiveState;
     bool             _isDown;
     Point            _point;
     InputType        _inputType;
@@ -79,8 +79,8 @@ private:
     template<class Event>
     void                ProcessEvent(Event const& evt);
 
-    void CheckTargetEnabledStatus();
-    bool CheckTargetEnabledStatusHelper() const;
+    void CheckTargetActiveStatus();
+    bool CheckTargetActiveStatusHelper() const;
 
     friend class ElementManager;
     void NotifyControlIsBeingDestroyed(Control* control);
