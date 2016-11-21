@@ -181,6 +181,9 @@ public:
     // Initializes this element and returns whether this is the first initialization
     virtual bool InitializeThis();
 
+    // Returns whether this element has been initialized
+    bool IsInitialized();
+
     // -----------------------------------------------------------------
     // State tracking
 

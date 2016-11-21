@@ -691,6 +691,11 @@ bool Element::InitializeThis()
 
 }
 
+bool Element::IsInitialized()
+{
+    return _initialized;
+}
+
 void Element::SetIsVisible(bool isVisible)
 {
     _isVisible = isVisible;
