@@ -63,9 +63,10 @@ public:
      * by this function.
      */
     template <class CreateLayerType=Layer, class... CreateLayerArgs>
-    Layer* AddLayerAbove(Layer* existing, CreateLayerArgs&&... args)
+    std::shared_ptr<Layer> AddLayerAbove(std::shared_ptr<Layer> existing, CreateLayerArgs&&... args)
     {
-        return AddLayerAboveHelper(existing, new CreateLayerType(std::forward<CreateLayerArgs>(args)...));
+        return AddLayerAboveHelper(existing, std::shared_ptr<CreateLayerType>(
+          new CreateLayerType(std::forward<CreateLayerArgs>(args)...)));
     }
 
     /***
@@ -89,15 +90,16 @@ public:
      * by this function.
      */
     template <class CreateLayerType=Layer, class... CreateLayerArgs>
-    Layer* AddLayerBelow(Layer* existing, CreateLayerArgs&&... args)
+    std::shared_ptr<Layer> AddLayerBelow(std::shared_ptr<Layer> existing, CreateLayerArgs&&... args)
     {
-        return AddLayerBelowHelper(existing, new CreateLayerType(std::forward<CreateLayerArgs>(args)...));
+        return AddLayerBelowHelper(existing, std::shared_ptr<CreateLayerType>(
+          new CreateLayerType(std::forward<CreateLayerArgs>(args)...)));
     }
 
     // RemoveLayer
     // -----------
     // Removes the specified layer, automatically performing an update during the removal
-    void RemoveLayer(Layer* layer);
+    void RemoveLayer(std::shared_ptr<Layer> layer);
 
     // -------------------------------------------------------------------------------------
     // Arranging and drawing
@@ -227,11 +229,11 @@ private:
     Size                              _size;
 
 private:
-    Layer* AddLayerAboveHelper(Layer* existing,
-                               Layer* layerToAdd);
+    std::shared_ptr<Layer> AddLayerAboveHelper(std::shared_ptr<Layer> existing,
+                                               std::shared_ptr<Layer> layerToAdd);
 
-    Layer* AddLayerBelowHelper(Layer* existing,
-                               Layer* layerToAdd);
+    std::shared_ptr<Layer> AddLayerBelowHelper(std::shared_ptr<Layer> existing,
+                                               std::shared_ptr<Layer> layerToAdd);
 
     friend class Control;
     void NotifyControlIsBeingDestroyed(Control* control);

@@ -29,7 +29,7 @@ ElementManager* Element::GetElementManager() const
 }
 
 // Layer
-Layer* Element::GetLayer() const
+std::shared_ptr<Layer> Element::GetLayer() const
 {
     return _layer;
 }
@@ -496,7 +496,7 @@ void Element::UpdateHelper(UpdateType updateType)
 
     _elementManager->PushClip(redrawRegion);
     {
-        auto currentLayer = GetLayer();
+        auto currentLayer = GetLayer().get();
 
         int thisAndAncestorClips = 0;
 
@@ -1379,7 +1379,7 @@ const Rect4& Element::EndDirtyTracking(UpdateType updateType, bool& moved)
 
 bool Element::CoveredByLayerAbove(const Rect4& region)
 {
-    Layer* current = GetLayer();
+    auto current = GetLayer();
     while ((current = current->GetLayerAbove()))
     {
         if (current->OpaqueAreaContains(region))

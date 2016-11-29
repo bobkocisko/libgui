@@ -67,24 +67,24 @@ void Layer::VisitHigherLayersHelper(const std::function<void(Layer*)>& action, b
     }
 }
 
-Layer* Layer::GetLayerAbove()
+std::shared_ptr<Layer> Layer::GetLayerAbove()
 {
-    return _layerAbove;
+    return _layerAbove.lock();
 }
 
 bool Layer::AnyLayersAbove()
 {
-    return bool(_layerAbove);
+    return bool(_layerAbove.lock());
 }
 
-Layer* Layer::GetLayerBelow()
+std::shared_ptr<Layer> Layer::GetLayerBelow()
 {
-    return _layerBelow;
+    return _layerBelow.lock();
 }
 
 bool Layer::AnyLayersBelow()
 {
-    return bool(_layerBelow);
+    return bool(_layerBelow.lock());
 }
 
 bool Layer::OpaqueAreaContains(const Rect4& region)

@@ -5,7 +5,8 @@
 namespace libgui
 {
 
-Layer* ElementManager::AddLayerAboveHelper(Layer* existing, Layer* layerToAdd)
+std::shared_ptr<Layer> ElementManager::AddLayerAboveHelper(std::shared_ptr<Layer> existing,
+                                                           std::shared_ptr<Layer> layerToAdd)
 {
     LayerList::iterator existingIter = _layers.end();
 
@@ -14,7 +15,7 @@ Layer* ElementManager::AddLayerAboveHelper(Layer* existing, Layer* layerToAdd)
         for (existingIter = _layers.begin(); existingIter != _layers.end(); ++existingIter)
         {
             auto existingLayer = *existingIter;
-            if (existingLayer.get() == existing)
+            if (existingLayer == existing)
             {
                 // We've found the insertion location
                 break;
@@ -22,7 +23,7 @@ Layer* ElementManager::AddLayerAboveHelper(Layer* existing, Layer* layerToAdd)
         }
     }
 
-    Layer* lower = nullptr;
+    std::shared_ptr<Layer> lower = nullptr;
     LayerList::iterator insertionIter = _layers.end();
 
     if (_layers.end() == existingIter)
@@ -30,7 +31,7 @@ Layer* ElementManager::AddLayerAboveHelper(Layer* existing, Layer* layerToAdd)
         // No matching lower layer specified, so add to the end
         if (!_layers.empty())
         {
-            lower = _layers.back().get();
+            lower = _layers.back();
         }
     }
     else
@@ -43,14 +44,14 @@ Layer* ElementManager::AddLayerAboveHelper(Layer* existing, Layer* layerToAdd)
         ++insertionIter;
     }
 
-    Layer* higher = nullptr;
+    std::shared_ptr<Layer> higher = nullptr;
 
     if (lower)
     {
-        higher = lower->_layerAbove;
+        higher = lower->_layerAbove.lock();
     }
 
-    Layer* adding = layerToAdd;
+    std::shared_ptr<Layer> adding = layerToAdd;
 
     adding->_elementManager = this;
     adding->_layer          = adding;
@@ -80,7 +81,8 @@ Layer* ElementManager::AddLayerAboveHelper(Layer* existing, Layer* layerToAdd)
     return adding;
 }
 
-Layer* ElementManager::AddLayerBelowHelper(Layer* existing, Layer* layerToAdd)
+std::shared_ptr<Layer> ElementManager::AddLayerBelowHelper(std::shared_ptr<Layer> existing,
+                                                           std::shared_ptr<Layer> layerToAdd)
 {
     LayerList::iterator existingIter = _layers.end();
 
@@ -89,7 +91,7 @@ Layer* ElementManager::AddLayerBelowHelper(Layer* existing, Layer* layerToAdd)
         for (existingIter = _layers.begin(); existingIter != _layers.end(); ++existingIter)
         {
             auto existingLayer = *existingIter;
-            if (existingLayer.get() == existing)
+            if (existingLayer == existing)
             {
                 // We've found the insertion location
                 break;
@@ -97,14 +99,14 @@ Layer* ElementManager::AddLayerBelowHelper(Layer* existing, Layer* layerToAdd)
         }
     }
 
-    Layer* higher = nullptr;
+    std::shared_ptr<Layer> higher = nullptr;
 
     if (_layers.end() == existingIter)
     {
         // No matching lower layer specified, so add to the end
         if (!_layers.empty())
         {
-            higher = _layers.front().get();
+            higher = _layers.front();
         }
     }
     else
@@ -114,14 +116,14 @@ Layer* ElementManager::AddLayerBelowHelper(Layer* existing, Layer* layerToAdd)
     }
 
 
-    Layer* lower = nullptr;
+    std::shared_ptr<Layer> lower = nullptr;
 
     if (higher)
     {
-        lower = higher->_layerBelow;
+        lower = higher->_layerBelow.lock();
     }
 
-    Layer* adding = layerToAdd;
+    std::shared_ptr<Layer> adding = layerToAdd;
 
     adding->_elementManager = this;
     adding->_layer          = adding;
@@ -150,7 +152,7 @@ Layer* ElementManager::AddLayerBelowHelper(Layer* existing, Layer* layerToAdd)
     return adding;
 }
 
-void ElementManager::RemoveLayer(Layer* layer)
+void ElementManager::RemoveLayer(std::shared_ptr<Layer> layer)
 {
     layer->Update(Element::UpdateType::Removing);
 
@@ -160,14 +162,14 @@ void ElementManager::RemoveLayer(Layer* layer)
             e->_isDetached = true;
         });
 
-    auto layerBelow = layer->_layerBelow;
-    auto layerAbove = layer->_layerAbove;
+    auto layerBelow = layer->_layerBelow.lock();
+    auto layerAbove = layer->_layerAbove.lock();
 
     // Most likely the higher layers will be removed before lower layers so
     // we use a reverse iterator to search those layers first
     for (auto it = _layers.rbegin(); it != _layers.rend(); ++it)
     {
-        if ((*it).get() == layer)
+        if ((*it) == layer)
         {
             ++it; // See http://www.drdobbs.com/cpp/three-guidelines-for-effective-iterator/184401406?pgno=3
             _layers.erase(it.base());

@@ -51,7 +51,7 @@ public:
     // Objects shared among multiple elements
 
     ElementManager* GetElementManager() const;
-    Layer         * GetLayer() const;
+    std::shared_ptr<Layer> GetLayer() const;
 
     // -----------------------------------------------------------------
     // View Model
@@ -323,7 +323,7 @@ private:
     // Objects shared among multiple elements
 
     ElementManager* _elementManager;
-    Layer         * _layer;
+    std::shared_ptr<Layer> _layer;
 
     // -----------------------------------------------------------------
     // View model

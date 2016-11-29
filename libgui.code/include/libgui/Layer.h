@@ -41,11 +41,11 @@ public:
     void VisitHigherLayers(const std::function<void(Layer*)>& action);
 
     // The layer above this one, if any
-    Layer* GetLayerAbove();
+    std::shared_ptr<Layer> GetLayerAbove();
     bool AnyLayersAbove();
 
     // The layer below this one, if any
-    Layer* GetLayerBelow();
+    std::shared_ptr<Layer> GetLayerBelow();
     bool AnyLayersBelow();
 
     // Returns whether the opaque area of this layer (if any) contains the specified region
@@ -54,8 +54,8 @@ public:
 private:
     boost::optional<Rect4> _opaqueArea;
 
-    Layer* _layerAbove = nullptr;
-    Layer* _layerBelow = nullptr;
+    std::weak_ptr<Layer> _layerAbove;
+    std::weak_ptr<Layer> _layerBelow;
 
     void VisitLowerLayersIfHelper(const std::function<bool(Layer*)>& continueDownPredicate,
                                   const std::function<void(Layer*)>& action, bool isFirst);
