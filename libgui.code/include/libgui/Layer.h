@@ -51,7 +51,14 @@ public:
     // Returns whether the opaque area of this layer (if any) contains the specified region
     bool OpaqueAreaContains(const Rect4& region);
 
+    // This must be called after all the elements of the layer are created and initialized
+    void UpdateEverything();
+
+    // Returns whether UpdateEverything was called for this layer
+    bool UpdateEverythingCalled() const;
+
 private:
+    bool                   _updatedEverything;
     boost::optional<Rect4> _opaqueArea;
 
     std::weak_ptr<Layer> _layerAbove;

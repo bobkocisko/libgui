@@ -352,7 +352,7 @@ void InitElements()
 
                         // Disable this layer and update the new layer
                         b->GetLayer()->SetIsEnabled(false);
-                        layer->Update(Element::UpdateType::Adding);
+                        layer->UpdateEverything();
                     }
                 });
         }

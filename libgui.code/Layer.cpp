@@ -8,8 +8,8 @@ namespace libgui
 {
 
 Layer::Layer()
+: _updatedEverything(false)
 {
-
 }
 
 void Layer::SetOpaqueArea(const boost::optional<Rect4>& opaqueArea)
@@ -107,4 +107,16 @@ bool Layer::OpaqueAreaContains(const Rect4& region)
 
     return false;
 }
+
+void Layer::UpdateEverything()
+{
+    Update(UpdateType::Everything);
+    _updatedEverything = true;
+}
+
+bool Layer::UpdateEverythingCalled() const
+{
+    return _updatedEverything;
+}
+
 }

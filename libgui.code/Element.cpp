@@ -441,6 +441,12 @@ void Element::Update(UpdateType updateType)
         return;
     }
 
+    // Ignore all updates until the first update pass of this layer is complete
+    if (!_layer->UpdateEverythingCalled())
+    {
+        return;
+    }
+
     // Elements that have been detached from the visual tree should no longer be updated.
     if (_isDetached)
     {

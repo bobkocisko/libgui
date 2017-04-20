@@ -193,7 +193,7 @@ void ElementManager::UpdateEverything()
 {
     for (auto& layer: _layers)
     {
-        layer->Update(Element::UpdateType::Everything);
+        layer->UpdateEverything();
     }
 }
 
