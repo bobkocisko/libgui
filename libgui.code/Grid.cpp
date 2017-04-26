@@ -4,7 +4,8 @@
 
 namespace libgui
 {
-Grid::Grid()
+Grid::Grid(Element::Dependencies elementDependencies)
+  : Element(elementDependencies, "Grid")
 {
   SetClipToBounds(true);
   SetUpdateRearrangesDescendants(true);
@@ -38,10 +39,9 @@ void Grid::Arrange()
 
   for (int i = 0; i < missingChildren; i++)
   {
-    auto fromThis      = std::dynamic_pointer_cast<Grid>(shared_from_this());
-    auto cellContainer = std::make_shared<Cell>(fromThis, childrenCount + i);
-    AddChild(cellContainer);
+    auto cellContainer = this->CreateChild<Cell>(childrenCount + i);
     _cellCreateCallback(cellContainer);
+    cellContainer->UpdateAfterAdd();
   }
 
   // Now do some calculations based on the current parameters
@@ -83,49 +83,56 @@ bool Grid::CanScroll()
   return totalContentHeight > GetHeight();
 }
 
-Grid::Cell::Cell(const std::shared_ptr<Grid>& grid, int index)
-  :
-  _grid(grid), _index(index)
+Grid::Cell::Cell(Element::Dependencies elementDependencies, int index)
+  : Element(elementDependencies, "Grid::Cell"),
+    _grid(std::dynamic_pointer_cast<Grid>(elementDependencies.parent)),
+    _index(index)
 {
 }
 
 void Grid::Cell::PrepareViewModel()
 {
-  if (_grid->_itemsProvider)
+  if (auto grid = _grid.lock())
   {
-    auto index = _grid->_baseItemIndex + _index;
-    if (index < _grid->_itemsProvider->GetTotalItems())
+    if (grid->_itemsProvider)
     {
-      SetViewModel(_grid->_itemsProvider->GetItem(index));
-    }
-    else
-    {
-      SetViewModel(nullptr);
+      auto index = grid->_baseItemIndex + _index;
+      if (index < grid->_itemsProvider->GetTotalItems())
+      {
+        SetViewModel(grid->_itemsProvider->GetItem(index));
+      }
+      else
+      {
+        SetViewModel(nullptr);
+      }
     }
   }
 }
 
 void Grid::Cell::Arrange()
 {
-  SetIsVisible(GetViewModel() != nullptr);
+  if (auto grid = _grid.lock())
+  {
+    SetIsVisible(GetViewModel() != nullptr);
 
-  auto row = _index / _grid->_columns;
-  auto col = _index % _grid->_columns;
+    auto row = _index / grid->_columns;
+    auto col = _index % grid->_columns;
 
-  auto left   = (_grid->GetLeft() + col * _grid->_cellWidth);
-  auto right  = left + _grid->_cellWidth;
-  auto top    = _grid->GetTop() - _grid->_rowOffset
-                + row * _grid->_cellHeight;
-  auto bottom = top + _grid->_cellHeight;
+    auto left   = (grid->GetLeft() + col * grid->_cellWidth);
+    auto right  = left + grid->_cellWidth;
+    auto top    = grid->GetTop() - grid->_rowOffset
+                  + row * grid->_cellHeight;
+    auto bottom = top + grid->_cellHeight;
 
-  // Snap to pixel boundaries
-  SetLeft(std::round(left));
-  SetRight(std::round(right));
-  SetTop(std::round(top));
-  SetBottom(std::round(bottom));
+    // Snap to pixel boundaries
+    SetLeft(std::round(left));
+    SetRight(std::round(right));
+    SetTop(std::round(top));
+    SetBottom(std::round(bottom));
+  }
 }
 
-const int& Grid::GetColumns() const
+int Grid::GetColumns() const
 {
   return _columns;
 }
@@ -145,7 +152,7 @@ double Grid::GetCellHeight()
   return _cellHeight;
 }
 
-const double& Grid::GetTopPadding() const
+double Grid::GetTopPadding() const
 {
   return _topPadding;
 }
@@ -165,12 +172,12 @@ void Grid::SetBottomPadding(double bottomPadding)
   _bottomPadding = bottomPadding;
 }
 
-const std::shared_ptr<ItemsProvider>& Grid::GetItemsProvider() const
+std::shared_ptr<ItemsProvider> Grid::GetItemsProvider() const
 {
   return _itemsProvider;
 }
 
-void Grid::SetItemsProvider(const std::shared_ptr<ItemsProvider>& itemsProvider)
+void Grid::SetItemsProvider(std::shared_ptr<ItemsProvider> itemsProvider)
 {
   _itemsProvider = itemsProvider;
 }
@@ -180,13 +187,4 @@ void Grid::SetCellCreateCallback(const std::function<void(std::shared_ptr<Elemen
   _cellCreateCallback = cellCreateCallback;
 }
 
-std::string Grid::GetTypeName()
-{
-  return "Grid";
-}
-
-std::string Grid::Cell::GetTypeName()
-{
-  return "Cell";
-}
 }

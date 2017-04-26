@@ -78,7 +78,7 @@ libgui tracks the entire visual hierarchy of all elements in your window and pro
 The simplest way to display something on the screen is to add a Layer that is arranged to be the same size as the ElementManager and is filled with a flat color:
 
 ```
-auto layer = em->AddLayerAbove(nullptr);
+auto layer = em->CreateLayerAbove(nullptr);
 layer->SetArrangeCallback(
     [](shared_ptr<Element> e)
     {
@@ -102,9 +102,9 @@ This is admittedly a lot of work just to change the background color of the scre
 
 Let's work through this example line by line.
 ```
-auto layer = em->AddLayerAbove(nullptr);
+auto layer = em->CreateLayerAbove(nullptr);
 ```
-As described before, libgui uses the concept of Layers to group hierarchies of elements that overlap one another.  However, Elements must always be added to a hierarchy that has a Layer as its root.  So we have to start by creating the first Layer in our application, which we do with the AddLayerAbove method.  This method has a few parameters which we do not need to worry about just now.
+As described before, libgui uses the concept of Layers to group hierarchies of elements that overlap one another.  However, Elements must always be added to a hierarchy that has a Layer as its root.  So we have to start by creating the first Layer in our application, which we do with the CreateLayerAbove method.  This method has a few parameters which we do not need to worry about just now.
 ```
 layer->SetArrangeCallback([](shared_ptr<Element> e){...});
 ```

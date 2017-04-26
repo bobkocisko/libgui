@@ -5,8 +5,7 @@
 namespace libgui
 {
 
-std::shared_ptr<Layer> ElementManager::AddLayerAboveHelper(std::shared_ptr<Layer> existing,
-                                                           std::shared_ptr<Layer> layerToAdd)
+void ElementManager::AddLayerAbove(std::shared_ptr<Layer> existing, std::shared_ptr<Layer> adding)
 {
   LayerList::iterator existingIter = _layers.end();
 
@@ -51,11 +50,6 @@ std::shared_ptr<Layer> ElementManager::AddLayerAboveHelper(std::shared_ptr<Layer
     higher = lower->_layerAbove.lock();
   }
 
-  std::shared_ptr<Layer> adding = layerToAdd;
-
-  adding->_elementManager = this;
-  adding->_layer          = adding;
-  adding->_typeName       = "Layer";
   adding->_layerBelow     = lower;
   adding->_layerAbove     = higher;
 
@@ -77,12 +71,9 @@ std::shared_ptr<Layer> ElementManager::AddLayerAboveHelper(std::shared_ptr<Layer
   {
     _layers.insert(insertionIter, std::shared_ptr<Layer>(adding));
   }
-
-  return adding;
 }
 
-std::shared_ptr<Layer> ElementManager::AddLayerBelowHelper(std::shared_ptr<Layer> existing,
-                                                           std::shared_ptr<Layer> layerToAdd)
+void ElementManager::AddLayerBelow(std::shared_ptr<Layer> existing, std::shared_ptr<Layer> adding)
 {
   LayerList::iterator existingIter = _layers.end();
 
@@ -123,11 +114,6 @@ std::shared_ptr<Layer> ElementManager::AddLayerBelowHelper(std::shared_ptr<Layer
     lower = higher->_layerBelow.lock();
   }
 
-  std::shared_ptr<Layer> adding = layerToAdd;
-
-  adding->_elementManager = this;
-  adding->_layer          = adding;
-  adding->_typeName       = "Layer";
   adding->_layerBelow     = lower;
   adding->_layerAbove     = higher;
 
@@ -148,8 +134,6 @@ std::shared_ptr<Layer> ElementManager::AddLayerBelowHelper(std::shared_ptr<Layer
   {
     _layers.insert(existingIter, std::shared_ptr<Layer>(adding));
   }
-
-  return adding;
 }
 
 void ElementManager::RemoveLayer(std::shared_ptr<Layer> layer)
@@ -158,7 +142,7 @@ void ElementManager::RemoveLayer(std::shared_ptr<Layer> layer)
 
   layer->VisitThisAndDescendents(
     [](Element* e) {
-      e->_isDetached = true;
+      e->SetIsDetached(true);
     });
 
   auto layerBelow = layer->_layerBelow.lock();
@@ -192,7 +176,7 @@ void ElementManager::UpdateEverything()
 {
   for (auto& layer: _layers)
   {
-    layer->UpdateEverything();
+    layer->Update(Element::UpdateType::Everything);
   }
 }
 
@@ -372,7 +356,7 @@ void ElementManager::ClearUpdateTracking()
 
 bool ElementManager::TryBeginUpdate(Element* element)
 {
-  for (auto& e: _updatedElements)
+  for (auto e: _updatedElements)
   {
     if (e == element)
     {

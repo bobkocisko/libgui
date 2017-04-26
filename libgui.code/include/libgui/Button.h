@@ -9,7 +9,9 @@ namespace libgui
 class Button: public Control
 {
 public:
-  Button();
+  Button(Element::Dependencies elementDependencies);
+  Button(Element::Dependencies elementDependencies, const std::string& typeName);
+
   virtual ~Button();
 
   // Input events

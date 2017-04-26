@@ -5,6 +5,16 @@
 namespace libgui
 {
 
+Control::Control(Element::Dependencies elementDependencies)
+  : Element(elementDependencies)
+{
+}
+
+Control::Control(Element::Dependencies elementDependencies, const std::string& typeName)
+  : Element(elementDependencies, typeName)
+{
+}
+
 Control::~Control()
 {
   auto em = GetElementManager();

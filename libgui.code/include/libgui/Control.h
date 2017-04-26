@@ -13,6 +13,9 @@ class Input;
 class Control: public Element
 {
 public:
+  Control(Element::Dependencies elementDependencies);
+  Control(Element::Dependencies elementDependencies, const std::string& typeName);
+
   virtual ~Control();
 
   // Called before NotifyInput and can optionally prevent the sending of NotifyInput event

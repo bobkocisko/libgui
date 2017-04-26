@@ -21,25 +21,17 @@ using boost::msm::TerminateFlag;
 
 namespace libgui
 {
-Scrollbar::Scrollbar(const std::shared_ptr<ScrollDelegate>& scrollDelegate)
-  : _scrollDelegate(scrollDelegate)
+Scrollbar::Scrollbar(Element::Dependencies elementDependencies, const std::shared_ptr<ScrollDelegate>& scrollDelegate)
+  : Element(elementDependencies, "Scrollbar"),
+    _scrollDelegate(scrollDelegate)
 {
+  assert(scrollDelegate);
 }
 
-bool Scrollbar::InitializeThis()
+void Scrollbar::PostConstruct()
 {
-  if (!Element::InitializeThis())
-  {
-    return false;
-  }
-
-  _track = std::make_shared<Track>();
-  this->AddChild(_track);
-
-  _thumb = std::make_shared<Thumb>(
-    std::dynamic_pointer_cast<Scrollbar>(shared_from_this()),
-    _track);
-  _track->AddChild(_thumb);
+  _track = this->CreateChild<Track>();
+  _thumb = _track->CreateChild<Thumb>();
 
   // Add bidirectional arrange dependencies between this element and its scroll delegate,
   // if the scroll delegate is also an element
@@ -49,28 +41,21 @@ bool Scrollbar::InitializeThis()
     delegateElement->RegisterArrangeDependent(_thumb);
     _thumb->RegisterArrangeDependent(delegateElement);
   }
-
-  return true;
 }
 
-const std::shared_ptr<Scrollbar::Thumb>& Scrollbar::GetThumb() const
+std::shared_ptr<Scrollbar::Thumb> Scrollbar::GetThumb() const
 {
   return _thumb;
 }
 
-const std::shared_ptr<Scrollbar::Track>& Scrollbar::GetTrack() const
+std::shared_ptr<Scrollbar::Track> Scrollbar::GetTrack() const
 {
   return _track;
 }
 
-const std::shared_ptr<ScrollDelegate>& Scrollbar::GetScrollDelegate() const
+std::shared_ptr<ScrollDelegate> Scrollbar::GetScrollDelegate() const
 {
   return _scrollDelegate;
-}
-
-void Scrollbar::SetScrollDelegate(const std::shared_ptr<ScrollDelegate>& scrollDelegate)
-{
-  _scrollDelegate = scrollDelegate;
 }
 
 namespace SmScrollbar
@@ -173,9 +158,21 @@ private:
 typedef state_machine<StateMachineFrontEnd> StateMachine;
 }
 
-Scrollbar::Thumb::Thumb(std::weak_ptr<Scrollbar> scrollbar, std::weak_ptr<Track> track)
-  : _scrollbar(scrollbar),
-    _track(track)
+Scrollbar::Track::Track(Element::Dependencies elementDependencies)
+  : Element(elementDependencies, "Scrollbar::Track")
+{
+}
+
+std::shared_ptr<Scrollbar> Scrollbar::Track::GetScrollbar() const
+{
+  return std::dynamic_pointer_cast<Scrollbar>(GetParent());
+}
+
+Scrollbar::Thumb::Thumb(Element::Dependencies elementDependencies)
+  : Control(elementDependencies, "Scrollbar::Thumb"),
+    _track(std::dynamic_pointer_cast<Track>(elementDependencies.parent)),
+    _scrollbar(_track.lock()->GetScrollbar())
+
 {
   // Create and store state machine
   auto stateMachine = new SmScrollbar::StateMachine(this);
@@ -255,7 +252,7 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
   if (InputAction::Move != inputAction)
   {
     // After any state changes except moving, we update the control (move updates are handled separately)
-    Update(UpdateType::Modifying);
+    UpdateAfterModify();
   }
 }
 
@@ -280,13 +277,13 @@ void Scrollbar::Thumb::NotifyPointerMove(Point point)
       if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
       {
         scrollDelegate->MoveToOffsetPercent(offsetPercent);
-        Update(UpdateType::Modifying);
+        UpdateAfterModify();
       }
     }
   }
 }
 
-const std::weak_ptr<Scrollbar>& Scrollbar::Thumb::GetScrollbar() const
+std::weak_ptr<Scrollbar> Scrollbar::Thumb::GetScrollbar() const
 {
   return _scrollbar;
 }
@@ -295,20 +292,5 @@ Scrollbar::Thumb::State Scrollbar::Thumb::GetState() const
 {
   auto stateMachine = (SmScrollbar::StateMachine*) _stateMachine;
   return (State) stateMachine->current_state()[0];
-}
-
-std::string Scrollbar::GetTypeName()
-{
-  return "Scrollbar";
-}
-
-std::string Scrollbar::Track::GetTypeName()
-{
-  return "Track";
-}
-
-std::string Scrollbar::Thumb::GetTypeName()
-{
-  return "Thumb";
 }
 }

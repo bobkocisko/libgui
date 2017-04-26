@@ -7,9 +7,25 @@
 namespace libgui
 {
 
-Layer::Layer()
-  : _updatedEverything(false)
+libgui::LayerDependencies::LayerDependencies(ElementManager* elementManager)
+  : elementManager(elementManager)
 {
+}
+
+Layer::Layer(LayerDependencies dependencies)
+  : Element(dependencies, "Layer")
+{
+}
+
+Layer::Layer(LayerDependencies dependencies, const std::string& typeName)
+  : Element(dependencies, typeName)
+{
+
+}
+
+void Layer::PostConstructInternal()
+{
+  SetLayerFieldToSharedFromThis();
 }
 
 void Layer::SetOpaqueArea(const boost::optional<Rect4>& opaqueArea)
@@ -106,17 +122,6 @@ bool Layer::OpaqueAreaContains(const Rect4& region)
   }
 
   return false;
-}
-
-void Layer::UpdateEverything()
-{
-  Update(UpdateType::Everything);
-  _updatedEverything = true;
-}
-
-bool Layer::UpdateEverythingCalled() const
-{
-  return _updatedEverything;
 }
 
 }

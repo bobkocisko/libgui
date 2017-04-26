@@ -2,6 +2,7 @@
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
 #include "libgui/Layer.h"
+#include "libgui/ScopeExit.h"
 
 #ifdef DBG
 #include <typeinfo>
@@ -10,16 +11,38 @@
 namespace libgui
 {
 
-Element::Element()
-  : _typeName("Element")
+Element::Dependencies::Dependencies(std::shared_ptr<Element> parent)
+  : parent(parent)
 {
-
 }
 
-Element::Element(const std::string& typeName)
-  : _typeName(typeName)
+Element::Element(Dependencies dependencies)
+  : Element(dependencies, "Element")
 {
+}
 
+Element::Element(Dependencies dependencies, const std::string& typeName)
+  : _elementManager(dependencies.parent->_elementManager),
+    _layer(dependencies.parent->_layer),
+    _parent(dependencies.parent),
+    _typeName(typeName)
+{
+}
+
+// For the Layer class only
+Element::Element(const LayerDependencies& layerDependencies, const std::string& typeName)
+  : _elementManager(layerDependencies.elementManager),
+    _parent(nullptr),
+    _typeName(typeName)
+{
+  // Note: _layer will be set later by SetLayerToSharedFromThis()
+
+  assert(_elementManager);
+}
+
+void Element::SetLayerFieldToSharedFromThis()
+{
+  _layer = std::dynamic_pointer_cast<Layer>(shared_from_this());
 }
 
 // Element Manager
@@ -46,29 +69,53 @@ std::shared_ptr<ViewModelBase> Element::GetViewModel()
 }
 
 // Visual tree
-std::shared_ptr<Element> Element::GetParent()
+std::shared_ptr<Element> Element::GetParent() const
 {
   return _parent;
 }
 
-std::shared_ptr<Element> Element::GetFirstChild()
+std::shared_ptr<Element> Element::GetFirstChild() const
 {
   return _firstChild;
 }
 
-std::shared_ptr<Element> Element::GetLastChild()
+std::shared_ptr<Element> Element::GetLastChild() const
 {
   return _lastChild;
 }
 
-std::shared_ptr<Element> Element::GetPrevSibling()
+std::shared_ptr<Element> Element::GetPrevSibling() const
 {
   return _prevsibling;
 }
 
-std::shared_ptr<Element> Element::GetNextSibling()
+std::shared_ptr<Element> Element::GetNextSibling() const
 {
   return _nextsibling;
+}
+
+void Element::AddChildHelper(std::shared_ptr<Element> element)
+{
+  if (_firstChild == nullptr)
+  {
+    _firstChild = element;
+  }
+  else
+  {
+    element->_prevsibling    = _lastChild;
+    _lastChild->_nextsibling = element;
+  }
+
+  _lastChild = element;
+
+  _childrenCount++;
+
+  // Copy the element manager to the child
+  element->_elementManager = _elementManager;
+
+  // Copy the layer to the child
+  element->_layer = _layer;
+
 }
 
 void Element::RemoveChildren()
@@ -133,35 +180,9 @@ void Element::RemoveChild(std::shared_ptr<Element> child)
   // The child should disappear as soon as all shared references to it are released
 }
 
-void Element::AddChild(std::shared_ptr<Element> element)
+void Element::SetIsDetached(bool isDetached)
 {
-  if (!_elementManager)
-  {
-    throw std::runtime_error("You cannot call AddChild on an element until it has been added "
-                               "to the element hierarchy");
-  }
-
-  if (_firstChild == nullptr)
-  {
-    _firstChild = element;
-  }
-  else
-  {
-    element->_prevsibling    = _lastChild;
-    _lastChild->_nextsibling = element;
-  }
-
-  element->_parent = shared_from_this();
-  _lastChild = element;
-
-  _childrenCount++;
-
-  // Copy the element manager to the child
-  element->_elementManager = _elementManager;
-
-  // Copy the layer to the child
-  element->_layer = _layer;
-
+  _isDetached = isDetached;
 }
 
 int Element::GetChildrenCount()
@@ -169,14 +190,7 @@ int Element::GetChildrenCount()
   return _childrenCount;
 }
 
-void Element::SetSingleChild(std::shared_ptr<Element> child)
-{
-  // Could be optimized to improve performance
-  RemoveChildren();
-  AddChild(child);
-}
-
-std::shared_ptr<Element> Element::GetSingleChild()
+std::shared_ptr<Element> Element::GetSingleChild() const
 {
   if (_childrenCount == 1)
   {
@@ -392,6 +406,11 @@ void Element::DoArrangeTasks()
 {
   ResetArrangement();
   PrepareViewModel();
+
+  // Signal to children that the parent is being arranged
+  _inArrangeMethodNow = true;
+  ScopeExit onScopeExit([this] { _inArrangeMethodNow = false; });
+
   Arrange();
 }
 
@@ -429,6 +448,16 @@ void Element::DoDrawTasksCleanup()
   }
 }
 
+void Element::UpdateAfterAdd()
+{
+  Update(UpdateType::Adding);
+}
+
+void Element::UpdateAfterModify()
+{
+  Update(UpdateType::Modifying);
+}
+
 void Element::Update(UpdateType updateType)
 {
   // Special case: if we are updating the whole element tree at once then
@@ -438,13 +467,41 @@ void Element::Update(UpdateType updateType)
   {
     ArrangeAndDrawHelper();
     _elementManager->AddToRedrawnRegion(GetTotalBounds());
+    VisitThisAndDescendents([](Element* e) { e->_initialUpdate = true; });
     return;
   }
-
-  // Ignore all updates until the first update pass of this layer is complete
-  if (!_layer->UpdateEverythingCalled())
+  else if (!_initialUpdate)
   {
-    return;
+    if (UpdateType::Adding == updateType)
+    {
+      VisitThisAndDescendents([](Element* e) { e->_initialUpdate = true; });
+
+      if (_parent && _parent->_inArrangeMethodNow)
+      {
+        // This call is coming within the Arrange method of the parent element,
+        // and as a general rule, when libgui calls Arrange for an element it also
+        // calls Arrange for all of its descendants right afterwards, even if
+        // the Arrange method itself was the one that created those descendant(s).
+
+        // The only exception to this rule is that if we are calling UpdateAfterModify()
+        // on the parent element, libgui will choose not to update the parent's
+        // descendants (this element) if the parent was not moved or resized.
+        // So we have a special indicator for that case to notify the parent
+        // that one or more child elements want to be arranged.
+        if (_parent->_monitoringArrangeEffects)
+        {
+          _parent->_monitoringArrangeEffects.get().NotifyChildRequestedArrange();
+        }
+
+        // And then we do nothing for now to prevent an unnecessary double arrangements
+        return;
+      }
+    }
+    else
+    {
+      // Ignore all updates until one of the initial ones occurs
+      return;
+    }
   }
 
   // Elements that have been detached from the visual tree should no longer be updated.
@@ -477,17 +534,20 @@ void Element::UpdateHelper(UpdateType updateType)
   fflush(stdout);
   #endif
 
-  auto wasVisible = GetIsVisible();
-  BeginDirtyTrackingIfApplicable(updateType);
+  // Arrange this element and monitor the side effects of doing so
+  auto monitor = MonitorArrangeEffects(GetIsVisible(), GetBounds(), GetTotalBounds());
   {
+    _monitoringArrangeEffects = monitor;
+    ScopeExit onScopeExit([this] { _monitoringArrangeEffects = boost::none; });
+
     DoArrangeTasks();
   }
-  bool moved;
-  auto& redrawRegion = EndDirtyTracking(updateType, moved);
+  auto arrangeEffects = monitor.Finish(GetIsVisible(), GetBounds(), GetTotalBounds());
 
-  // If the redraw region is totally hidden both before
-  // and after the rearrangement, we don't have to do anything.
-  if ((!wasVisible && !GetIsVisible()) ||
+  auto& redrawRegion = arrangeEffects.GetUnionedTotalBounds();
+
+
+  if (arrangeEffects.WasInvisibleBeforeAndAfter() ||
       !GetAreAncestorsVisible() ||
       CoveredByLayerAbove(redrawRegion))
   {
@@ -560,11 +620,12 @@ void Element::UpdateHelper(UpdateType updateType)
       Draw(boost::none);
 
       if (UpdateType::Adding == updateType ||
-          moved ||
+          arrangeEffects.ElementWasMovedOrResized() ||
+          arrangeEffects.ChildrenRequestedArrange() ||
           GetUpdateRearrangesDescendants())
       {
         #ifdef DBG
-        printf("Rearranging all children of %s after move\n", GetTypeName().c_str());
+        printf("Rearranging all children of %s\n", GetTypeName().c_str());
         fflush(stdout);
         #endif
 
@@ -617,7 +678,7 @@ void Element::UpdateHelper(UpdateType updateType)
 
   _elementManager->AddToRedrawnRegion(redrawRegion);
 
-  if (UpdateType::Modifying == updateType && moved)
+  if (UpdateType::Modifying == updateType && arrangeEffects.ElementWasMovedOrResized())
   {
     // update any dependent elements in this same layer
     VisitArrangeDependents(
@@ -654,44 +715,6 @@ void Element::RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegio
     {
       e->DoDrawTasksCleanup();
     });
-}
-
-void Element::InitializeAll()
-{
-  // Initialize the current element
-  InitializeThis();
-
-  // Then initialize all children
-  if (_firstChild)
-  {
-    for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
-    {
-      e->InitializeAll();
-    }
-  }
-
-}
-
-bool Element::InitializeThis()
-{
-  // Default behavior
-
-  if (_initialized)
-  {
-    return false;
-  }
-  else
-  {
-    // This is the first initialization request for this element
-    _initialized = true;
-    return true;
-  }
-
-}
-
-bool Element::IsInitialized()
-{
-  return _initialized;
 }
 
 void Element::SetIsVisible(bool isVisible)
@@ -1313,65 +1336,6 @@ const Rect4 Element::GetTotalBounds()
   }
 }
 
-void Element::BeginDirtyTrackingIfApplicable(UpdateType updateType)
-{
-  if (UpdateType::Adding == updateType)
-  {
-    // When adding an element there's really no such thing as dirty tracking because
-    // a brand new element couldn't having moved.
-    return;
-  }
-
-  // Store the dirty bounds for later
-  _dirtyBounds      = Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
-  _dirtyTotalBounds = GetTotalBounds();
-}
-
-const Rect4& Element::EndDirtyTracking(UpdateType updateType, bool& moved)
-{
-  if (UpdateType::Adding == updateType)
-  {
-    // When adding an element there's really no such thing as dirty tracking because
-    // a brand new element couldn't having moved.  So we just return the new bounds.
-    moved                    = false;
-    return _dirtyTotalBounds = GetTotalBounds();
-  }
-
-  auto currentTotalBounds = GetTotalBounds();
-
-  auto currentBounds = Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
-
-  moved = (currentBounds.left != _dirtyBounds.left ||
-           currentBounds.top != _dirtyBounds.top ||
-           currentBounds.right != _dirtyBounds.right ||
-           currentBounds.bottom != _dirtyBounds.bottom);
-
-  // Union the original bounds with the current bounds
-  // This is so that if the element has moved since
-  // we began dirty tracking, we'll be able to get
-  // the whole dirty region, both the region that must
-  // be cleared and also the region that must be drawn
-
-  if (currentTotalBounds.left < _dirtyTotalBounds.left)
-  {
-    _dirtyTotalBounds.left = currentTotalBounds.left;
-  }
-  if (currentTotalBounds.top < _dirtyTotalBounds.top)
-  {
-    _dirtyTotalBounds.top = currentTotalBounds.top;
-  }
-  if (currentTotalBounds.right > _dirtyTotalBounds.right)
-  {
-    _dirtyTotalBounds.right = currentTotalBounds.right;
-  }
-  if (currentTotalBounds.bottom > _dirtyTotalBounds.bottom)
-  {
-    _dirtyTotalBounds.bottom = currentTotalBounds.bottom;
-  }
-
-  return _dirtyTotalBounds;
-}
-
 bool Element::CoveredByLayerAbove(const Rect4& region)
 {
   auto current = GetLayer();
@@ -1404,6 +1368,85 @@ void Element::SetUpdateRearrangesDescendants(bool updateRearrangesDescendents)
 bool Element::GetUpdateRearrangesDescendants()
 {
   return _updateRearrangesDescendents;
+}
+
+Element::MonitorArrangeEffects::MonitorArrangeEffects(bool originallyVisible,
+                                                      const Rect4& originalBounds,
+                                                      const Rect4& originalTotalBounds)
+  : originallyVisible(originallyVisible),
+    originalBounds(originalBounds),
+    originalTotalBounds(originalTotalBounds),
+    childrenRequestedArrange(false)
+{
+}
+
+void Element::MonitorArrangeEffects::NotifyChildRequestedArrange()
+{
+  childrenRequestedArrange = true;
+}
+
+Element::ArrangeEffects Element::MonitorArrangeEffects::Finish(bool currentlyVisible,
+                                                               const Rect4& currentBounds,
+                                                               const Rect4& currentTotalBounds) const
+{
+  ArrangeEffects result;
+
+  result.wasInvisibleBeforeAndAfter = !originallyVisible && !currentlyVisible;
+
+  result.elementWasMovedOrResized =
+    (currentBounds.left != originalBounds.left ||
+     currentBounds.top != originalBounds.top ||
+     currentBounds.right != originalBounds.right ||
+     currentBounds.bottom != originalBounds.bottom);
+
+  // Union the original bounds with the current bounds
+  // This is so that if the element has moved since
+  // we began dirty tracking, we'll be able to get
+  // the whole dirty region, both the region that must
+  // be cleared and also the region that must be drawn
+
+  result.unionedTotalBounds = originalTotalBounds;
+
+  if (currentTotalBounds.left < result.unionedTotalBounds.left)
+  {
+    result.unionedTotalBounds.left = currentTotalBounds.left;
+  }
+  if (currentTotalBounds.top < result.unionedTotalBounds.top)
+  {
+    result.unionedTotalBounds.top = currentTotalBounds.top;
+  }
+  if (currentTotalBounds.right > result.unionedTotalBounds.right)
+  {
+    result.unionedTotalBounds.right = currentTotalBounds.right;
+  }
+  if (currentTotalBounds.bottom > result.unionedTotalBounds.bottom)
+  {
+    result.unionedTotalBounds.bottom = currentTotalBounds.bottom;
+  }
+
+  result.childrenRequestedArrange = childrenRequestedArrange;
+
+  return result;
+}
+
+bool Element::ArrangeEffects::WasInvisibleBeforeAndAfter() const
+{
+  return wasInvisibleBeforeAndAfter;
+}
+
+bool Element::ArrangeEffects::ElementWasMovedOrResized() const
+{
+  return elementWasMovedOrResized;
+}
+
+const Rect4& Element::ArrangeEffects::GetUnionedTotalBounds() const
+{
+  return unionedTotalBounds;
+}
+
+bool Element::ArrangeEffects::ChildrenRequestedArrange() const
+{
+  return childrenRequestedArrange;
 }
 }
 

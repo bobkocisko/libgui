@@ -47,6 +47,6 @@ set(SOURCE_FILES
     Layer.cpp
     include/libgui/IntersectionStack.h
     IntersectionStack.cpp
-    )
+    include/libgui/CallPostConstructIfPresent.h)
 
 add_library(libgui ${SOURCE_FILES})

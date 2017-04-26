@@ -15,10 +15,8 @@ using ::testing::Return;
 TEST(ButtonTests, WhenPointerEntering_StateIsPending)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
   btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
 
@@ -28,10 +26,8 @@ TEST(ButtonTests, WhenPointerEntering_StateIsPending)
 TEST(ButtonTests, WhenPointerLeaving_StateIsIdle)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
   btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
   btn->NotifyInput(InputType::Pointer, InputAction::Leave, Point());
@@ -41,10 +37,8 @@ TEST(ButtonTests, WhenPointerLeaving_StateIsIdle)
 TEST(ButtonTests, WhenPointerPushed_StateIsEngaged)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
 
   btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
@@ -55,10 +49,8 @@ TEST(ButtonTests, WhenPointerPushed_StateIsEngaged)
 TEST(ButtonTests, WhenPointerReleased_StateIsPending)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
   btn->NotifyInput(InputType::Pointer, InputAction::EnterPushed, Point());
   btn->NotifyInput(InputType::Pointer, InputAction::Release, Point());
@@ -68,10 +60,8 @@ TEST(ButtonTests, WhenPointerReleased_StateIsPending)
 TEST(ButtonTests, WhenPointerPushedAndEscaping_StateIsEngagedRemotely)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
 
   btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
@@ -83,10 +73,8 @@ TEST(ButtonTests, WhenPointerPushedAndEscaping_StateIsEngagedRemotely)
 TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsEngaged)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
 
   btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
@@ -99,10 +87,8 @@ TEST(ButtonTests, WhenPointerPushedAndReturning_StateIsEngaged)
 TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_StateIsIdle)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
 
   btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
@@ -115,10 +101,8 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_StateIsIdle)
 TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
   bool is_clicked = false;
   btn->SetEventCallback([&](shared_ptr<Button> b, Button::OutputEvent event) {
@@ -139,10 +123,8 @@ TEST(ButtonTests, WhenPointerEscapedAndReleasedOutside_NoClick)
 TEST(ButtonTests, AfterPointerClicked_StateIsPending)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
 
   btn->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
@@ -154,10 +136,8 @@ TEST(ButtonTests, AfterPointerClicked_StateIsPending)
 TEST(ButtonTests, WhenTouchPushAndRelease_Click)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
   bool isClicked = false;
   btn->SetEventCallback([&](shared_ptr<Button> b, Button::OutputEvent event) {
@@ -177,10 +157,8 @@ TEST(ButtonTests, WhenTouchPushAndRelease_Click)
 TEST(ButtonTests, WhenTouchDownEscapeReturnAndUp_StateIsPending)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
 
   btn->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point());
@@ -195,10 +173,8 @@ TEST(ButtonTests, WhenTouchDownEscapeReturnAndUp_StateIsPending)
 TEST(ButtonTests, WhenMultiplePushAndRelease_MultipleOutputEvents)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
-  auto btn  = make_shared<Button>();
-  root->AddChild(btn);
-  root->InitializeAll();
+  auto root = em->CreateLayerAbove(nullptr);
+  auto btn  = root->CreateChild<Button>();
 
   bool is_pushed = false;
   btn->SetEventCallback([&](shared_ptr<Button> b, Button::OutputEvent event) {

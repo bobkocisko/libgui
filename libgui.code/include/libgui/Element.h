@@ -1,12 +1,16 @@
 #pragma once
-#include "ViewModelBase.h"
+
+#include "CallPostConstructIfPresent.h"
 #include "Location.h"
 #include "Point.h"
-#include "Types.h"
 #include "Rect.h"
+#include "Types.h"
+#include "ViewModelBase.h"
+
 #include <boost/optional.hpp>
 #include <deque>
 #include <memory>
+#include <type_traits>
 
 namespace libgui
 {
@@ -18,6 +22,7 @@ namespace libgui
 class ElementManager;
 class Element;
 class Layer;
+class LayerDependencies;
 
 struct ElementQueryInfo
 {
@@ -40,13 +45,27 @@ struct ElementQueryInfo
 class Element: public std::enable_shared_from_this<Element>
 {
   friend class ElementManager;
+
 public:
+  class Dependencies
+  {
+    friend class Element;
+
+    // Can only be created via Element::CreateChild<T>
+    explicit Dependencies(std::shared_ptr<Element> parent);
+
+  public:
+    std::shared_ptr<Element> parent;
+  };
+
   // -----------------------------------------------------------------
   // Constructors
-  Element();
+  //
+  Element(Dependencies dependencies);
+  Element(Dependencies dependencies, const std::string& typeName);
+  Element(const LayerDependencies& layerDependencies, const std::string& typeName);
 
-  Element(const std::string& typeName);
-
+public:
   // -----------------------------------------------------------------
   // Objects shared among multiple elements
 
@@ -67,10 +86,27 @@ public:
   // -----------------------------------------------------------------
   // Visual tree
 
+  /**
+   * CreateChild
+   *
+   * Create and add a new child to this element.
+   *
+   * @tparam ChildType
+   * @tparam ChildArgs
+   * @param args
+   * @return
+   */
+  template<class ChildType, class... ChildArgs>
+  std::shared_ptr<ChildType> CreateChild(ChildArgs&& ... args)
+  {
+    auto child = std::make_shared<ChildType>(Dependencies{shared_from_this()}, std::forward<ChildArgs>(args)...);
+    CallPostConstructIfPresent(child);
+    AddChildHelper(child);
+    return child;
+  }
+
   void RemoveChildren();
   void RemoveChild(std::shared_ptr<Element>);
-  void AddChild(std::shared_ptr<Element>);
-  void SetSingleChild(std::shared_ptr<Element> child);
   int GetChildrenCount();
 
   // -----------------------------------------------------------------
@@ -82,12 +118,12 @@ public:
   // -----------------------------------------------------------------
   // Arrangement
 
-  std::shared_ptr<Element> GetParent();
-  std::shared_ptr<Element> GetSingleChild();
-  std::shared_ptr<Element> GetFirstChild();
-  std::shared_ptr<Element> GetLastChild();
-  std::shared_ptr<Element> GetPrevSibling();
-  std::shared_ptr<Element> GetNextSibling();
+  std::shared_ptr<Element> GetParent() const;
+  std::shared_ptr<Element> GetSingleChild() const;
+  std::shared_ptr<Element> GetFirstChild() const;
+  std::shared_ptr<Element> GetLastChild() const;
+  std::shared_ptr<Element> GetPrevSibling() const;
+  std::shared_ptr<Element> GetNextSibling() const;
 
   // -----------------------------------------------------------------
   // Arrange cycle
@@ -104,28 +140,26 @@ public:
   // and not rearranged.  This behavior can be changed by setting
   // SetUpdateRearrangesDescendants to true.
 
-  // Specifies the type of update to be performed.  It is important to specify the correct type of
-  // update so that the arranging and drawing logic will work correctly and provide the best
-  // performance.
-  enum class UpdateType
-  {
-    // Indicates that the element is in the process of being added to the element hierarchy
-      Adding,
+  /**
+   * UpdateAfterAdd
+   *
+   * Request that this element and its descendants be updated after they have been
+   * added to the element tree.
+   *
+   * After the initial ElementManager::UpdateEverything call, this method must be
+   * called on each element that is added to the tree.  The general flow is:
+   * 1 Create the new element or element tree
+   * 2 Register callbacks on all elements
+   * 3 Call this method on the element or root element you created and it will
+   *   update that element and all its descendants in one pass
+   */
+  void UpdateAfterAdd();
 
-    // Indicates that the element is in the process of being removed from the element hierarchy
-      Removing,
-
-    // Indicates that the position, size or other data contributing to arrangement or drawing
-    // has changed
-      Modifying,
-
-    // Update the whole element tree at once.  This is reserved for internal use by
-    // the ElementManager class.
-      Everything
-  };
-
-  // Updates this element and all its dependents.
-  void Update(UpdateType updateType);
+  /**
+   * Request that this element and its descendants be updated after the position,
+   * size or other data contributing to arrangement and/or drawing has changed.
+   */
+  void UpdateAfterModify();
 
   // Called during each arrange cycle to set or update the position and size of the element
   // (unless the Arrange method is overridden)
@@ -166,23 +200,6 @@ public:
 
   // Gets the bounds of this element used for arrangement and hit testing
   Rect4 GetBounds();
-
-  // -----------------------------------------------------------------
-  // Dirty
-  void BeginDirtyTrackingIfApplicable(UpdateType updateType);
-  const Rect4& EndDirtyTracking(UpdateType updateType, bool& moved);
-
-  // -----------------------------------------------------------------
-  // Post-construction initialization pass
-
-  // Initializes this element and all its descendants
-  void InitializeAll();
-
-  // Initializes this element and returns whether this is the first initialization
-  virtual bool InitializeThis();
-
-  // Returns whether this element has been initialized
-  bool IsInitialized();
 
   // -----------------------------------------------------------------
   // State tracking
@@ -232,8 +249,6 @@ public:
 
   // -----------------------------------------------------------------
   // Drawing
-
-  virtual void Draw(const boost::optional<Rect4>& updateArea);
 
   // Called during each arrange cycle to draw this element (unless the Draw method is overridden)
   void SetDrawCallback(const std::function<void(Element* e, const boost::optional<Rect4>& updateArea)>&);
@@ -317,6 +332,11 @@ protected:
   virtual void PrepareViewModel();
   virtual void Arrange();
 
+  // -----------------------------------------------------------------
+  // Draw cycle
+
+  virtual void Draw(const boost::optional<Rect4>& updateArea);
+
 
 private:
   // -----------------------------------------------------------------
@@ -332,6 +352,39 @@ private:
 
   // -----------------------------------------------------------------
   // Arrange cycle
+
+  bool _inArrangeMethodNow = false;
+
+  struct ArrangeEffects
+  {
+    bool WasInvisibleBeforeAndAfter() const;
+    bool ElementWasMovedOrResized() const;
+    const Rect4& GetUnionedTotalBounds() const;
+    bool ChildrenRequestedArrange() const;
+
+    bool  wasInvisibleBeforeAndAfter;
+    bool  elementWasMovedOrResized;
+    Rect4 unionedTotalBounds;
+    bool  childrenRequestedArrange;
+  };
+
+  struct MonitorArrangeEffects
+  {
+    MonitorArrangeEffects(bool originallyVisible, const Rect4& originalBounds, const Rect4& originalTotalBounds);
+
+    void NotifyChildRequestedArrange();
+
+    ArrangeEffects Finish(bool currentlyVisible,
+                          const Rect4& currentBounds, const Rect4& currentTotalBounds) const;
+
+  private:
+    bool  originallyVisible;
+    Rect4 originalBounds;
+    Rect4 originalTotalBounds;
+    bool  childrenRequestedArrange;
+  };
+
+  boost::optional<MonitorArrangeEffects&> _monitoringArrangeEffects;
 
   std::deque<std::weak_ptr<Element>> _arrangeDependents;
   std::deque<std::weak_ptr<Element>> _overlappedBy;
@@ -362,15 +415,9 @@ private:
   boost::optional<Rect4> _visualBounds;
 
   // -----------------------------------------------------------------
-  // Dirty
-
-  Rect4 _dirtyBounds      = Rect4(0, 0, 0, 0);
-  Rect4 _dirtyTotalBounds = Rect4(0, 0, 0, 0);
-
-  // -----------------------------------------------------------------
   // State tracking
 
-  bool _initialized   = false;
+  bool _initialUpdate = false;
   bool _clipToBounds  = false;
   bool _isVisible     = true;
   bool _isEnabled     = true;
@@ -416,6 +463,8 @@ private:
   // -----------------------------------------------------------------
   // Helper methods
 
+  void AddChildHelper(std::shared_ptr<Element>);
+
   bool CoveredByLayerAbove(const Rect4& region);
   void RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegion);
 
@@ -431,7 +480,36 @@ private:
 
   bool ClipToBoundsIfNeeded();
 
+  // Specifies the type of update to be performed.  It is important to specify the correct type of
+  // update so that the arranging and drawing logic will work correctly and provide the best
+  // performance.
+  enum class UpdateType
+  {
+    // Indicates that the element is in the process of being added to the element hierarchy
+      Adding,
+
+    // Indicates that the position, size or other data contributing to arrangement or drawing
+    // has changed
+      Modifying,
+
+    // Indicates that the element is in the process of being removed from the element hierarchy
+      Removing,
+
+    // Update the whole element tree at once.
+      Everything
+  };
+
+  // Updates this element and all its dependents.
+  void Update(UpdateType updateType);
+
   void UpdateHelper(UpdateType updateType);
   void ArrangeAndDrawHelper();
+
+  void SetIsDetached(bool isDetached);
+
+protected:
+  // For use by the Layer class only
+  void SetLayerFieldToSharedFromThis();
 };
+
 }

@@ -21,30 +21,23 @@ using boost::msm::TerminateFlag;
 namespace libgui
 {
 
-bool Slider::InitializeThis()
+Slider::Slider(Element::Dependencies elementDependencies)
+  : Element(elementDependencies, "Slider")
 {
-  if (!Element::InitializeThis())
-  {
-    return false;
-  }
+}
 
-  _track = std::make_shared<Track>();
-  this->AddChild(_track);
-
-  _thumb = std::make_shared<Thumb>(
-    std::dynamic_pointer_cast<Slider>(shared_from_this()),
-    _track);
-  _track->AddChild(_thumb);
+void Slider::PostConstruct()
+{
+  _track = this->CreateChild<Track>();
+  _thumb = _track->CreateChild<Thumb>();
 
   #ifdef DBG
   printf("Initializing Slider\n");
   fflush(stdout);
   #endif
-
-  return true;
 }
 
-const double& Slider::GetValue() const
+double Slider::GetValue() const
 {
   return _value;
 }
@@ -61,7 +54,7 @@ void Slider::SetValue(double value)
   }
 }
 
-const double& Slider::GetThumbHeight() const
+double Slider::GetThumbHeight() const
 {
   return _thumbHeight;
 }
@@ -77,12 +70,12 @@ void Slider::SetValueChangedByInputCallback(
   _valueChangedByInputCallback = valueChangedByInputCallback;
 }
 
-const std::shared_ptr<Slider::Thumb>& Slider::GetThumb() const
+std::shared_ptr<Slider::Thumb> Slider::GetThumb() const
 {
   return _thumb;
 }
 
-const std::shared_ptr<Slider::Track>& Slider::GetTrack() const
+std::shared_ptr<Slider::Track> Slider::GetTrack() const
 {
   return _track;
 }
@@ -186,9 +179,20 @@ private:
 typedef state_machine<StateMachineFrontEnd> StateMachine;
 }
 
-Slider::Thumb::Thumb(std::weak_ptr<Slider> slider, std::weak_ptr<Track> track)
-  : _slider(slider),
-    _track(track)
+Slider::Track::Track(Element::Dependencies elementDependencies)
+  : Element(elementDependencies, "Slider::Track")
+{
+}
+
+std::shared_ptr<Slider> Slider::Track::GetSlider() const
+{
+  return std::dynamic_pointer_cast<Slider>(GetParent());
+}
+
+Slider::Thumb::Thumb(Element::Dependencies elementDependencies)
+  : Control(elementDependencies, "Slider::Thumb"),
+    _track(std::dynamic_pointer_cast<Track>(elementDependencies.parent)),
+    _slider(_track.lock()->GetSlider())
 {
   // Create and store state machine
   auto stateMachine = new SmSlider::StateMachine(this);
@@ -260,7 +264,7 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
   if (InputAction::Move != inputAction)
   {
     // After any state changes except moving, we update the control (move updates are handled separately)
-    Update(UpdateType::Modifying);
+    UpdateAfterModify();
   }
 }
 
@@ -290,13 +294,13 @@ void Slider::Thumb::NotifyMove(Point point)
           ScopeExit onScopeExit([slider]() { slider->_valueIsChangingByInput = false; });
           slider->SetValueFromRaw(offsetPercent);
         }
-        Update(UpdateType::Modifying);
+        UpdateAfterModify();
       }
     }
   }
 }
 
-const std::weak_ptr<Slider>& Slider::Thumb::GetSlider() const
+std::weak_ptr<Slider> Slider::Thumb::GetSlider() const
 {
   return _slider;
 }
@@ -335,18 +339,4 @@ void Slider::SetThumbHeight(Inches thumbHeight)
   SetThumbHeight(double(thumbHeight) * GetElementManager()->GetDpiY());
 }
 
-std::string Slider::GetTypeName()
-{
-  return "Slider";
-}
-
-std::string Slider::Track::GetTypeName()
-{
-  return "Track";
-}
-
-std::string Slider::Thumb::GetTypeName()
-{
-  return "Thumb";
-}
 }

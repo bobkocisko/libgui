@@ -9,7 +9,7 @@ class Grid: public Element, public ScrollDelegate
 {
 
 public:
-  Grid();
+  Grid(Element::Dependencies elementDependencies);
 
   void Arrange() override;
 
@@ -19,24 +19,23 @@ public:
 
   bool CanScroll();
 
-  const int& GetColumns() const;
+  int GetColumns() const;
   void SetColumns(int columns);
 
   void SetCellHeight(double);
   double GetCellHeight();
 
-  const double& GetTopPadding() const;
+  double GetTopPadding() const;
   const double& GetBottomPadding() const;
   void SetTopPadding(double topPadding);
   void SetBottomPadding(double bottomPadding);
 
-  const std::shared_ptr<ItemsProvider>& GetItemsProvider() const;
+  std::shared_ptr<ItemsProvider> GetItemsProvider() const;
 
-  void SetItemsProvider(const std::shared_ptr<ItemsProvider>& itemsProvider);
+  void SetItemsProvider(std::shared_ptr<ItemsProvider> itemsProvider);
 
   void SetCellCreateCallback(const std::function<void(std::shared_ptr<Element> cellContainer)>& cellCreateCallback);
 
-  virtual std::string GetTypeName() override;
 private:
   int    _columns                      = 3;
   double _cellHeight;
@@ -54,15 +53,14 @@ private:
   class Cell: public Element
   {
   public:
-    Cell(const std::shared_ptr<Grid>& parent, int index);
+    Cell(Element::Dependencies elementDependencies, int index);
 
     void PrepareViewModel() override;
     void Arrange() override;
 
-    virtual std::string GetTypeName() override;
   private:
-    std::shared_ptr<Grid> _grid;
-    int                   _index;
+    std::weak_ptr<Grid> _grid;
+    int                 _index;
   };
 };
 }

@@ -178,7 +178,7 @@ void InitElements()
   auto itemsVm = std::make_shared<ItemsViewModel>();
 
   // Set up the root element to match the window size
-  auto root = elementManager->AddLayerAbove(nullptr);
+  auto root = elementManager->CreateLayerAbove(nullptr);
   root->SetViewModel(itemsVm);
   root->SetArrangeCallback(
     [](std::shared_ptr<Element> e) {
@@ -203,9 +203,8 @@ void InitElements()
 
 
   // Build the screen elements
-  auto header = std::make_shared<Element>("Header");
+  auto header = root->CreateChild<Element>("Header");
   {
-    root->AddChild(header);
     header->SetArrangeCallback(
       [](std::shared_ptr<Element> e) {
         auto p = e->GetParent();
@@ -219,9 +218,8 @@ void InitElements()
         OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xAB, 0xAB, 0xAB, 1.0);
       });
 
-    auto launchButton = std::make_shared<Button>();
+    auto launchButton = header->CreateChild<Button>();
     {
-      header->AddChild(launchButton);
       launchButton->SetArrangeCallback(
         [](std::shared_ptr<Element> e) {
           auto p = e->GetParent();
@@ -241,7 +239,7 @@ void InitElements()
           if (Button::OutputEvent::Clicked == event)
           {
             // launch the modal
-            auto layer = b->GetElementManager()->AddLayerAbove(nullptr);
+            auto layer = b->GetElementManager()->CreateLayerAbove(nullptr);
             {
               layer->SetArrangeCallback(
                 [layer](std::shared_ptr<Element> e) {
@@ -285,9 +283,8 @@ void InitElements()
                   }
                 });
 
-              auto okButton = std::make_shared<Button>();
+              auto okButton = layer->CreateChild<Button>();
               {
-                layer->AddChild(okButton);
                 okButton->SetArrangeCallback(
                   [](std::shared_ptr<Element> e) {
                     auto p = e->GetParent();
@@ -314,9 +311,8 @@ void InitElements()
                   });
               }
 
-              auto messageLabel = std::make_shared<Element>("Message");
+              auto messageLabel = layer->CreateChild<Element>("Message");
               {
-                layer->AddChild(messageLabel);
                 messageLabel->SetArrangeCallback(
                   [](std::shared_ptr<Element> e) {
                     auto ps = e->GetPrevSibling();
@@ -335,14 +331,13 @@ void InitElements()
 
             // Disable this layer and update the new layer
             b->GetLayer()->SetIsEnabled(false);
-            layer->UpdateEverything();
+            layer->UpdateAfterAdd();
           }
         });
     }
 
-    auto overlapButton = std::make_shared<Button>();
+    auto overlapButton = header->CreateChild<Button>();
     {
-      header->AddChild(overlapButton);
       overlapButton->SetArrangeCallback(
         [](std::shared_ptr<Element> e) {
           auto p = e->GetParent();
@@ -358,9 +353,8 @@ void InitElements()
         });
 
     }
-    auto overlap2Button = std::make_shared<Button>();
+    auto overlap2Button = header->CreateChild<Button>();
     {
-      header->AddChild(overlap2Button);
       overlap2Button->SetArrangeCallback(
         [](std::shared_ptr<Element> e) {
           auto p = e->GetParent();
@@ -381,9 +375,8 @@ void InitElements()
     }
   }
 
-  auto footer = std::make_shared<Element>("Footer");
+  auto footer = root->CreateChild<Element>("Footer");
   {
-    root->AddChild(footer);
     footer->SetArrangeCallback(
       [](std::shared_ptr<Element> e) {
         auto p = e->GetParent();
@@ -400,9 +393,8 @@ void InitElements()
 
   auto gridScrollWidth = 32;
 
-  auto grid = std::make_shared<Grid>();
+  auto grid = root->CreateChild<Grid>();
   {
-    root->AddChild(grid);
     grid->SetArrangeCallback(
       [header, footer, gridScrollWidth](std::shared_ptr<Element> e) {
         auto p = e->GetParent();
@@ -431,9 +423,8 @@ void InitElements()
 
     grid->SetCellCreateCallback(
       [](std::shared_ptr<Element> cellContainer) {
-        auto cell_background = std::make_shared<Element>("Cell Background");
+        auto cell_background = cellContainer->CreateChild<Element>("Cell Background");
         {
-          cellContainer->AddChild(cell_background);
           cell_background->SetArrangeCallback(
             [](std::shared_ptr<Element> e) {
               auto p = e->GetParent();
@@ -449,9 +440,8 @@ void InitElements()
               FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xEB, 0xEB, 0xEB);
             });
 
-          auto text = std::make_shared<Element>("Cell Text");
+          auto text = cell_background->CreateChild<Element>("Cell Text");
           {
-            cell_background->AddChild(text);
             text->SetDrawCallback(
               [](Element* e, const boost::optional<Rect4>& redrawRegion) {
                 auto ivm = std::dynamic_pointer_cast<ItemViewModel>(e->GetViewModel());
@@ -466,9 +456,8 @@ void InitElements()
       });
   }
 
-  auto grid_scroll = std::make_shared<Scrollbar>(grid);
+  auto grid_scroll = root->CreateChild<Scrollbar>(grid);
   {
-    root->AddChild(grid_scroll);
     grid_scroll->SetArrangeCallback(
       [grid, gridScrollWidth, header, footer](std::shared_ptr<Element> e) {
         auto p          = e->GetParent();
@@ -494,7 +483,6 @@ void InitElements()
         FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xCD, 0xCD, 0xCD);
       });
 
-    grid_scroll->InitializeThis();
     auto track = grid_scroll->GetTrack();
     track->SetArrangeCallback(
       [](std::shared_ptr<Element> e) {
@@ -515,9 +503,8 @@ void InitElements()
 
   std::shared_ptr<Slider::Thumb> slider_thumb;
 
-  auto slider = std::make_shared<Slider>();
+  auto slider = root->CreateChild<Slider>();
   {
-    root->AddChild(slider);
     slider->SetThumbHeight(50);
     slider->SetArrangeCallback(
       [gridScrollWidth, header, footer](std::shared_ptr<Element> e) {
@@ -534,7 +521,6 @@ void InitElements()
         FillRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(), 0xCD, 0xCD, 0xCD);
       });
 
-    slider->InitializeThis();
     auto slider_track = slider->GetTrack();
     slider_track->SetArrangeCallback(
       [](std::shared_ptr<Element> e) {
@@ -552,9 +538,8 @@ void InitElements()
       });
   }
 
-  auto sliderValueText = std::make_shared<Element>("Slider Value Text");
+  auto sliderValueText = footer->CreateChild<Element>("Slider Value Text");
   {
-    footer->AddChild(sliderValueText);
     sliderValueText->SetDrawCallback(
       [slider](Element* e, const boost::optional<Rect4>& redrawRegion) {
         std::string valueString = std::to_string(slider->GetValue());
@@ -562,8 +547,6 @@ void InitElements()
       });
     slider_thumb->RegisterArrangeDependent(sliderValueText);
   }
-
-  root->InitializeAll();
 }
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)

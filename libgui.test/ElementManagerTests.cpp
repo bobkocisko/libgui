@@ -10,6 +10,11 @@ using namespace libgui;
 class StubControl: public Control
 {
 public:
+  StubControl(Dependencies elementDependencies)
+    : Control(elementDependencies)
+  {
+  }
+
   virtual ~StubControl()
   {
     if (_destructorCallback)
@@ -209,14 +214,12 @@ private:
 TEST(ElementManagerTests, WhenControlIsCaptured_ItReceivesNotifyUp)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
+  auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  auto sc = make_shared<StubControl>();
-  layer->AddChild(sc);
-  layer->InitializeAll();
+  auto sc = layer->CreateChild<StubControl>();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -235,14 +238,12 @@ TEST(ElementManagerTests, WhenControlIsCaptured_ItReceivesNotifyUp)
 TEST(ElementManagerTests, WhenControlIsHidden_ItDoesNotReceiveNotifications)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
+  auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  auto sc = make_shared<StubControl>();
-  layer->AddChild(sc);
-  layer->InitializeAll();
+  auto sc = layer->CreateChild<StubControl>();
 
   sc->SetIsVisible(false);
 
@@ -275,14 +276,12 @@ TEST(ElementManagerTests, WhenControlIsHidden_ItDoesNotReceiveNotifications)
 TEST(ElementManagerTests, WhenControlIsDisabled_ItDoesNotReceiveNotifications)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
+  auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  auto sc = make_shared<StubControl>();
-  layer->AddChild(sc);
-  layer->InitializeAll();
+  auto sc = layer->CreateChild<StubControl>();
 
   sc->SetIsEnabled(false);
 
@@ -315,14 +314,12 @@ TEST(ElementManagerTests, WhenControlIsDisabled_ItDoesNotReceiveNotifications)
 TEST(ElementManagerTests, WhenActiveControlBecomesDisabled_ItReceivesLeaveNotification)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
+  auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  auto sc = make_shared<StubControl>();
-  layer->AddChild(sc);
-  layer->InitializeAll();
+  auto sc = layer->CreateChild<StubControl>();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -357,15 +354,13 @@ TEST(ElementManagerTests, WhenActiveControlBecomesDisabled_ItReceivesLeaveNotifi
 TEST(ElementManagerTests, WhenActiveControlParentBecomesDisabled_ItReceivesLeaveOnMove)
 {
   auto em   = make_shared<ElementManager>();
-  auto root = em->AddLayerAbove(nullptr);
+  auto root = em->CreateLayerAbove(nullptr);
   root->SetLeft(0);
   root->SetRight(10);
   root->SetTop(0);
   root->SetBottom(10);
 
-  auto sc = make_shared<StubControl>();
-  root->AddChild(sc);
-  root->InitializeAll();
+  auto sc = root->CreateChild<StubControl>();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -409,14 +404,12 @@ TEST(ElementManagerTests, WhenActiveControlParentBecomesDisabled_ItReceivesLeave
 TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
-  auto sc    = make_shared<StubControl>();
-  layer->AddChild(sc);
+  auto layer = em->CreateLayerAbove(nullptr);
+  auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  layer->InitializeAll();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -437,14 +430,12 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
 TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesEscapedReturn)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
-  auto sc    = make_shared<StubControl>();
-  layer->AddChild(sc);
+  auto layer = em->CreateLayerAbove(nullptr);
+  auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  layer->InitializeAll();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -464,14 +455,12 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesEsc
 TEST(ElementManagerTests, WhenControlIsDownAndUpMultipleTimes_ItReceivesNotifications)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
-  auto sc    = make_shared<StubControl>();
-  layer->AddChild(sc);
+  auto layer = em->CreateLayerAbove(nullptr);
+  auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  layer->InitializeAll();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -499,14 +488,12 @@ TEST(ElementManagerTests, WhenControlIsDownAndUpMultipleTimes_ItReceivesNotifica
 TEST(ElementManagerTests, WhenDownEscapeRelease_NotificationsAreSent)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
-  auto sc    = make_shared<StubControl>();
-  layer->AddChild(sc);
+  auto layer = em->CreateLayerAbove(nullptr);
+  auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  layer->InitializeAll();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -530,14 +517,12 @@ TEST(ElementManagerTests, WhenDownEscapeRelease_NotificationsAreSent)
 TEST(ElementManagerTests, WhenControlIsTouchDragged_ItReceivesNotifications)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
-  auto sc    = make_shared<StubControl>();
-  layer->AddChild(sc);
+  auto layer = em->CreateLayerAbove(nullptr);
+  auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  layer->InitializeAll();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -568,14 +553,12 @@ TEST(ElementManagerTests, WhenControlIsTouchDragged_ItReceivesNotifications)
 TEST(ElementManagerTests, WhenControlIsTouchEngagedRemotelyThenDisabled_ItStopsReceivingNotifications)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
-  auto sc    = make_shared<StubControl>();
-  layer->AddChild(sc);
+  auto layer = em->CreateLayerAbove(nullptr);
+  auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  layer->InitializeAll();
 
   sc->SetLeft(1);
   sc->SetRight(2);
@@ -610,14 +593,12 @@ TEST(ElementManagerTests, WhenControlIsTouchEngagedRemotelyThenDisabled_ItStopsR
 TEST(ElementManagerTests, AfterControlIsDestroyed_ItIsNotSentNotifications)
 {
   auto em    = make_shared<ElementManager>();
-  auto layer = em->AddLayerAbove(nullptr);
+  auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
   layer->SetTop(0);
   layer->SetBottom(10);
-  auto sc = make_shared<StubControl>();
-  layer->AddChild(sc);
-  layer->InitializeAll();
+  auto sc = layer->CreateChild<StubControl>();
 
   sc->SetLeft(1);
   sc->SetRight(2);

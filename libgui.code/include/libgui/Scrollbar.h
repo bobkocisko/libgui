@@ -7,34 +7,32 @@
 
 namespace libgui
 {
-class Scrollbar: public libgui::Element
+class Scrollbar: public Element
 {
 public:
-  explicit Scrollbar(const std::shared_ptr<ScrollDelegate>& scrollDelegate);
-
-  bool InitializeThis() override;
+  explicit Scrollbar(Element::Dependencies elementDependencies, const std::shared_ptr<ScrollDelegate>& scrollDelegate);
+  void PostConstruct();
 
   class Thumb;
   class Track;
 
-  const std::shared_ptr<Thumb>& GetThumb() const;
-  const std::shared_ptr<Track>& GetTrack() const;
+  std::shared_ptr<Thumb> GetThumb() const;
+  std::shared_ptr<Track> GetTrack() const;
 
-  const std::shared_ptr<ScrollDelegate>& GetScrollDelegate() const;
-  void SetScrollDelegate(const std::shared_ptr<ScrollDelegate>& scrollDelegate);
-
-  virtual std::string GetTypeName() override;
+  std::shared_ptr<ScrollDelegate> GetScrollDelegate() const;
 
   class Track: public Element
   {
   public:
-    virtual std::string GetTypeName() override;
+    Track(Element::Dependencies elementDependencies);
+
+    std::shared_ptr<Scrollbar> GetScrollbar() const;
   };
 
   class Thumb: public Control
   {
   public:
-    explicit Thumb(std::weak_ptr<Scrollbar> scrollbar, std::weak_ptr<Track> track);
+    explicit Thumb(Element::Dependencies elementDependencies);
     virtual ~Thumb();
 
     // Input events
@@ -54,16 +52,14 @@ public:
 
     void Arrange() override;
 
-    const std::weak_ptr<Scrollbar>& GetScrollbar() const;
+    std::weak_ptr<Scrollbar> GetScrollbar() const;
 
     void RecordAnchor();
 
-    virtual std::string GetTypeName() override;
-
   private:
     void* _stateMachine;
-    std::weak_ptr<Scrollbar> _scrollbar;
     std::weak_ptr<Track>     _track;
+    std::weak_ptr<Scrollbar> _scrollbar;
     double                   _anchorOffset;
     Point                    _pointer;
 

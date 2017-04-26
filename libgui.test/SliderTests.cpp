@@ -18,10 +18,8 @@ using ::testing::Return;
 TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 {
   auto em     = make_shared<ElementManager>();
-  auto root   = em->AddLayerAbove(nullptr);
-  auto slider = make_shared<Slider>();
-  root->AddChild(slider);
-  root->InitializeAll();
+  auto root   = em->CreateLayerAbove(nullptr);
+  auto slider = root->CreateChild<Slider>();
 
   auto thumb = slider->GetThumb();
 
@@ -34,10 +32,8 @@ TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 {
   auto em     = make_shared<ElementManager>();
-  auto root   = em->AddLayerAbove(nullptr);
-  auto slider = make_shared<Slider>();
-  root->AddChild(slider);
-  root->InitializeAll();
+  auto root   = em->CreateLayerAbove(nullptr);
+  auto slider = root->CreateChild<Slider>();
 
   auto thumb = slider->GetThumb();
 
@@ -50,10 +46,8 @@ TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 TEST(SliderTests, WhenTouchDragged_ValueChanges)
 {
   auto em     = make_shared<ElementManager>();
-  auto root   = em->AddLayerAbove(nullptr);
-  auto slider = make_shared<Slider>();
-  root->AddChild(slider);
-  root->InitializeAll();
+  auto root   = em->CreateLayerAbove(nullptr);
+  auto slider = root->CreateChild<Slider>();
 
   auto thumb = slider->GetThumb();
 

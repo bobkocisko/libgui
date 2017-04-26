@@ -137,7 +137,13 @@ private:
 typedef state_machine<StateMachineFrontEnd> StateMachine;
 }
 
-Button::Button()
+Button::Button(Element::Dependencies elementDependencies)
+  : Button(elementDependencies, "Button")
+{
+}
+
+Button::Button(Element::Dependencies elementDependencies, const std::string& typeName)
+  : Control(elementDependencies, typeName)
 {
   // Create and store state machine
   auto stateMachine = new SmButton::StateMachine(this);
@@ -190,7 +196,7 @@ void Button::NotifyInput(InputType inputType, InputAction inputAction, Point poi
   if (InputAction::Move != inputAction)
   {
     // After any state changes except moving, we update the control
-    Update(UpdateType::Modifying);
+    UpdateAfterModify();
   }
 }
 

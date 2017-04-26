@@ -11,39 +11,38 @@ class Slider: public libgui::Element
 {
   friend class Thumb;
 public:
-  bool InitializeThis() override;
+  explicit Slider(Element::Dependencies elementDependencies);
+  void PostConstruct();
 
-  const double& GetValue() const;
+  double GetValue() const;
   void SetValue(double value);
 
-  const double& GetThumbHeight() const;
+  double GetThumbHeight() const;
   void SetThumbHeight(double thumbHeight);
 
   const Inches GetThumbHeightInches() const;
   void SetThumbHeight(Inches thumbHeight);
 
-  void SetValueChangedByInputCallback(
-    const std::function<void(std::shared_ptr<Slider>)>& valueChangedByInputCallback);
+  void SetValueChangedByInputCallback(const std::function<void(std::shared_ptr<Slider>)>& valueChangedByInputCallback);
 
   class Thumb;
   class Track;
 
-  const std::shared_ptr<Thumb>& GetThumb() const;
+  std::shared_ptr<Thumb> GetThumb() const;
 
-  const std::shared_ptr<Track>& GetTrack() const;
-
-  virtual std::string GetTypeName() override;
+  std::shared_ptr<Track> GetTrack() const;
 
   class Track: public Element
   {
   public:
-    virtual std::string GetTypeName() override;
+    explicit Track(Element::Dependencies elementDependencies);
+    std::shared_ptr<Slider> GetSlider() const;
   };
 
   class Thumb: public Control
   {
   public:
-    explicit Thumb(std::weak_ptr<Slider> slider, std::weak_ptr<Track> track);
+    explicit Thumb(Element::Dependencies elementDependencies);
     virtual ~Thumb();
 
     // Input events
@@ -62,16 +61,14 @@ public:
 
     void Arrange() override;
 
-    const std::weak_ptr<Slider>& GetSlider() const;
+    std::weak_ptr<Slider> GetSlider() const;
 
     void RecordAnchor();
 
-    virtual std::string GetTypeName() override;
-
   private:
     void* _stateMachine;
-    std::weak_ptr<Slider> _slider;
     std::weak_ptr<Track>  _track;
+    std::weak_ptr<Slider> _slider;
     double                _anchorOffset;
     Point                 _inputPoint;
 

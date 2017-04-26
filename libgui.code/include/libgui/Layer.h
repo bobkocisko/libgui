@@ -12,15 +12,29 @@
 namespace libgui
 {
 
+// Can only be constructed by ElementManager
+class LayerDependencies
+{
+  friend class ElementManager;
+  explicit LayerDependencies(ElementManager* elementManager);
+public:
+  ElementManager* elementManager;
+};
+
 class Layer: public Element
 {
   friend class ElementManager;
 
-protected:
-  // Layer can only be created by ElementManager
-  Layer();
 public:
+  // Can only be constructed by a class with the ability to create the Dependencies class
+  Layer(LayerDependencies dependencies);
+  Layer(LayerDependencies dependencies, const std::string& typeName);
 
+private:
+  // Can only be called by ElementManager
+  void PostConstructInternal();
+
+public:
   // Set the area of the layer that is fully opaque.  This is an optional
   // and recommended optimization so that layers under this opaque area
   // do not need to redraw themselves.
@@ -51,14 +65,7 @@ public:
   // Returns whether the opaque area of this layer (if any) contains the specified region
   bool OpaqueAreaContains(const Rect4& region);
 
-  // This must be called after all the elements of the layer are created and initialized
-  void UpdateEverything();
-
-  // Returns whether UpdateEverything was called for this layer
-  bool UpdateEverythingCalled() const;
-
 private:
-  bool                   _updatedEverything;
   boost::optional<Rect4> _opaqueArea;
 
   std::weak_ptr<Layer> _layerAbove;

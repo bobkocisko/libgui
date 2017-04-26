@@ -1,7 +1,11 @@
 #pragma once
-#include "Element.h"
+
+#include "CallPostConstructIfPresent.h"
 #include "Control.h"
+#include "Element.h"
 #include "Input.h"
+#include "Layer.h"
+
 #include <vector>
 #include <list>
 #include <boost/optional.hpp>
@@ -43,57 +47,51 @@ public:
   // whereas layers themselves are meant to overlap other layers in a performant way.
 
   /***
-   * AddLayerAbove
+   * CreateLayerAbove
    *
-   * Create and add a new layer above the specified one.  Note that the new layer
-   * will be neither initialized nor updated, so it is up to the client to
-   * perform these tasks at a later time, typically after adding additional
-   * descendants to the layer.
+   * Create and add a new layer above the specified one.
    *
-   * @tparam CreateLayerType
+   * @tparam LayerType
    * The type of the layer that will be created.  By default the root class 'Layer'
    * is used.
    * @param existing
    * An optional existing layer above which to add the new layer.
    * If this is nullptr, the layer will be added on top of all other layers.
-   * @param typeName
-   * An optional debugging tool to assign a specific name to this layer.
    * @return
-   * Returns the new layer which is either \p layerToAdd or else the layer created
-   * by this function.
+   * Returns the new layer which has been created by this function.
    */
-  template<class CreateLayerType=Layer, class... CreateLayerArgs>
-  std::shared_ptr<Layer> AddLayerAbove(std::shared_ptr<Layer> existing, CreateLayerArgs&& ... args)
+  template<class LayerType=Layer, class... LayerArgs>
+  std::shared_ptr<LayerType> CreateLayerAbove(std::shared_ptr<Layer> existing, LayerArgs&& ... args)
   {
-    return AddLayerAboveHelper(existing, std::shared_ptr<CreateLayerType>(
-      new CreateLayerType(std::forward<CreateLayerArgs>(args)...)));
+    auto layer = std::make_shared<LayerType>(LayerDependencies{this}, std::forward<LayerArgs>(args)...);
+    layer->PostConstructInternal();
+    CallPostConstructIfPresent(layer);
+    AddLayerAbove(existing, layer);
+    return layer;
   }
 
   /***
-   * AddLayerBelow
+   * CreateLayerBelow
    *
-   * Create and add a new layer below the specified one.  Note that the new layer
-   * will be neither initialized nor updated, so it is up to the client to
-   * perform these tasks at a later time, typically after adding additional
-   * descendants to the layer.
+   * Create and add a new layer below the specified one.
    *
-   * @tparam CreateLayerType
+   * @tparam LayerType
    * The type of the layer that will be created.  By default the root class 'Layer'
    * is used.
    * @param existing
    * An optional existing layer below which to add the new layer.
    * If this is nullptr, the layer will be added on top of all other layers.
-   * @param typeName
-   * An optional debugging tool to assign a specific name to this layer.
    * @return
-   * Returns the new layer which is either \p layerToAdd or else the layer created
-   * by this function.
+   * Returns the new layer which has been created by this function.
    */
-  template<class CreateLayerType=Layer, class... CreateLayerArgs>
-  std::shared_ptr<Layer> AddLayerBelow(std::shared_ptr<Layer> existing, CreateLayerArgs&& ... args)
+  template<class LayerType=Layer, class... LayerArgs>
+  std::shared_ptr<LayerType> CreateLayerBelow(std::shared_ptr<Layer> existing, LayerArgs&& ... args)
   {
-    return AddLayerBelowHelper(existing, std::shared_ptr<CreateLayerType>(
-      new CreateLayerType(std::forward<CreateLayerArgs>(args)...)));
+    auto layer = std::make_shared<LayerType>(LayerDependencies{this}, std::forward<LayerArgs>(args)...);
+    layer->PostConstructInternal();
+    CallPostConstructIfPresent(layer);
+    AddLayerBelow(existing, layer);
+    return layer;
   }
 
   // RemoveLayer
@@ -229,11 +227,11 @@ private:
   Size                              _size;
 
 private:
-  std::shared_ptr<Layer> AddLayerAboveHelper(std::shared_ptr<Layer> existing,
-                                             std::shared_ptr<Layer> layerToAdd);
+  void AddLayerAbove(std::shared_ptr<Layer> existing,
+                           std::shared_ptr<Layer> layerToAdd);
 
-  std::shared_ptr<Layer> AddLayerBelowHelper(std::shared_ptr<Layer> existing,
-                                             std::shared_ptr<Layer> layerToAdd);
+  void AddLayerBelow(std::shared_ptr<Layer> existing,
+                           std::shared_ptr<Layer> layerToAdd);
 
   friend class Control;
   void NotifyControlIsBeingDestroyed(Control* control);
