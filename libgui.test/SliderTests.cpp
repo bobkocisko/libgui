@@ -17,54 +17,54 @@ using ::testing::Return;
 
 TEST(SliderTests, WhenPointerDown_StateIsEngaged)
 {
-    auto em     = make_shared<ElementManager>();
-    auto root   = em->AddLayerAbove(nullptr);
-    auto slider = make_shared<Slider>();
-    root->AddChild(slider);
-    root->InitializeAll();
+  auto em     = make_shared<ElementManager>();
+  auto root   = em->AddLayerAbove(nullptr);
+  auto slider = make_shared<Slider>();
+  root->AddChild(slider);
+  root->InitializeAll();
 
-    auto thumb = slider->GetThumb();
+  auto thumb = slider->GetThumb();
 
-    thumb->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
-    thumb->NotifyInput(InputType::Pointer, InputAction::Push, Point());
+  thumb->NotifyInput(InputType::Pointer, InputAction::EnterReleased, Point());
+  thumb->NotifyInput(InputType::Pointer, InputAction::Push, Point());
 
-    ASSERT_EQ(Slider::Thumb::State::Engaged, thumb->GetState());
+  ASSERT_EQ(Slider::Thumb::State::Engaged, thumb->GetState());
 }
 
 TEST(SliderTests, WhenTouchDown_StateIsEngaged)
 {
-    auto em     = make_shared<ElementManager>();
-    auto root   = em->AddLayerAbove(nullptr);
-    auto slider = make_shared<Slider>();
-    root->AddChild(slider);
-    root->InitializeAll();
+  auto em     = make_shared<ElementManager>();
+  auto root   = em->AddLayerAbove(nullptr);
+  auto slider = make_shared<Slider>();
+  root->AddChild(slider);
+  root->InitializeAll();
 
-    auto thumb = slider->GetThumb();
+  auto thumb = slider->GetThumb();
 
-    thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point());
-    thumb->NotifyInput(InputType::Touch, InputAction::Push, Point());
+  thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point());
+  thumb->NotifyInput(InputType::Touch, InputAction::Push, Point());
 
-    ASSERT_EQ(Slider::Thumb::State::Engaged, thumb->GetState());
+  ASSERT_EQ(Slider::Thumb::State::Engaged, thumb->GetState());
 }
 
 TEST(SliderTests, WhenTouchDragged_ValueChanges)
 {
-    auto em     = make_shared<ElementManager>();
-    auto root   = em->AddLayerAbove(nullptr);
-    auto slider = make_shared<Slider>();
-    root->AddChild(slider);
-    root->InitializeAll();
+  auto em     = make_shared<ElementManager>();
+  auto root   = em->AddLayerAbove(nullptr);
+  auto slider = make_shared<Slider>();
+  root->AddChild(slider);
+  root->InitializeAll();
 
-    auto thumb = slider->GetThumb();
+  auto thumb = slider->GetThumb();
 
-    auto originalValue = slider->GetValue();
+  auto originalValue = slider->GetValue();
 
-    thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point{1, 1});
-    thumb->NotifyInput(InputType::Touch, InputAction::Push, Point{1, 1});
+  thumb->NotifyInput(InputType::Touch, InputAction::EnterReleased, Point{1, 1});
+  thumb->NotifyInput(InputType::Touch, InputAction::Push, Point{1, 1});
 
-    ASSERT_EQ(originalValue, slider->GetValue());
+  ASSERT_EQ(originalValue, slider->GetValue());
 
-    thumb->NotifyInput(InputType::Touch, InputAction::Move, Point{1, 2});
-    ASSERT_NE(originalValue, slider->GetValue());
+  thumb->NotifyInput(InputType::Touch, InputAction::Move, Point{1, 2});
+  ASSERT_NE(originalValue, slider->GetValue());
 
 }

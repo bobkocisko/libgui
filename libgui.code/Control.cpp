@@ -7,11 +7,11 @@ namespace libgui
 
 Control::~Control()
 {
-    auto em = GetElementManager();
-    if (em)
-    {
-        em->NotifyControlIsBeingDestroyed(this);
-    }
+  auto em = GetElementManager();
+  if (em)
+  {
+    em->NotifyControlIsBeingDestroyed(this);
+  }
 }
 
 void Control::PreNotifyInput(InputAction inputAction,
@@ -19,7 +19,7 @@ void Control::PreNotifyInput(InputAction inputAction,
                              Point point,
                              bool& notify)
 {
-    notify = true;
+  notify = true;
 }
 
 void Control::NotifyInput(InputType inputType, InputAction inputAction, Point point)
@@ -28,12 +28,12 @@ void Control::NotifyInput(InputType inputType, InputAction inputAction, Point po
 
 bool Control::HasActiveInput() const
 {
-    return _hasActiveInput;
+  return _hasActiveInput;
 }
 
 void Control::SetHasActiveInput(bool hasActiveInput)
 {
-    _hasActiveInput = hasActiveInput;
+  _hasActiveInput = hasActiveInput;
 }
 
 }

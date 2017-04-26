@@ -8,41 +8,41 @@ namespace libgui
 {
 
 ScopeExit::ScopeExit(std::function<void()> f)
-    : ScopeExit(TerminateOnException, f)
+  : ScopeExit(TerminateOnException, f)
 {
 
 }
 
 ScopeExit::ScopeExit(ExceptionHandling exceptionHandling, std::function<void()> f)
-    : _exceptionHandling(exceptionHandling), _f(f)
+  : _exceptionHandling(exceptionHandling), _f(f)
 {
 
 }
 
 ScopeExit::~ScopeExit() noexcept
 {
-    switch (_exceptionHandling)
+  switch (_exceptionHandling)
+  {
+    case TerminateOnException:
     {
-        case TerminateOnException:
-        {
-            _f();
+      _f();
 
-            break;
-        }
-        case IgnoreAnyExceptions:
-        {
-            try
-            {
-                _f();
-            }
-            catch (...)
-            {
-                // Ignore
-            }
-
-            break;
-        }
+      break;
     }
+    case IgnoreAnyExceptions:
+    {
+      try
+      {
+        _f();
+      }
+      catch (...)
+      {
+        // Ignore
+      }
+
+      break;
+    }
+  }
 }
 
 }

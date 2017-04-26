@@ -48,65 +48,65 @@ class StateMachineFrontEnd: public state_machine_def<StateMachineFrontEnd>
 {
 
 public:
-    StateMachineFrontEnd(Button* parent)
-        : _parent(parent)
+  StateMachineFrontEnd(Button* parent)
+    : _parent(parent)
+  {
+  }
+
+  // states
+  struct Idle: public state<>
+  {
+  };
+  struct Pending: public state<>
+  {
+  };
+  struct Engaged: public state<>
+  {
+  };
+  struct EngagedRemotely: public state<>
+  {
+  };
+
+  // actions
+  struct NotifyPushed
+  {
+    template<class EVT, class FSM, class SourceState, class TargetState>
+    void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
     {
+      fsm._parent->OnEvent(Button::Pushed);
     }
-
-    // states
-    struct Idle: public state<>
+  };
+  struct NotifyReleased
+  {
+    template<class EVT, class FSM, class SourceState, class TargetState>
+    void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
     {
-    };
-    struct Pending: public state<>
-    {
-    };
-    struct Engaged: public state<>
-    {
-    };
-    struct EngagedRemotely: public state<>
-    {
-    };
-
-    // actions
-    struct NotifyPushed
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
-        {
-            fsm._parent->OnEvent(Button::Pushed);
-        }
-    };
-    struct NotifyReleased
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
-        {
-            fsm._parent->OnEvent(Button::Released);
-            fsm._parent->OnEvent(Button::Clicked);
-        }
-    };
-    struct NotifyReleasedOutside
-    {
-        template<class EVT, class FSM, class SourceState, class TargetState>
-        void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
-        {
-            fsm._parent->OnEvent(Button::Released);
-        }
-    };
-
-    // Replaces the default no-transition response.
-    template<class FSM, class Event>
-    void no_transition(Event const& e, FSM&, int state)
-    {
-        // Simply ignore any event that doesn't generate a transition
+      fsm._parent->OnEvent(Button::Released);
+      fsm._parent->OnEvent(Button::Clicked);
     }
+  };
+  struct NotifyReleasedOutside
+  {
+    template<class EVT, class FSM, class SourceState, class TargetState>
+    void operator()(EVT const& evt, FSM& fsm, SourceState& ss, TargetState& ts)
+    {
+      fsm._parent->OnEvent(Button::Released);
+    }
+  };
 
-    // Set up the starting state of the state machine
-    typedef Idle initial_state;
+  // Replaces the default no-transition response.
+  template<class FSM, class Event>
+  void no_transition(Event const& e, FSM&, int state)
+  {
+    // Simply ignore any event that doesn't generate a transition
+  }
+
+  // Set up the starting state of the state machine
+  typedef Idle initial_state;
 
 
-    // Transition table for state machine
-    // @formatter:off
+  // Transition table for state machine
+  // @formatter:off
 
 
     // NOTE: The order of the states listed in this table must match the order in the VisualState enum
@@ -130,7 +130,7 @@ public:
     // @formatter:on
 
 private:
-    Button* _parent;
+  Button* _parent;
 
 };
 
@@ -139,83 +139,83 @@ typedef state_machine<StateMachineFrontEnd> StateMachine;
 
 Button::Button()
 {
-    // Create and store state machine
-    auto stateMachine = new SmButton::StateMachine(this);
-    stateMachine->start();
+  // Create and store state machine
+  auto stateMachine = new SmButton::StateMachine(this);
+  stateMachine->start();
 
-    _stateMachine = stateMachine;
+  _stateMachine = stateMachine;
 }
 
 Button::~Button()
 {
-    // Delete state machine
-    auto stateMachine = (SmButton::StateMachine*) _stateMachine;
-    delete stateMachine;
-    _stateMachine = nullptr;
+  // Delete state machine
+  auto stateMachine = (SmButton::StateMachine*) _stateMachine;
+  delete stateMachine;
+  _stateMachine = nullptr;
 }
 
 void Button::NotifyInput(InputType inputType, InputAction inputAction, Point point)
 {
-    auto stateMachine = (SmButton::StateMachine*) _stateMachine;
+  auto stateMachine = (SmButton::StateMachine*) _stateMachine;
 
-    switch (inputAction)
-    {
+  switch (inputAction)
+  {
 
-        case InputAction::EnterReleased:
-            stateMachine->process_event(SmButton::Enter());
-            break;
-        case InputAction::EnterPushed:
-            stateMachine->process_event(SmButton::Enter());
-            break;
-        case InputAction::Move:
-            // Don't care
-            break;
-        case InputAction::Push:
-            stateMachine->process_event(SmButton::Push());
-            break;
-        case InputAction::Release:
-            stateMachine->process_event(SmButton::Release());
-            break;
-        case InputAction::Leave:
-            stateMachine->process_event(SmButton::Leave());
-            break;
-        case InputAction::EngagedEscape:
-            stateMachine->process_event(SmButton::EngagedEscape());
-            break;
-        case InputAction::EngagedReturn:
-            stateMachine->process_event(SmButton::EngagedReturn());
-            break;
-    }
+    case InputAction::EnterReleased:
+      stateMachine->process_event(SmButton::Enter());
+      break;
+    case InputAction::EnterPushed:
+      stateMachine->process_event(SmButton::Enter());
+      break;
+    case InputAction::Move:
+      // Don't care
+      break;
+    case InputAction::Push:
+      stateMachine->process_event(SmButton::Push());
+      break;
+    case InputAction::Release:
+      stateMachine->process_event(SmButton::Release());
+      break;
+    case InputAction::Leave:
+      stateMachine->process_event(SmButton::Leave());
+      break;
+    case InputAction::EngagedEscape:
+      stateMachine->process_event(SmButton::EngagedEscape());
+      break;
+    case InputAction::EngagedReturn:
+      stateMachine->process_event(SmButton::EngagedReturn());
+      break;
+  }
 
-    if (InputAction::Move != inputAction)
-    {
-        // After any state changes except moving, we update the control
-        Update(UpdateType::Modifying);
-    }
+  if (InputAction::Move != inputAction)
+  {
+    // After any state changes except moving, we update the control
+    Update(UpdateType::Modifying);
+  }
 }
 
 void Button::OnEvent(OutputEvent outputEvent)
 {
-    // Default implementation: invoke the callback
-    if (_eventCallback)
-    {
-        _eventCallback(std::dynamic_pointer_cast<Button>(shared_from_this()), outputEvent);
-    }
+  // Default implementation: invoke the callback
+  if (_eventCallback)
+  {
+    _eventCallback(std::dynamic_pointer_cast<Button>(shared_from_this()), outputEvent);
+  }
 }
 
 void Button::SetEventCallback(std::function<void(std::shared_ptr<Button>, OutputEvent)> clickCallback)
 {
-    _eventCallback = clickCallback;
+  _eventCallback = clickCallback;
 }
 
 Button::VisibleState Button::GetVisibleState()
 {
-    auto stateMachine = (SmButton::StateMachine*) _stateMachine;
-    return (VisibleState) stateMachine->current_state()[0];
+  auto stateMachine = (SmButton::StateMachine*) _stateMachine;
+  return (VisibleState) stateMachine->current_state()[0];
 }
 
 std::string Button::GetTypeName()
 {
-    return "Button";
+  return "Button";
 }
 }

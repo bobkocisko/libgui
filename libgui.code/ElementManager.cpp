@@ -8,410 +8,409 @@ namespace libgui
 std::shared_ptr<Layer> ElementManager::AddLayerAboveHelper(std::shared_ptr<Layer> existing,
                                                            std::shared_ptr<Layer> layerToAdd)
 {
-    LayerList::iterator existingIter = _layers.end();
+  LayerList::iterator existingIter = _layers.end();
 
-    if (existing)
+  if (existing)
+  {
+    for (existingIter = _layers.begin(); existingIter != _layers.end(); ++existingIter)
     {
-        for (existingIter = _layers.begin(); existingIter != _layers.end(); ++existingIter)
-        {
-            auto existingLayer = *existingIter;
-            if (existingLayer == existing)
-            {
-                // We've found the insertion location
-                break;
-            }
-        }
+      auto existingLayer = *existingIter;
+      if (existingLayer == existing)
+      {
+        // We've found the insertion location
+        break;
+      }
     }
+  }
 
-    std::shared_ptr<Layer> lower = nullptr;
-    LayerList::iterator insertionIter = _layers.end();
+  std::shared_ptr<Layer> lower         = nullptr;
+  LayerList::iterator    insertionIter = _layers.end();
 
-    if (_layers.end() == existingIter)
+  if (_layers.end() == existingIter)
+  {
+    // No matching lower layer specified, so add to the end
+    if (!_layers.empty())
     {
-        // No matching lower layer specified, so add to the end
-        if (!_layers.empty())
-        {
-            lower = _layers.back();
-        }
+      lower = _layers.back();
     }
-    else
-    {
-        // We found a matching lower layer
-        lower = existing;
+  }
+  else
+  {
+    // We found a matching lower layer
+    lower = existing;
 
-        // Have to move next to be ready for insertion
-        insertionIter = existingIter;
-        ++insertionIter;
-    }
+    // Have to move next to be ready for insertion
+    insertionIter = existingIter;
+    ++insertionIter;
+  }
 
-    std::shared_ptr<Layer> higher = nullptr;
+  std::shared_ptr<Layer> higher = nullptr;
 
-    if (lower)
-    {
-        higher = lower->_layerAbove.lock();
-    }
+  if (lower)
+  {
+    higher = lower->_layerAbove.lock();
+  }
 
-    std::shared_ptr<Layer> adding = layerToAdd;
+  std::shared_ptr<Layer> adding = layerToAdd;
 
-    adding->_elementManager = this;
-    adding->_layer          = adding;
-    adding->_typeName       = "Layer";
-    adding->_layerBelow     = lower;
-    adding->_layerAbove     = higher;
+  adding->_elementManager = this;
+  adding->_layer          = adding;
+  adding->_typeName       = "Layer";
+  adding->_layerBelow     = lower;
+  adding->_layerAbove     = higher;
 
-    if (lower)
-    {
-        lower->_layerAbove = adding;
-    }
-    if (higher)
-    {
-        higher->_layerBelow = adding;
-    }
+  if (lower)
+  {
+    lower->_layerAbove = adding;
+  }
+  if (higher)
+  {
+    higher->_layerBelow = adding;
+  }
 
 
-    if (_layers.end() == insertionIter)
-    {
-        _layers.push_back(std::shared_ptr<Layer>(adding));
-    }
-    else
-    {
-        _layers.insert(insertionIter, std::shared_ptr<Layer>(adding));
-    }
+  if (_layers.end() == insertionIter)
+  {
+    _layers.push_back(std::shared_ptr<Layer>(adding));
+  }
+  else
+  {
+    _layers.insert(insertionIter, std::shared_ptr<Layer>(adding));
+  }
 
-    return adding;
+  return adding;
 }
 
 std::shared_ptr<Layer> ElementManager::AddLayerBelowHelper(std::shared_ptr<Layer> existing,
                                                            std::shared_ptr<Layer> layerToAdd)
 {
-    LayerList::iterator existingIter = _layers.end();
+  LayerList::iterator existingIter = _layers.end();
 
-    if (existing)
+  if (existing)
+  {
+    for (existingIter = _layers.begin(); existingIter != _layers.end(); ++existingIter)
     {
-        for (existingIter = _layers.begin(); existingIter != _layers.end(); ++existingIter)
-        {
-            auto existingLayer = *existingIter;
-            if (existingLayer == existing)
-            {
-                // We've found the insertion location
-                break;
-            }
-        }
+      auto existingLayer = *existingIter;
+      if (existingLayer == existing)
+      {
+        // We've found the insertion location
+        break;
+      }
     }
+  }
 
-    std::shared_ptr<Layer> higher = nullptr;
+  std::shared_ptr<Layer> higher = nullptr;
 
-    if (_layers.end() == existingIter)
+  if (_layers.end() == existingIter)
+  {
+    // No matching lower layer specified, so add to the end
+    if (!_layers.empty())
     {
-        // No matching lower layer specified, so add to the end
-        if (!_layers.empty())
-        {
-            higher = _layers.front();
-        }
+      higher = _layers.front();
     }
-    else
-    {
-        // We found a matching higher layer
-        higher = existing;
-    }
+  }
+  else
+  {
+    // We found a matching higher layer
+    higher = existing;
+  }
 
 
-    std::shared_ptr<Layer> lower = nullptr;
+  std::shared_ptr<Layer> lower = nullptr;
 
-    if (higher)
-    {
-        lower = higher->_layerBelow.lock();
-    }
+  if (higher)
+  {
+    lower = higher->_layerBelow.lock();
+  }
 
-    std::shared_ptr<Layer> adding = layerToAdd;
+  std::shared_ptr<Layer> adding = layerToAdd;
 
-    adding->_elementManager = this;
-    adding->_layer          = adding;
-    adding->_typeName       = "Layer";
-    adding->_layerBelow     = lower;
-    adding->_layerAbove     = higher;
+  adding->_elementManager = this;
+  adding->_layer          = adding;
+  adding->_typeName       = "Layer";
+  adding->_layerBelow     = lower;
+  adding->_layerAbove     = higher;
 
-    if (higher)
-    {
-        higher->_layerBelow = adding;
-    }
-    if (lower)
-    {
-        lower->_layerAbove = adding;
-    }
+  if (higher)
+  {
+    higher->_layerBelow = adding;
+  }
+  if (lower)
+  {
+    lower->_layerAbove = adding;
+  }
 
-    if (_layers.end() == existingIter)
-    {
-        _layers.push_back(std::shared_ptr<Layer>(adding));
-    }
-    else
-    {
-        _layers.insert(existingIter, std::shared_ptr<Layer>(adding));
-    }
+  if (_layers.end() == existingIter)
+  {
+    _layers.push_back(std::shared_ptr<Layer>(adding));
+  }
+  else
+  {
+    _layers.insert(existingIter, std::shared_ptr<Layer>(adding));
+  }
 
-    return adding;
+  return adding;
 }
 
 void ElementManager::RemoveLayer(std::shared_ptr<Layer> layer)
 {
-    layer->Update(Element::UpdateType::Removing);
+  layer->Update(Element::UpdateType::Removing);
 
-    layer->VisitThisAndDescendents(
-        [](Element* e)
-        {
-            e->_isDetached = true;
-        });
+  layer->VisitThisAndDescendents(
+    [](Element* e) {
+      e->_isDetached = true;
+    });
 
-    auto layerBelow = layer->_layerBelow.lock();
-    auto layerAbove = layer->_layerAbove.lock();
+  auto layerBelow = layer->_layerBelow.lock();
+  auto layerAbove = layer->_layerAbove.lock();
 
-    // Most likely the higher layers will be removed before lower layers so
-    // we use a reverse iterator to search those layers first
-    for (auto it = _layers.rbegin(); it != _layers.rend(); ++it)
+  // Most likely the higher layers will be removed before lower layers so
+  // we use a reverse iterator to search those layers first
+  for (auto it = _layers.rbegin(); it != _layers.rend(); ++it)
+  {
+    if ((*it) == layer)
     {
-        if ((*it) == layer)
-        {
-            ++it; // See http://www.drdobbs.com/cpp/three-guidelines-for-effective-iterator/184401406?pgno=3
-            _layers.erase(it.base());
+      ++it; // See http://www.drdobbs.com/cpp/three-guidelines-for-effective-iterator/184401406?pgno=3
+      _layers.erase(it.base());
 
-            // Update the layer pointers
-            if (layerBelow)
-            {
-                layerBelow->_layerAbove = layerAbove;
-            }
-            if (layerAbove)
-            {
-                layerAbove->_layerBelow = layerBelow;
-            }
+      // Update the layer pointers
+      if (layerBelow)
+      {
+        layerBelow->_layerAbove = layerAbove;
+      }
+      if (layerAbove)
+      {
+        layerAbove->_layerBelow = layerBelow;
+      }
 
-            break;
-        }
+      break;
     }
+  }
 }
 
 void ElementManager::UpdateEverything()
 {
-    for (auto& layer: _layers)
-    {
-        layer->UpdateEverything();
-    }
+  for (auto& layer: _layers)
+  {
+    layer->UpdateEverything();
+  }
 }
 
 void ElementManager::SetSystemCaptureCallback(const std::function<void(bool)>& systemCaptureCallback)
 {
-    _systemCaptureCallback = systemCaptureCallback;
+  _systemCaptureCallback = systemCaptureCallback;
 }
 
 void ElementManager::NotifyNewPoint(InputId inputId, Point point)
 {
-    auto input = GetInput(inputId);
+  auto input = GetInput(inputId);
 
-    // Loop through the layers from the top to the bottom
-    ElementQueryInfo elementQueryInfo;
+  // Loop through the layers from the top to the bottom
+  ElementQueryInfo elementQueryInfo;
 
-    for (auto layerIter = _layers.rbegin(); layerIter != _layers.rend(); ++layerIter)
+  for (auto layerIter = _layers.rbegin(); layerIter != _layers.rend(); ++layerIter)
+  {
+    auto& layer = *layerIter;
+    elementQueryInfo = layer->GetElementAtPoint(point);
+    if (elementQueryInfo.FoundElement())
     {
-        auto& layer = *layerIter;
-        elementQueryInfo = layer->GetElementAtPoint(point);
-        if (elementQueryInfo.FoundElement())
-        {
-            break;
-        }
+      break;
     }
+  }
 
-    input->NotifyNewPoint(point, elementQueryInfo);
+  input->NotifyNewPoint(point, elementQueryInfo);
 }
 
 void ElementManager::NotifyDown(InputId inputId)
 {
-    auto input = GetInput(inputId);
-    input->NotifyDown();
+  auto input = GetInput(inputId);
+  input->NotifyDown();
 }
 
 void ElementManager::NotifyUp(InputId inputId)
 {
-    auto input = GetInput(inputId);
-    input->NotifyUp();
+  auto input = GetInput(inputId);
+  input->NotifyUp();
 }
 
 const Point& ElementManager::GetCurrentPoint(InputId inputId)
 {
-    auto input = GetInput(inputId);
-    return input->GetPoint();
+  auto input = GetInput(inputId);
+  return input->GetPoint();
 }
 
 Input* ElementManager::GetInput(const InputId& inputId)
 {
-    if (inputId >= _activeInputs.size())
+  if (inputId >= _activeInputs.size())
+  {
+    _activeInputs.resize((size_t) inputId + 1, nullptr);
+  }
+
+  auto result = _activeInputs[inputId];
+  if (nullptr == result)
+  {
+    result = new Input(inputId);
+
+    if (_isDebugLoggingEnabled)
     {
-        _activeInputs.resize((size_t) inputId + 1, nullptr);
+      result->EnableDebugLogging();
     }
 
-    auto result = _activeInputs[inputId];
-    if (nullptr == result)
-    {
-        result = new Input(inputId);
+    _activeInputs[inputId] = result;
+  }
 
-        if (_isDebugLoggingEnabled)
-        {
-            result->EnableDebugLogging();
-        }
-
-        _activeInputs[inputId] = result;
-    }
-
-    return result;
+  return result;
 }
 
 const std::vector<Input*>& ElementManager::GetActiveInputs() const
 {
-    return _activeInputs;
+  return _activeInputs;
 }
 
 void ElementManager::EnableDebugLogging()
 {
-    _isDebugLoggingEnabled = true;
+  _isDebugLoggingEnabled = true;
 }
 
 double ElementManager::GetDpiX() const
 {
-    return _dpiX;
+  return _dpiX;
 }
 
 void ElementManager::SetDpiX(double dpi)
 {
-    _dpiX = dpi;
+  _dpiX = dpi;
 }
 
 double ElementManager::GetDpiY() const
 {
-    return _dpiY;
+  return _dpiY;
 }
 
 void ElementManager::SetDpiY(double dpiY)
 {
-    _dpiY = dpiY;
+  _dpiY = dpiY;
 }
 
 void ElementManager::SetPushClipCallback(const std::function<void(const Rect4&)>& callback)
 {
-    _pushClipCallback = callback;
+  _pushClipCallback = callback;
 }
 
 void ElementManager::SetPopClipCallback(const std::function<void()>& callback)
 {
-    _popClipCallback = callback;
+  _popClipCallback = callback;
 }
 
 void ElementManager::PushClip(const Rect4& clip)
 {
-    #ifdef DBG
-    printf("Pushing clip (%f, %f, %f, %f)\n",
-           clip.left, clip.top, clip.right, clip.bottom);
-    fflush(stdout);
-    #endif
+  #ifdef DBG
+  printf("Pushing clip (%f, %f, %f, %f)\n",
+         clip.left, clip.top, clip.right, clip.bottom);
+  fflush(stdout);
+  #endif
 
-    if (_pushClipCallback)
-    {
-        _pushClipCallback(clip);
-    }
+  if (_pushClipCallback)
+  {
+    _pushClipCallback(clip);
+  }
 }
 
 void ElementManager::PopClip()
 {
-    if (_popClipCallback)
-    {
-        _popClipCallback();
-    }
+  if (_popClipCallback)
+  {
+    _popClipCallback();
+  }
 }
 
 void ElementManager::ClearRedrawnRegion()
 {
-    _redrawnRegion = boost::none;
+  _redrawnRegion = boost::none;
 }
 
 void ElementManager::AddToRedrawnRegion(const Rect4& region)
 {
-    if (_redrawnRegion)
-    {
-        // Expand the existing region to include this new region
-        auto& currentRegion = _redrawnRegion.get();
+  if (_redrawnRegion)
+  {
+    // Expand the existing region to include this new region
+    auto& currentRegion = _redrawnRegion.get();
 
-        if (region.left < currentRegion.left)
-        {
-            currentRegion.left = region.left;
-        }
-        if (region.top < currentRegion.top)
-        {
-            currentRegion.top = region.top;
-        }
-        if (region.right > currentRegion.right)
-        {
-            currentRegion.right = region.right;
-        }
-        if (region.bottom > currentRegion.bottom)
-        {
-            currentRegion.bottom = region.bottom;
-        }
-    }
-    else
+    if (region.left < currentRegion.left)
     {
-        // There isn't any region yet, so use the specified region as the only region
-        _redrawnRegion = region;
+      currentRegion.left = region.left;
     }
+    if (region.top < currentRegion.top)
+    {
+      currentRegion.top = region.top;
+    }
+    if (region.right > currentRegion.right)
+    {
+      currentRegion.right = region.right;
+    }
+    if (region.bottom > currentRegion.bottom)
+    {
+      currentRegion.bottom = region.bottom;
+    }
+  }
+  else
+  {
+    // There isn't any region yet, so use the specified region as the only region
+    _redrawnRegion = region;
+  }
 }
 
 const boost::optional<Rect4>& ElementManager::GetRedrawnRegion()
 {
-    return _redrawnRegion;
+  return _redrawnRegion;
 }
 
 void ElementManager::ClearUpdateTracking()
 {
-    _updatedElements.clear();
+  _updatedElements.clear();
 }
 
 bool ElementManager::TryBeginUpdate(Element* element)
 {
-    for (auto& e: _updatedElements)
+  for (auto& e: _updatedElements)
+  {
+    if (e == element)
     {
-        if (e == element)
-        {
-            return false;
-        }
+      return false;
     }
+  }
 
-    _updatedElements.push_back(element);
-    return true;
+  _updatedElements.push_back(element);
+  return true;
 }
 
 const Size& ElementManager::GetSize() const
 {
-    return _size;
+  return _size;
 }
 
 void ElementManager::SetSize(const Size& size)
 {
-    _size = size;
+  _size = size;
 }
 
 double ElementManager::GetWidth() const
 {
-    return _size.width;
+  return _size.width;
 }
 
 double ElementManager::GetHeight() const
 {
-    return _size.height;
+  return _size.height;
 }
 
 void ElementManager::NotifyControlIsBeingDestroyed(Control* control)
 {
-    for(int i = 1; i < _activeInputs.size(); ++i)
-    {
-        auto activeInput = _activeInputs[i];
+  for (int i = 1; i < _activeInputs.size(); ++i)
+  {
+    auto activeInput = _activeInputs[i];
 
-        activeInput->NotifyControlIsBeingDestroyed(control);
-    }
+    activeInput->NotifyControlIsBeingDestroyed(control);
+  }
 }
 }

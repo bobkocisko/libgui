@@ -10,11 +10,11 @@ namespace libgui
 class Location
 {
 public:
-    Location();
-    Location(double x, double y);
+  Location();
+  Location(double x, double y);
 
-    double x;
-    double y;
+  double x;
+  double y;
 };
 
 }

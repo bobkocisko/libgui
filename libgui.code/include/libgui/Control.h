@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include "Element.h"
 #include "Location.h"
 #include "InputAction.h"
@@ -13,25 +13,25 @@ class Input;
 class Control: public Element
 {
 public:
-    virtual ~Control();
+  virtual ~Control();
 
-    // Called before NotifyInput and can optionally prevent the sending of NotifyInput event
-    virtual void PreNotifyInput(InputAction inputAction,
-                                InputType inputType,
-                                Point point,
-                                bool& notify);
+  // Called before NotifyInput and can optionally prevent the sending of NotifyInput event
+  virtual void PreNotifyInput(InputAction inputAction,
+                              InputType inputType,
+                              Point point,
+                              bool& notify);
 
-    // Called when an input action occurs.  See ElementManager for details of when this is called.
-    virtual void NotifyInput(InputType inputType,
-                             InputAction inputAction,
-                             Point point);
+  // Called when an input action occurs.  See ElementManager for details of when this is called.
+  virtual void NotifyInput(InputType inputType,
+                           InputAction inputAction,
+                           Point point);
 
-    // Input Management
-    bool HasActiveInput() const;
-    void SetHasActiveInput(bool hasActiveInput);
+  // Input Management
+  bool HasActiveInput() const;
+  void SetHasActiveInput(bool hasActiveInput);
 
 private:
-    bool _hasActiveInput = false;
+  bool _hasActiveInput = false;
 
 };
 }

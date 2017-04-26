@@ -8,115 +8,115 @@ namespace libgui
 {
 
 Layer::Layer()
-: _updatedEverything(false)
+  : _updatedEverything(false)
 {
 }
 
 void Layer::SetOpaqueArea(const boost::optional<Rect4>& opaqueArea)
 {
-    _opaqueArea = opaqueArea;
+  _opaqueArea = opaqueArea;
 }
 
 const boost::optional<Rect4>& Layer::GetOpaqueArea()
 {
-    return _opaqueArea;
+  return _opaqueArea;
 }
 
 void Layer::VisitLowerLayersIf(const std::function<bool(Layer* currentLayer)>& continueDownPredicate,
                                const std::function<void(Layer* lowerLayer)>& action)
 {
-    VisitLowerLayersIfHelper(continueDownPredicate, action, true);
+  VisitLowerLayersIfHelper(continueDownPredicate, action, true);
 }
 
 void Layer::VisitLowerLayersIfHelper(const std::function<bool(Layer* currentLayer)>& continueDownPredicate,
                                      const std::function<void(Layer* lowerLayer)>& action, bool isFirst)
 {
-    if (continueDownPredicate(this))
+  if (continueDownPredicate(this))
+  {
+    auto nextLayerBelow = GetLayerBelow();
+    if (nextLayerBelow)
     {
-        auto nextLayerBelow = GetLayerBelow();
-        if (nextLayerBelow)
-        {
-            nextLayerBelow->VisitLowerLayersIfHelper(continueDownPredicate, action, false);
-        }
+      nextLayerBelow->VisitLowerLayersIfHelper(continueDownPredicate, action, false);
     }
+  }
 
-    // Only perform this on the lower layers, not on the layer that launched this operation
-    if (!isFirst)
-    {
-        action(this);
-    }
+  // Only perform this on the lower layers, not on the layer that launched this operation
+  if (!isFirst)
+  {
+    action(this);
+  }
 }
 
 void Layer::VisitHigherLayers(const std::function<void(Layer*)>& action)
 {
-    VisitHigherLayersHelper(action, true);
+  VisitHigherLayersHelper(action, true);
 }
 
 void Layer::VisitHigherLayersHelper(const std::function<void(Layer*)>& action, bool isFirst)
 {
-    // Only perform this on the higher layers, not on the layer that launched this operation
-    if (!isFirst)
-    {
-        action(this);
-    }
+  // Only perform this on the higher layers, not on the layer that launched this operation
+  if (!isFirst)
+  {
+    action(this);
+  }
 
-    auto nextLayerAbove = GetLayerAbove();
-    if (nextLayerAbove)
-    {
-        nextLayerAbove->VisitHigherLayersHelper(action, false);
-    }
+  auto nextLayerAbove = GetLayerAbove();
+  if (nextLayerAbove)
+  {
+    nextLayerAbove->VisitHigherLayersHelper(action, false);
+  }
 }
 
 std::shared_ptr<Layer> Layer::GetLayerAbove()
 {
-    return _layerAbove.lock();
+  return _layerAbove.lock();
 }
 
 bool Layer::AnyLayersAbove()
 {
-    return bool(_layerAbove.lock());
+  return bool(_layerAbove.lock());
 }
 
 std::shared_ptr<Layer> Layer::GetLayerBelow()
 {
-    return _layerBelow.lock();
+  return _layerBelow.lock();
 }
 
 bool Layer::AnyLayersBelow()
 {
-    return bool(_layerBelow.lock());
+  return bool(_layerBelow.lock());
 }
 
 bool Layer::OpaqueAreaContains(const Rect4& region)
 {
-    auto opaqueArea = GetOpaqueArea();
-    if (opaqueArea)
+  auto opaqueArea = GetOpaqueArea();
+  if (opaqueArea)
+  {
+    auto& area = opaqueArea.get();
+
+    // Check if this region is fully contained inside
+    // the opaque section of the layer
+    if (region.left >= area.left &&
+        region.top >= area.top &&
+        region.right <= area.right &&
+        region.bottom <= area.bottom)
     {
-        auto& area = opaqueArea.get();
-
-        // Check if this region is fully contained inside
-        // the opaque section of the layer
-        if (region.left >= area.left &&
-            region.top >= area.top &&
-            region.right <= area.right &&
-            region.bottom <= area.bottom)
-        {
-            return true;
-        }
+      return true;
     }
+  }
 
-    return false;
+  return false;
 }
 
 void Layer::UpdateEverything()
 {
-    Update(UpdateType::Everything);
-    _updatedEverything = true;
+  Update(UpdateType::Everything);
+  _updatedEverything = true;
 }
 
 bool Layer::UpdateEverythingCalled() const
 {
-    return _updatedEverything;
+  return _updatedEverything;
 }
 
 }

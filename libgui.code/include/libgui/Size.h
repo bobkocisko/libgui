@@ -10,11 +10,11 @@ namespace libgui
 class Size
 {
 public:
-    Size();
-    Size(double width, double height);
+  Size();
+  Size(double width, double height);
 
-    double width;
-    double height;
+  double width;
+  double height;
 };
 
 }

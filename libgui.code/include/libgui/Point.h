@@ -9,19 +9,19 @@ namespace libgui
 
 struct Point
 {
-    double X;
-    double Y;
+  double X;
+  double Y;
 
-    bool operator==(const Point& other)
-    {
-        return (X == other.X &&
-                Y == other.Y);
-    }
+  bool operator==(const Point& other)
+  {
+    return (X == other.X &&
+            Y == other.Y);
+  }
 
-    bool operator!=(const Point& other)
-    {
-        return !(*this == other);
-    }
+  bool operator!=(const Point& other)
+  {
+    return !(*this == other);
+  }
 };
 
 }

@@ -31,7 +31,7 @@ add_dependencies(libgoogletest googletest)
 set_target_properties(libgoogletest PROPERTIES
     IMPORTED_LOCATION "${BINARY_DIR}/gtest/libgtest.a"
     IMPORTED_LINK_INTERFACE_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}"
-)
+    )
 include_directories("${SOURCE_DIR}/googletest/include")
 
 # Set up the gmock library from the external source
@@ -41,7 +41,7 @@ add_dependencies(libgooglemock libgoogletest)
 set_target_properties(libgooglemock PROPERTIES
     IMPORTED_LOCATION "${BINARY_DIR}/libgmock.a"
     IMPORTED_LINK_INTERFACE_LIBRARIES "${CMAKE_THREAD_LIBS_INIT}"
-)
+    )
 include_directories("${SOURCE_DIR}/googlemock/include")
 
 

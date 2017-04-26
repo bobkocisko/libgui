@@ -13,24 +13,23 @@ namespace libgui
 class ScopeExit
 {
 public:
-    enum ExceptionHandling
-    {
-        // This is the default behavior
-            TerminateOnException,
+  enum ExceptionHandling
+  {
+    // This is the default behavior
+      TerminateOnException,
 
-        // Catches and ignores any errors that occur during the exit phase
-            IgnoreAnyExceptions
-    };
+    // Catches and ignores any errors that occur during the exit phase
+      IgnoreAnyExceptions
+  };
 
+  ScopeExit(std::function<void()> f);
+  ScopeExit(ExceptionHandling exceptionHandling, std::function<void()> f);
 
-    ScopeExit(std::function<void()> f);
-    ScopeExit(ExceptionHandling exceptionHandling, std::function<void()> f);
-
-    ~ScopeExit() noexcept;
+  ~ScopeExit() noexcept;
 
 private:
-    ExceptionHandling     _exceptionHandling;
-    std::function<void()> _f;
+  ExceptionHandling     _exceptionHandling;
+  std::function<void()> _f;
 };
 
 }

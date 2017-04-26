@@ -9,12 +9,12 @@
 class ItemsViewModel: public libgui::ViewModelBase, public libgui::ItemsProvider
 {
 public:
-    ItemsViewModel();
+  ItemsViewModel();
 
-    int                                    GetTotalItems() override;
-    std::shared_ptr<libgui::ViewModelBase> GetItem(int index) override;
+  int GetTotalItems() override;
+  std::shared_ptr<libgui::ViewModelBase> GetItem(int index) override;
 
 private:
-    std::vector<std::shared_ptr<ItemViewModel>> _items;
+  std::vector<std::shared_ptr<ItemViewModel>> _items;
 };
 

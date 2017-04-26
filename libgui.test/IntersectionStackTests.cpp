@@ -11,109 +11,108 @@ using namespace libgui;
 
 TEST(IntersectionStackTests, Test)
 {
-    boost::optional<Rect4> currentRegion;
-    bool                   currentRegionSet;
+  boost::optional<Rect4> currentRegion;
+  bool                   currentRegionSet;
 
-    IntersectionStack iStack;
-    iStack.SetRegionChangedCallback(
-        [&currentRegion, &currentRegionSet](const boost::optional<Rect4>& region)
-        {
-            currentRegion    = region;
-            currentRegionSet = true;
-        });
+  IntersectionStack iStack;
+  iStack.SetRegionChangedCallback(
+    [&currentRegion, &currentRegionSet](const boost::optional<Rect4>& region) {
+      currentRegion    = region;
+      currentRegionSet = true;
+    });
 
-    iStack.PushRegion(Rect4(1, 1, 10, 10));
+  iStack.PushRegion(Rect4(1, 1, 10, 10));
+  {
+    ASSERT_TRUE(currentRegion == Rect4(1, 1, 10, 10));
+
+    iStack.PopRegion();
+  }
+  ASSERT_FALSE(currentRegion);
+
+  iStack.PushRegion(Rect4(1, 1, 10, 10));
+  {
+    ASSERT_TRUE(currentRegion == Rect4(1, 1, 10, 10));
+
+    iStack.PushRegion(Rect4(2, 2, 12, 6));
     {
-        ASSERT_TRUE(currentRegion == Rect4(1, 1, 10, 10));
+      ASSERT_TRUE(currentRegion == Rect4(2, 2, 10, 6));
+
+      iStack.PushRegion(Rect4(12, 12, 20, 20));
+      {
+        ASSERT_TRUE(currentRegion.get().IsEmpty());
 
         iStack.PopRegion();
-    }
-    ASSERT_FALSE(currentRegion);
+      }
+      ASSERT_TRUE(currentRegion == Rect4(2, 2, 10, 6));
 
-    iStack.PushRegion(Rect4(1, 1, 10, 10));
-    {
-        ASSERT_TRUE(currentRegion == Rect4(1, 1, 10, 10));
+      // The following two operations shouldn't modify the region
+      currentRegionSet = false;
 
-        iStack.PushRegion(Rect4(2, 2, 12, 6));
-        {
-            ASSERT_TRUE(currentRegion == Rect4(2, 2, 10, 6));
-
-            iStack.PushRegion(Rect4(12, 12, 20, 20));
-            {
-                ASSERT_TRUE(currentRegion.get().IsEmpty());
-
-                iStack.PopRegion();
-            }
-            ASSERT_TRUE(currentRegion == Rect4(2, 2, 10, 6));
-
-            // The following two operations shouldn't modify the region
-            currentRegionSet = false;
-
-            iStack.PushRegion(Rect4(1, 1, 10, 10));
-            {
-                ASSERT_FALSE(currentRegionSet);
-                ASSERT_TRUE(currentRegion == Rect4(2, 2, 10, 6));
-
-                iStack.PopRegion();
-            }
-            ASSERT_FALSE(currentRegionSet);
-            ASSERT_TRUE(currentRegion == Rect4(2, 2, 10, 6));
-
-            // Now we should have more modifications
-            iStack.PopRegion();
-        }
-        ASSERT_TRUE(currentRegionSet);
-        ASSERT_TRUE(currentRegion == Rect4(1, 1, 10, 10));
+      iStack.PushRegion(Rect4(1, 1, 10, 10));
+      {
+        ASSERT_FALSE(currentRegionSet);
+        ASSERT_TRUE(currentRegion == Rect4(2, 2, 10, 6));
 
         iStack.PopRegion();
+      }
+      ASSERT_FALSE(currentRegionSet);
+      ASSERT_TRUE(currentRegion == Rect4(2, 2, 10, 6));
+
+      // Now we should have more modifications
+      iStack.PopRegion();
     }
-    ASSERT_FALSE(currentRegion);
+    ASSERT_TRUE(currentRegionSet);
+    ASSERT_TRUE(currentRegion == Rect4(1, 1, 10, 10));
+
+    iStack.PopRegion();
+  }
+  ASSERT_FALSE(currentRegion);
 }
 
 TEST(IntersectionStackTests, TestPolling)
 {
-    IntersectionStack iStack;
+  IntersectionStack iStack;
 
-    iStack.PushRegion(Rect4(1, 1, 10, 10));
+  iStack.PushRegion(Rect4(1, 1, 10, 10));
+  {
+    ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(1, 1, 10, 10));
+
+    iStack.PopRegion();
+  }
+  ASSERT_FALSE(iStack.GetCurrentRegion());
+
+  iStack.PushRegion(Rect4(1, 1, 10, 10));
+  {
+    ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(1, 1, 10, 10));
+
+    iStack.PushRegion(Rect4(2, 2, 12, 6));
     {
-        ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(1, 1, 10, 10));
+      ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(2, 2, 10, 6));
+
+      iStack.PushRegion(Rect4(12, 12, 20, 20));
+      {
+        ASSERT_TRUE(iStack.GetCurrentRegion().get().IsEmpty());
 
         iStack.PopRegion();
-    }
-    ASSERT_FALSE(iStack.GetCurrentRegion());
+      }
+      ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(2, 2, 10, 6));
 
-    iStack.PushRegion(Rect4(1, 1, 10, 10));
-    {
-        ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(1, 1, 10, 10));
+      // The following two operations shouldn't modify the region
 
-        iStack.PushRegion(Rect4(2, 2, 12, 6));
-        {
-            ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(2, 2, 10, 6));
-
-            iStack.PushRegion(Rect4(12, 12, 20, 20));
-            {
-                ASSERT_TRUE(iStack.GetCurrentRegion().get().IsEmpty());
-
-                iStack.PopRegion();
-            }
-            ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(2, 2, 10, 6));
-
-            // The following two operations shouldn't modify the region
-
-            iStack.PushRegion(Rect4(1, 1, 10, 10));
-            {
-                ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(2, 2, 10, 6));
-
-                iStack.PopRegion();
-            }
-            ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(2, 2, 10, 6));
-
-            // Now we should have more modifications
-            iStack.PopRegion();
-        }
-        ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(1, 1, 10, 10));
+      iStack.PushRegion(Rect4(1, 1, 10, 10));
+      {
+        ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(2, 2, 10, 6));
 
         iStack.PopRegion();
+      }
+      ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(2, 2, 10, 6));
+
+      // Now we should have more modifications
+      iStack.PopRegion();
     }
-    ASSERT_FALSE(iStack.GetCurrentRegion());
+    ASSERT_TRUE(iStack.GetCurrentRegion() == Rect4(1, 1, 10, 10));
+
+    iStack.PopRegion();
+  }
+  ASSERT_FALSE(iStack.GetCurrentRegion());
 }

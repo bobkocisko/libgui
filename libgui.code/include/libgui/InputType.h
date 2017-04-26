@@ -9,8 +9,8 @@ namespace libgui
 
 enum class InputType
 {
-    Pointer,
-    Touch
+  Pointer,
+  Touch
 };
 
 }

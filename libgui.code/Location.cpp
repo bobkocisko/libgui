@@ -8,12 +8,12 @@ namespace libgui
 {
 
 Location::Location()
-    : Location(0.0, 0.0)
+  : Location(0.0, 0.0)
 {
 }
 
 Location::Location(double x, double y)
-    : x(x), y(y)
+  : x(x), y(y)
 {
 }
 

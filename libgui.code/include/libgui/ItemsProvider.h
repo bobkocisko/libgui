@@ -9,10 +9,10 @@ class ViewModelBase;
 class ItemsProvider
 {
 public:
-    virtual ~ItemsProvider();
+  virtual ~ItemsProvider();
 
-    virtual int                            GetTotalItems()    = 0;
-    virtual std::shared_ptr<ViewModelBase> GetItem(int index) = 0;
+  virtual int GetTotalItems()    = 0;
+  virtual std::shared_ptr<ViewModelBase> GetItem(int index) = 0;
 };
 }
 

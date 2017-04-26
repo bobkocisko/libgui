@@ -21,7 +21,7 @@ endif ()
 find_package(GLFW REQUIRED)
 if (NOT GLFW_FOUND)
     message(FATAL_ERROR "GLFW not found")
-endif()
+endif ()
 include_directories(${GLFW_INCLUDE_DIR})
 
 

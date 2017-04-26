@@ -18,72 +18,72 @@ namespace libgui
 class Input
 {
 public:
-    Input(const InputId& inputId);
-    virtual ~Input();
+  Input(const InputId& inputId);
+  virtual ~Input();
 
-    void NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo);
-    void NotifyDown();
-    void NotifyUp();
+  void NotifyNewPoint(Point point, ElementQueryInfo elementQueryInfo);
+  void NotifyDown();
+  void NotifyUp();
 
-    // Debugging
-    struct LogEntry
-    {
-        Point point;
-        bool  IsActive;
-    };
-    const Point    & GetPoint() const;
-    const InputType& GetInputType() const;
-    bool                GetIsDown() const;
-    bool                GetIsActive() const;
-    void                EnableDebugLogging();
-    std::list<LogEntry> GetRecentDebugLogEntries();
+  // Debugging
+  struct LogEntry
+  {
+    Point point;
+    bool  IsActive;
+  };
+  const Point& GetPoint() const;
+  const InputType& GetInputType() const;
+  bool GetIsDown() const;
+  bool GetIsActive() const;
+  void EnableDebugLogging();
+  std::list<LogEntry> GetRecentDebugLogEntries();
 
-    // Internal use only
-    void SetIsActive(bool isActive);
-    void SendNotifyMove();
-    void SendNotifyDown();
-    void SendNotifyUp();
-    void SendNotifyEngagedEscape();
-    void SendNotifyEngagedReturn();
-    void SendNotifyEnter();
-    void SendNotifyLeave();
-    void SendNotifyBusy();
-    void SendNotifyAvailable();
-    void SetTargetToAtopControl();
-    void SetTargetToNothing();
-    bool IsAtopControl();
-    bool TargetIsActive();
-    bool TargetIsBusy();
-    bool IsAtopTarget();
-    bool IsPointer();
-    bool IsTouch();
-    boost::any& GetActiveEvent();
+  // Internal use only
+  void SetIsActive(bool isActive);
+  void SendNotifyMove();
+  void SendNotifyDown();
+  void SendNotifyUp();
+  void SendNotifyEngagedEscape();
+  void SendNotifyEngagedReturn();
+  void SendNotifyEnter();
+  void SendNotifyLeave();
+  void SendNotifyBusy();
+  void SendNotifyAvailable();
+  void SetTargetToAtopControl();
+  void SetTargetToNothing();
+  bool IsAtopControl();
+  bool TargetIsActive();
+  bool TargetIsBusy();
+  bool IsAtopTarget();
+  bool IsPointer();
+  bool IsTouch();
+  boost::any& GetActiveEvent();
 
 private:
-    InputId _inputId;
+  InputId _inputId;
 
-    void   * _stateMachine;
-    Control* _atopControl;
-    Control* _target;
+  void   * _stateMachine;
+  Control* _atopControl;
+  Control* _target;
 
-    ElementQueryInfo _atopElementInfo;
-    bool             _targetActiveState;
-    bool             _isDown;
-    Point            _point;
-    InputType        _inputType;
-    bool             _isDebugLoggingEnabled;
-    bool             _isActive;
-    boost::any       _activeEvent;
+  ElementQueryInfo _atopElementInfo;
+  bool             _targetActiveState;
+  bool             _isDown;
+  Point            _point;
+  InputType        _inputType;
+  bool             _isDebugLoggingEnabled;
+  bool             _isActive;
+  boost::any       _activeEvent;
 
-    std::list<LogEntry> _debugLogEntries;
-    template<class Event>
-    void                ProcessEvent(Event const& evt);
+  std::list<LogEntry> _debugLogEntries;
+  template<class Event>
+  void ProcessEvent(Event const& evt);
 
-    void CheckTargetActiveStatus();
-    bool CheckTargetActiveStatusHelper() const;
+  void CheckTargetActiveStatus();
+  bool CheckTargetActiveStatusHelper() const;
 
-    friend class ElementManager;
-    void NotifyControlIsBeingDestroyed(Control* control);
+  friend class ElementManager;
+  void NotifyControlIsBeingDestroyed(Control* control);
 };
 
 }

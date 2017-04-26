@@ -9,14 +9,14 @@ namespace libgui
 
 enum class InputAction
 {
-    EnterReleased,
-    EnterPushed,
-    Move,
-    Push,
-    Release,
-    Leave,
-    EngagedEscape,
-    EngagedReturn
+  EnterReleased,
+  EnterPushed,
+  Move,
+  Push,
+  Release,
+  Leave,
+  EngagedEscape,
+  EngagedReturn
 };
 
 }

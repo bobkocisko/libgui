@@ -16,18 +16,18 @@ const int FirstTouchId = PointerInputId + 1;
 
 struct InputIdentifier
 {
-    InputIdentifier(int inputId);
+  InputIdentifier(int inputId);
 
-    bool IsPointer();
+  bool IsPointer();
 
-    bool IsTouch();
+  bool IsTouch();
 
-    operator int() const;
+  operator int() const;
 
-    bool operator==(const InputIdentifier other);
+  bool operator==(const InputIdentifier other);
 
 private:
-    int _inputId;
+  int _inputId;
 };
 
 typedef InputIdentifier InputId;
