@@ -222,6 +222,10 @@ Button::VisibleState Button::GetVisibleState()
 
 std::string Button::GetTypeName()
 {
-  return "Button";
+  if (Control::GetTypeName().empty())
+  {
+    return "Button";
+  }
+  return Control::GetTypeName();
 }
 }

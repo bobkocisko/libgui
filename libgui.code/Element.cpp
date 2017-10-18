@@ -603,8 +603,9 @@ void Element::UpdateHelper(UpdateType updateType)
 
     }
 
-    // Now draw this element and its children unless it's going to be removed
-    if (UpdateType::Removing != updateType)
+    // Now draw this element and its children unless it's invisible
+    // or it's going to be removed
+    if (GetIsVisible() && UpdateType::Removing != updateType)
     {
       // Apply the current element clip, if any, before drawing this and children
       if (ClipToBoundsIfNeeded())
@@ -646,14 +647,14 @@ void Element::UpdateHelper(UpdateType updateType)
           child->RedrawThisAndDescendents(boost::none);
         });
       }
+    }
 
-      if (UpdateType::Modifying == updateType)
-      {
-        // Make sure overlapping elements and their children are drawn on top
-        VisitOverlappingElements([](Element* e) {
-          e->RedrawThisAndDescendents(boost::none);
-        });
-      }
+    if (UpdateType::Modifying == updateType)
+    {
+      // Make sure overlapping elements and their children are drawn on top
+      VisitOverlappingElements([](Element* e) {
+        e->RedrawThisAndDescendents(boost::none);
+      });
     }
 
     while (thisAndAncestorClips)

@@ -94,6 +94,10 @@ markup_t markup;
 
 std::shared_ptr<ElementManager> elementManager;
 
+int                   tickCount = 0;
+
+std::shared_ptr<Element> timerText;
+
 libgui::IntersectionStack clipStack;
 
 bool isClipping = false;
@@ -540,12 +544,34 @@ void InitElements()
 
   auto sliderValueText = footer->CreateChild<Element>("Slider Value Text");
   {
+    sliderValueText->SetArrangeCallback([](std::shared_ptr<Element> e) {
+      auto p = e->GetParent();
+      e->SetLeft(p->GetLeft() + 5);
+      e->SetTop(p->GetTop());
+      e->SetHeight(p->GetHeight());
+      e->SetWidth(75);
+    });
     sliderValueText->SetDrawCallback(
       [slider](Element* e, const boost::optional<Rect4>& redrawRegion) {
         std::string valueString = std::to_string(slider->GetValue());
         DrawText(e->GetCenterX(), e->GetCenterY(), valueString);
       });
     slider_thumb->RegisterArrangeDependent(sliderValueText);
+  }
+
+  timerText = footer->CreateChild<Element>("Timer Text");
+  {
+    timerText->SetArrangeCallback([](std::shared_ptr<Element> e) {
+      auto p = e->GetParent();
+      e->SetRight(p->GetRight() - 5);
+      e->SetTop(p->GetTop());
+      e->SetHeight(p->GetHeight());
+      e->SetWidth(75);
+    });
+    timerText->SetDrawCallback(
+      [](Element* e, const boost::optional<Rect4>& redrawRegion) {
+        DrawText(e->GetCenterX(), e->GetCenterY(), std::to_string(tickCount));
+      });
   }
 }
 
@@ -860,11 +886,22 @@ int main(void)
 
   glfwShowWindow(window);
 
+  double lastTickTime = glfwGetTime();
+
   /* Loop until the user closes the window */
   while (!glfwWindowShouldClose(window))
   {
-    /* Poll for and process events */
-    glfwWaitEvents();
+    /* Poll for and process events (with a max 1/2 second timeout) */
+    glfwWaitEventsTimeout(0.5);
+
+    if (glfwGetTime() > lastTickTime + 0.4)
+    {
+      // 1/2 second timer tick (this is very haphazard: not a steady timer at all)
+      ++tickCount;
+      timerText->UpdateAfterModify();
+      lastTickTime = glfwGetTime();
+    }
+
 
     /* Update Display */
     display(window);
