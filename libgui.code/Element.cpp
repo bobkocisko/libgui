@@ -131,6 +131,11 @@ void Element::RemoveChildren()
     e->_prevsibling = nullptr;
     auto next_e = e->_nextsibling;
     e->_nextsibling = nullptr;
+    e->_layer       = nullptr;
+
+    // Prevent further updates if the class is still kept alive by other shared pointers
+    e->SetIsDetached(true);
+
     e = next_e;
   }
 
@@ -176,6 +181,7 @@ void Element::RemoveChild(std::shared_ptr<Element> child)
   child->_parent      = nullptr;
   child->_nextsibling = nullptr;
   child->_prevsibling = nullptr;
+  child->_layer       = nullptr;
 
   // The child should disappear as soon as all shared references to it are released
 }
@@ -460,6 +466,12 @@ void Element::UpdateAfterModify()
 
 void Element::Update(UpdateType updateType)
 {
+  // Elements that have been detached from the visual tree should no longer be updated.
+  if (_isDetached)
+  {
+    return;
+  }
+
   // Special case: if we are updating the whole element tree at once then
   // most of the special update logic isn't necessary and would actually
   // be a performance loss
@@ -502,12 +514,6 @@ void Element::Update(UpdateType updateType)
       // Ignore all updates until one of the initial ones occurs
       return;
     }
-  }
-
-  // Elements that have been detached from the visual tree should no longer be updated.
-  if (_isDetached)
-  {
-    return;
   }
 
   #ifdef DBG
@@ -1226,10 +1232,6 @@ Element* Element::FindLastChild(const Point& point)
     }
   }
   return nullptr;
-}
-
-Element::~Element()
-{
 }
 
 void Element::SetLeft(Inches left)

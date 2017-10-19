@@ -321,7 +321,9 @@ public:
 
   // -----------------------------------------------------------------
   // Destructor
-  virtual ~Element();
+  virtual ~Element()
+  {
+  }
 
 protected:
 

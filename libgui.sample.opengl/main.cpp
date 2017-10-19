@@ -94,7 +94,7 @@ markup_t markup;
 
 std::shared_ptr<ElementManager> elementManager;
 
-int                   tickCount = 0;
+int tickCount = 0;
 
 std::shared_ptr<Element> timerText;
 
@@ -246,14 +246,14 @@ void InitElements()
             auto layer = b->GetElementManager()->CreateLayerAbove(nullptr);
             {
               layer->SetArrangeCallback(
-                [layer](std::shared_ptr<Element> e) {
+                [](std::shared_ptr<Element> e) {
                   e->SetCenterX(elementManager->GetWidth() / 2);
                   e->SetCenterY(elementManager->GetHeight() / 2);
                   e->SetWidth(300);
                   e->SetHeight(200);
 
                   // Optimize drawing updates
-                  layer->SetOpaqueArea(e->GetBounds());
+                  std::dynamic_pointer_cast<libgui::Layer>(e)->SetOpaqueArea(e->GetBounds());
 
                   // Notify libgui of drawing that exceeds bounds
                   e->SetVisualBounds(Rect4(0, 0,

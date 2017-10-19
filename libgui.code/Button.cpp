@@ -162,6 +162,10 @@ Button::~Button()
 
 void Button::NotifyInput(InputType inputType, InputAction inputAction, Point point)
 {
+  // Keep this element alive until the end of this method
+  // so that we can call Update later even if the button side effect is to remove the layer it's on
+  auto self = shared_from_this();
+
   auto stateMachine = (SmButton::StateMachine*) _stateMachine;
 
   switch (inputAction)
@@ -222,10 +226,11 @@ Button::VisibleState Button::GetVisibleState()
 
 std::string Button::GetTypeName()
 {
-  if (Control::GetTypeName().empty())
+  auto typeName = Control::GetTypeName();
+  if (typeName.empty())
   {
     return "Button";
   }
-  return Control::GetTypeName();
+  return typeName;
 }
 }

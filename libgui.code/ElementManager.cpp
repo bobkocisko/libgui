@@ -140,10 +140,13 @@ void ElementManager::RemoveLayer(std::shared_ptr<Layer> layer)
 {
   layer->Update(Element::UpdateType::Removing);
 
-  layer->VisitThisAndDescendents(
-    [](Element* e) {
-      e->SetIsDetached(true);
-    });
+  // Among the children of a layer, shared_ptrs hold circular locks in every direction
+  // so until this is called nothing will be destructed
+  layer->RemoveChildren();
+
+  // Allow the layer itself to be destructed
+  layer->_layer = nullptr;
+  layer->SetIsDetached(true);
 
   auto layerBelow = layer->_layerBelow.lock();
   auto layerAbove = layer->_layerAbove.lock();
