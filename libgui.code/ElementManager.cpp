@@ -397,7 +397,11 @@ void ElementManager::NotifyControlIsBeingDestroyed(Control* control)
   {
     auto activeInput = _activeInputs[i];
 
-    activeInput->NotifyControlIsBeingDestroyed(control);
+    if (activeInput) // Don't expect all the input ids to have been created in order,
+                     // especially if in touch mode (i == 1 will be empty)
+    {
+      activeInput->NotifyControlIsBeingDestroyed(control);
+    }
   }
 }
 }
