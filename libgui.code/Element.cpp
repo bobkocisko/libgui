@@ -541,7 +541,8 @@ void Element::UpdateHelper(UpdateType updateType)
   #endif
 
   // Arrange this element and monitor the side effects of doing so
-  auto monitor = MonitorArrangeEffects(GetIsVisible(), GetBounds(), GetTotalBounds());
+  auto monitor = MonitorArrangeEffects(UpdateType::Adding == updateType,
+    GetIsVisible(), GetBounds(), GetTotalBounds());
   {
     _monitoringArrangeEffects = monitor;
     ScopeExit onScopeExit([this] { _monitoringArrangeEffects = boost::none; });
@@ -1373,13 +1374,17 @@ bool Element::GetUpdateRearrangesDescendants()
   return _updateRearrangesDescendents;
 }
 
-Element::MonitorArrangeEffects::MonitorArrangeEffects(bool originallyVisible,
-                                                      const Rect4& originalBounds,
-                                                      const Rect4& originalTotalBounds)
-  : originallyVisible(originallyVisible),
-    originalBounds(originalBounds),
-    originalTotalBounds(originalTotalBounds),
-    childrenRequestedArrange(false)
+Element::MonitorArrangeEffects::MonitorArrangeEffects(
+  bool addingElement,
+  bool originallyVisible,
+  const Rect4& originalBounds,
+  const Rect4& originalTotalBounds
+  ) :
+  addingElement(addingElement),
+  originallyVisible(originallyVisible),
+  originalBounds(originalBounds),
+  originalTotalBounds(originalTotalBounds),
+  childrenRequestedArrange(false)
 {
 }
 
@@ -1394,37 +1399,47 @@ Element::ArrangeEffects Element::MonitorArrangeEffects::Finish(bool currentlyVis
 {
   ArrangeEffects result;
 
-  result.wasInvisibleBeforeAndAfter = !originallyVisible && !currentlyVisible;
-
-  result.elementWasMovedOrResized =
-    (currentBounds.left != originalBounds.left ||
-     currentBounds.top != originalBounds.top ||
-     currentBounds.right != originalBounds.right ||
-     currentBounds.bottom != originalBounds.bottom);
-
-  // Union the original bounds with the current bounds
-  // This is so that if the element has moved since
-  // we began dirty tracking, we'll be able to get
-  // the whole dirty region, both the region that must
-  // be cleared and also the region that must be drawn
-
-  result.unionedTotalBounds = originalTotalBounds;
-
-  if (currentTotalBounds.left < result.unionedTotalBounds.left)
+  if (addingElement)
   {
-    result.unionedTotalBounds.left = currentTotalBounds.left;
+    // If this is the first arrange ever, then ignore the previous state
+    result.wasInvisibleBeforeAndAfter = !currentlyVisible;
+    result.elementWasMovedOrResized = true;
+    result.unionedTotalBounds = currentTotalBounds;
   }
-  if (currentTotalBounds.top < result.unionedTotalBounds.top)
+  else
   {
-    result.unionedTotalBounds.top = currentTotalBounds.top;
-  }
-  if (currentTotalBounds.right > result.unionedTotalBounds.right)
-  {
-    result.unionedTotalBounds.right = currentTotalBounds.right;
-  }
-  if (currentTotalBounds.bottom > result.unionedTotalBounds.bottom)
-  {
-    result.unionedTotalBounds.bottom = currentTotalBounds.bottom;
+    result.wasInvisibleBeforeAndAfter = !originallyVisible && !currentlyVisible;
+
+    result.elementWasMovedOrResized =
+      (currentBounds.left != originalBounds.left ||
+       currentBounds.top != originalBounds.top ||
+       currentBounds.right != originalBounds.right ||
+       currentBounds.bottom != originalBounds.bottom);
+
+    // Union the original bounds with the current bounds
+    // This is so that if the element has moved since
+    // we began dirty tracking, we'll be able to get
+    // the whole dirty region, both the region that must
+    // be cleared and also the region that must be drawn
+
+    result.unionedTotalBounds = originalTotalBounds;
+
+    if (currentTotalBounds.left < result.unionedTotalBounds.left)
+    {
+      result.unionedTotalBounds.left = currentTotalBounds.left;
+    }
+    if (currentTotalBounds.top < result.unionedTotalBounds.top)
+    {
+      result.unionedTotalBounds.top = currentTotalBounds.top;
+    }
+    if (currentTotalBounds.right > result.unionedTotalBounds.right)
+    {
+      result.unionedTotalBounds.right = currentTotalBounds.right;
+    }
+    if (currentTotalBounds.bottom > result.unionedTotalBounds.bottom)
+    {
+      result.unionedTotalBounds.bottom = currentTotalBounds.bottom;
+    }
   }
 
   result.childrenRequestedArrange = childrenRequestedArrange;

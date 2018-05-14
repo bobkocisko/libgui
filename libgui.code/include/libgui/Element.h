@@ -372,7 +372,11 @@ private:
 
   struct MonitorArrangeEffects
   {
-    MonitorArrangeEffects(bool originallyVisible, const Rect4& originalBounds, const Rect4& originalTotalBounds);
+    MonitorArrangeEffects(
+      bool addingElement,
+      bool originallyVisible,
+      const Rect4& originalBounds,
+      const Rect4& originalTotalBounds);
 
     void NotifyChildRequestedArrange();
 
@@ -380,6 +384,7 @@ private:
                           const Rect4& currentBounds, const Rect4& currentTotalBounds) const;
 
   private:
+    bool  addingElement;
     bool  originallyVisible;
     Rect4 originalBounds;
     Rect4 originalTotalBounds;
@@ -419,12 +424,12 @@ private:
   // -----------------------------------------------------------------
   // State tracking
 
-  bool _initialUpdate = false;
-  bool _clipToBounds  = false;
-  bool _isVisible     = true;
-  bool _isEnabled     = true;
-  bool _consumesInput = true;
-  bool _isDetached    = false;
+  bool _initialUpdate  = false;
+  bool _clipToBounds   = false;
+  bool _isVisible      = true;
+  bool _isEnabled      = true;
+  bool _consumesInput  = true;
+  bool _isDetached     = false;
 
   // -----------------------------------------------------------------
   // Position and size
