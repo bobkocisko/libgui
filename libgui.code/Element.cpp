@@ -1285,6 +1285,16 @@ VPixels Element::GetVPixels(Inches in)
   return VPixels(in, _elementManager->GetDpiY());
 }
 
+HPixels Element::GetHPixels(double px)
+{
+  return HPixels(px, _elementManager->GetDpiX());
+}
+
+VPixels Element::GetVPixels(double px)
+{
+  return VPixels(px, _elementManager->GetDpiY());
+}
+
 ElementQueryInfo::ElementQueryInfo(Element* ElementAtPoint, bool HasDisabledAncestor)
   : ElementAtPoint(ElementAtPoint), HasDisabledAncestor(HasDisabledAncestor)
 {

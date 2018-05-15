@@ -246,6 +246,8 @@ public:
 
   HPixels GetHPixels(Inches in);
   VPixels GetVPixels(Inches in);
+  HPixels GetHPixels(double px);
+  VPixels GetVPixels(double px);
 
   // -----------------------------------------------------------------
   // Drawing
