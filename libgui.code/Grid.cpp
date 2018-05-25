@@ -187,4 +187,10 @@ void Grid::SetCellCreateCallback(const std::function<void(std::shared_ptr<Elemen
   _cellCreateCallback = cellCreateCallback;
 }
 
+void Grid::OnElementIsBeingRemoved()
+{
+  // Release anything held in a lambda capture
+  _cellCreateCallback = nullptr;
+}
+
 }

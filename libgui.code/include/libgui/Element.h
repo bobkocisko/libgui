@@ -105,7 +105,13 @@ public:
     return child;
   }
 
-  void RemoveChildren();
+  enum class UpdateWhenRemoving
+  {
+    Yes,
+    No
+  };
+
+  void RemoveChildren(UpdateWhenRemoving update);
   void RemoveChild(std::shared_ptr<Element>);
   int GetChildrenCount();
 
@@ -340,6 +346,22 @@ protected:
   // Draw cycle
 
   virtual void Draw(const boost::optional<Rect4>& updateArea);
+
+  // -----------------------------------------------------------------
+  // Life cycle
+
+  // A child class can override this to know when it is being removed
+  // from the element tree and perform any necessary cleanup (such as
+  // resetting callbacks).  Note that when this is called the remove
+  // cycle has already begun and you cannot rely on information about
+  // the parent or siblings because in the case of removing a large
+  // branch of the element tree, for efficiency purposes the entire
+  // branch is removed at once rather than correctly removing each
+  // element one at a time and rewiring its surrounding siblings.
+  // In that case this method will be called for each element that is
+  // removed even though its siblings and parent information may no
+  // longer be valid.
+  virtual void OnElementIsBeingRemoved();
 
 
 private:

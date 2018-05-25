@@ -96,6 +96,11 @@ private:
 
   std::function<void(std::shared_ptr<Slider>)>
                          _valueChangedByInputCallback;
+
+protected:
+  // Clean up
+  void OnElementIsBeingRemoved() override;
 };
+
 }
 

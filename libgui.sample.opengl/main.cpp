@@ -306,11 +306,16 @@ void InitElements()
                   [b](std::shared_ptr<Button> b2, Button::OutputEvent event2) {
                     if (Button::OutputEvent::Clicked == event2)
                     {
+                      // We must use any captured variables before removing
+                      // the current layer because that will kill the lambda
+                      // captures as part of the element cleanup code
+                      auto mainLayer = b->GetLayer();
+
                       auto l = b2->GetLayer();
                       b2->GetElementManager()->RemoveLayer(l);
 
                       // Re-enable the main layer
-                      b->GetLayer()->SetIsEnabled(true);
+                      mainLayer->SetIsEnabled(true);
                     }
                   });
               }

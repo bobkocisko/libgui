@@ -118,13 +118,24 @@ void Element::AddChildHelper(std::shared_ptr<Element> element)
 
 }
 
-void Element::RemoveChildren()
+void Element::RemoveChildren(UpdateWhenRemoving update)
 {
+  // Make sure that all children are updated if desired
+  if (UpdateWhenRemoving::Yes == update)
+  {
+    VisitChildren([] (Element* child) {
+      child->Update(UpdateType::Removing);
+    });
+  }
+
   // Recurse into children to thoroughly clean the element tree
   auto e = _firstChild;
   while (e != nullptr)
   {
-    e->RemoveChildren();
+    // Allow subclasses to do additional cleanup
+    e->OnElementIsBeingRemoved();
+
+    e->RemoveChildren(UpdateWhenRemoving::No);
 
     // Clean up pointers so that the class will be deleted
     e->_parent      = nullptr;
@@ -132,6 +143,13 @@ void Element::RemoveChildren()
     auto next_e = e->_nextsibling;
     e->_nextsibling = nullptr;
     e->_layer       = nullptr;
+
+    // Remove callbacks which often capture shared pointers to other elements
+    // which in turn can hold references to this element and thereby keep
+    // each other alive artificially
+    e->_arrangeCallback      = nullptr;
+    e->_drawCallback         = nullptr;
+    e->_setViewModelCallback = nullptr;
 
     // Prevent further updates if the class is still kept alive by other shared pointers
     e->SetIsDetached(true);
@@ -148,11 +166,14 @@ void Element::RemoveChild(std::shared_ptr<Element> child)
 {
   child->Update(UpdateType::Removing);
 
+  // Allow subclasses to do additional cleanup
+  child->OnElementIsBeingRemoved();
+
   auto prevSibling = child->_prevsibling;
   auto nextSibling = child->_nextsibling;
 
   // First cleanup the child's children
-  child->RemoveChildren();
+  child->RemoveChildren(UpdateWhenRemoving::No);
 
   // Update the child's siblings and this
   if (prevSibling)
@@ -182,6 +203,16 @@ void Element::RemoveChild(std::shared_ptr<Element> child)
   child->_nextsibling = nullptr;
   child->_prevsibling = nullptr;
   child->_layer       = nullptr;
+
+  // Remove callbacks which often capture shared pointers to other elements
+  // which in turn can hold references to this element and thereby keep
+  // each other alive artificially
+  child->_arrangeCallback      = nullptr;
+  child->_drawCallback         = nullptr;
+  child->_setViewModelCallback = nullptr;
+
+  // Prevent further updates if the class is still kept alive by other shared pointers
+  child->SetIsDetached(true);
 
   // The child should disappear as soon as all shared references to it are released
 }
@@ -576,10 +607,12 @@ void Element::UpdateHelper(UpdateType updateType)
     if (UpdateType::Adding != updateType || currentLayer->AnyLayersAbove())
     {
       currentLayer->VisitLowerLayersIf(
-        [&redrawRegion, currentLayer, updateType](Layer* currentLayer2) {
+        [this, &redrawRegion, currentLayer, updateType](Layer* currentLayer2) {
           // Special case: if we are removing this layer then always
           // visit lower layers regardless of the opaque area
-          if (currentLayer2 == currentLayer && UpdateType::Removing == updateType)
+          if (currentLayer2 == currentLayer &&
+              currentLayer == this &&
+              UpdateType::Removing == updateType)
           {
             return true;
           }
@@ -1006,6 +1039,10 @@ void Element::Draw(const boost::optional<Rect4>& updateArea)
   {
     // By default no drawing takes place
   }
+}
+
+void Element::OnElementIsBeingRemoved()
+{
 }
 
 void Element::SetDrawCallback(const std::function<void(Element*, const boost::optional<Rect4>&)>& drawCallback)

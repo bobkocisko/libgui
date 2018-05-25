@@ -339,4 +339,9 @@ void Slider::SetThumbHeight(Inches thumbHeight)
   SetThumbHeight(double(thumbHeight) * GetElementManager()->GetDpiY());
 }
 
+void Slider::OnElementIsBeingRemoved()
+{
+  // Release anything held in a lambda capture
+  _valueChangedByInputCallback = nullptr;
+}
 }

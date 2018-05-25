@@ -140,12 +140,23 @@ void ElementManager::RemoveLayer(std::shared_ptr<Layer> layer)
 {
   layer->Update(Element::UpdateType::Removing);
 
+  // Allow subclasses to do additional cleanup
+  layer->OnElementIsBeingRemoved();
+
   // Among the children of a layer, shared_ptrs hold circular locks in every direction
   // so until this is called nothing will be destructed
-  layer->RemoveChildren();
+  layer->RemoveChildren(Element::UpdateWhenRemoving::No);
 
   // Allow the layer itself to be destructed
   layer->_layer = nullptr;
+
+  // Remove callbacks which often capture shared pointers to other elements
+  // which in turn can hold references to this element and thereby keep
+  // each other alive artificially
+  layer->_arrangeCallback = nullptr;
+  layer->_drawCallback = nullptr;
+  layer->_setViewModelCallback = nullptr;
+
   layer->SetIsDetached(true);
 
   auto layerBelow = layer->_layerBelow.lock();

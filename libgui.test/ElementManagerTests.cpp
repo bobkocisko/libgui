@@ -619,7 +619,7 @@ TEST(ElementManagerTests, AfterControlIsDestroyed_ItIsNotSentNotifications)
   bool isDestroyed = false;
   sc->SetDesctructorCallback([&isDestroyed]() { isDestroyed = true; });
 
-  layer->RemoveChildren();
+  layer->RemoveChildren(Element::UpdateWhenRemoving::No);
   sc = nullptr;
 
   ASSERT_EQ(true, isDestroyed);

@@ -37,6 +37,20 @@ public:
   void SetCellCreateCallback(const std::function<void(std::shared_ptr<Element> cellContainer)>& cellCreateCallback);
 
 private:
+  class Cell: public Element
+  {
+  public:
+    Cell(Element::Dependencies elementDependencies, int index);
+
+    void PrepareViewModel() override;
+    void Arrange() override;
+
+  private:
+    std::weak_ptr<Grid> _grid;
+    int                 _index;
+  };
+
+private:
   int    _columns                      = 3;
   double _cellHeight;
   double _cellWidth;
@@ -50,18 +64,9 @@ private:
   std::shared_ptr<ItemsProvider>                _itemsProvider;
   std::function<void(std::shared_ptr<Element>)> _cellCreateCallback;
 
-  class Cell: public Element
-  {
-  public:
-    Cell(Element::Dependencies elementDependencies, int index);
-
-    void PrepareViewModel() override;
-    void Arrange() override;
-
-  private:
-    std::weak_ptr<Grid> _grid;
-    int                 _index;
-  };
+protected:
+  // Cleanup
+  void OnElementIsBeingRemoved() override;
 };
 }
 

@@ -47,7 +47,7 @@ TEST(ElementTests, WhenRemovingChildren_AllReferencesAreCleaned)
   auto grandchild2 = child2->CreateChild<Element>();
   auto grandchild3 = child2->CreateChild<Element>();
 
-  root->RemoveChildren();
+  root->RemoveChildren(Element::UpdateWhenRemoving::No);
 
   child2 = nullptr;
 

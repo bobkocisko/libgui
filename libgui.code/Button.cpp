@@ -233,4 +233,11 @@ std::string Button::GetTypeName()
   }
   return typeName;
 }
+
+void Button::OnElementIsBeingRemoved()
+{
+  // Clean up the callback so it doesn't hold lambda captures
+  _eventCallback = nullptr;
+}
+
 }
