@@ -433,20 +433,20 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesEsc
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
-  layer->SetRight(10);
+  layer->SetRight(1000);
   layer->SetTop(0);
-  layer->SetBottom(10);
+  layer->SetBottom(1000);
 
-  sc->SetLeft(1);
-  sc->SetRight(2);
-  sc->SetTop(1);
-  sc->SetBottom(2);
+  sc->SetLeft(100);
+  sc->SetRight(200);
+  sc->SetTop(100);
+  sc->SetBottom(200);
 
   auto touchInput = InputId(FirstTouchId);
-  em->NotifyNewPoint(touchInput, Point{1, 1});
+  em->NotifyNewPoint(touchInput, Point{100, 100});
   em->NotifyDown(touchInput);
   em->NotifyNewPoint(touchInput, Point{0, 0});
-  em->NotifyNewPoint(touchInput, Point{1, 1});
+  em->NotifyNewPoint(touchInput, Point{100, 100});
 
   ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
   ASSERT_EQ(true, sc->GetNotifyTouchReturnCalled());
@@ -520,22 +520,22 @@ TEST(ElementManagerTests, WhenControlIsTouchDragged_ItReceivesNotifications)
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
-  layer->SetRight(10);
+  layer->SetRight(1000);
   layer->SetTop(0);
-  layer->SetBottom(10);
+  layer->SetBottom(1000);
 
-  sc->SetLeft(1);
-  sc->SetRight(2);
-  sc->SetTop(1);
-  sc->SetBottom(2);
+  sc->SetLeft(100);
+  sc->SetRight(200);
+  sc->SetTop(100);
+  sc->SetBottom(200);
 
   auto touchInput = InputId(FirstTouchId);
-  em->NotifyNewPoint(touchInput, Point{1, 1});
+  em->NotifyNewPoint(touchInput, Point{100, 100});
   em->NotifyDown(touchInput);
   ASSERT_EQ(true, sc->GetNotifyTouchEnterPushedCalled());
   ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
 
-  em->NotifyNewPoint(touchInput, Point{1.1, 1.1});
+  em->NotifyNewPoint(touchInput, Point{100.1, 100.1});
   ASSERT_EQ(true, sc->GetNotifyTouchMoveCalled());
 
   em->NotifyNewPoint(touchInput, Point{0.1, 0.1});
@@ -556,22 +556,22 @@ TEST(ElementManagerTests, WhenControlIsTouchEngagedRemotelyThenDisabled_ItStopsR
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
-  layer->SetRight(10);
+  layer->SetRight(1000);
   layer->SetTop(0);
-  layer->SetBottom(10);
+  layer->SetBottom(1000);
 
-  sc->SetLeft(1);
-  sc->SetRight(2);
-  sc->SetTop(1);
-  sc->SetBottom(2);
+  sc->SetLeft(100);
+  sc->SetRight(200);
+  sc->SetTop(100);
+  sc->SetBottom(200);
 
   auto touchInput = InputId(FirstTouchId);
-  em->NotifyNewPoint(touchInput, Point{1, 1});
+  em->NotifyNewPoint(touchInput, Point{100, 100});
   em->NotifyDown(touchInput);
   ASSERT_EQ(true, sc->GetNotifyTouchEnterPushedCalled());
   ASSERT_EQ(true, sc->GetNotifyTouchPushCalled());
 
-  em->NotifyNewPoint(touchInput, Point{1.1, 1.1});
+  em->NotifyNewPoint(touchInput, Point{100.1, 100.1});
   ASSERT_EQ(true, sc->GetNotifyTouchMoveCalled());
 
   em->NotifyNewPoint(touchInput, Point{0.1, 0.1});

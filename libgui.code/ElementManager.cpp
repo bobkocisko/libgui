@@ -201,22 +201,90 @@ void ElementManager::SetSystemCaptureCallback(const std::function<void(bool)>& s
 
 void ElementManager::NotifyNewPoint(InputId inputId, Point point)
 {
-  auto input = GetInput(inputId);
-
-  // Loop through the layers from the top to the bottom
-  ElementQueryInfo elementQueryInfo;
-
-  for (auto layerIter = _layers.rbegin(); layerIter != _layers.rend(); ++layerIter)
+  if (inputId.IsPointer())
   {
-    auto& layer = *layerIter;
-    elementQueryInfo = layer->GetElementAtPoint(point);
-    if (elementQueryInfo.FoundElement())
-    {
-      break;
-    }
-  }
+    auto input = GetInput(inputId);
 
-  input->NotifyNewPoint(point, elementQueryInfo);
+    // Loop through the layers from the top to the bottom
+    ElementQueryInfo elementQueryInfo;
+
+    for (auto layerIter = _layers.rbegin(); layerIter != _layers.rend(); ++layerIter)
+    {
+      auto& layer = *layerIter;
+      elementQueryInfo = layer->GetElementAtPoint(point);
+      if (elementQueryInfo.FoundElement())
+      {
+        break;
+      }
+    }
+
+    input->NotifyNewPoint(point, elementQueryInfo);
+  }
+  else
+  {
+    // This is a touch input: we need to use a fuzzy zone for hit testing
+
+    double halfDimension = 20; // 40 pixels total width and height
+    FuzzyHitQuery query;
+    Rect4 hitRect(point.X - halfDimension, point.Y - halfDimension,
+                  point.X + halfDimension, point.Y + halfDimension);
+
+    auto input = GetInput(inputId);
+
+    // Loop through the layers from the top to the bottom.  Stop only if
+    // we find an element that covers fifty percent of the fuzzy zone or
+    // if the specified layer captures all fuzzy input at the borders.
+
+    auto remainingLayers = _layers.size();
+    for (auto layerIter = _layers.rbegin(); layerIter != _layers.rend(); ++layerIter)
+    {
+      --remainingLayers;
+
+      auto& layer = *layerIter;
+      bool anyIntersection = layer->GetElementInRect(hitRect, query);
+      if (query.FoundFiftyPercent() ||
+          (layer->GetCapturesAllIntersectingTouchInput() && anyIntersection))
+      {
+        break;
+      }
+
+      if (layer->GetConsumesInput() &&
+          remainingLayers && anyIntersection)
+      {
+        // Shrink the hit rect to exclude the bounds of each layer before
+        // moving to the next lower layer.  If trimming this leaves us with
+        // an empty rect, then stop looking because we were entirely within the
+        // layer and found no matches.
+
+        auto origHitRect = hitRect;
+        hitRect.ExcludeWith(layer->GetBounds());
+        if (hitRect.IsEmpty())
+        {
+          break;
+        }
+
+        // Shrinking the hit rect did NOT leave it empty, so to fairly
+        // compare with any existing element we need to adjust the current
+        // percentage by the same amount as we shrank the area.  And if
+        // doing so means that the found element is now fifty percent of
+        // the new hit testing area, then it wins immediately.
+        if (query.MaxMatchingElement.FoundElement())
+        {
+          auto sizePercent = hitRect.Area() / origHitRect.Area();
+          query.MaxMatchingPercent /= sizePercent;
+          if (query.FoundFiftyPercent())
+          {
+            break;
+          }
+        }
+      }
+    }
+
+    // So at this point the query will contain no matching element or
+    // else the one that matched the most.  Either way we want the input
+    // to know about that.
+    input->NotifyNewPoint(point, query.MaxMatchingElement);
+  }
 }
 
 void ElementManager::NotifyDown(InputId inputId)

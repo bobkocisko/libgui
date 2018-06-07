@@ -245,6 +245,7 @@ void InitElements()
             // launch the modal
             auto layer = b->GetElementManager()->CreateLayerAbove(nullptr);
             {
+              layer->SetCapturesAllIntersectingTouchInput(true);
               layer->SetArrangeCallback(
                 [](std::shared_ptr<Element> e) {
                   e->SetCenterX(elementManager->GetWidth() / 2);

@@ -66,6 +66,7 @@ TEST(ElementTests, WhenElementDisabled_ChildControlsDisabledAlso)
   root->SetIsEnabled(false);
 
   auto child = root->CreateChild<Element>();
+  child->SetConsumesInput(true);
 
   child->SetTop(10);
   child->SetLeft(10);

@@ -125,6 +125,7 @@ void Element::RemoveChildren(UpdateWhenRemoving update)
   {
     VisitChildren([] (Element* child) {
       child->Update(UpdateType::Removing);
+      return true;
     });
   }
 
@@ -673,6 +674,7 @@ void Element::UpdateHelper(UpdateType updateType)
         // Arrange and draw all the children of this element
         VisitChildren([](Element* e) {
           e->ArrangeAndDrawHelper();
+          return true;
         });
       }
       else
@@ -685,6 +687,7 @@ void Element::UpdateHelper(UpdateType updateType)
         // Element hasn't moved, so just redraw children without arranging
         VisitChildren([](Element* child) {
           child->RedrawThisAndDescendents(boost::none);
+          return true;
         });
       }
     }
@@ -1058,7 +1061,7 @@ ElementQueryInfo Element::GetElementAtPoint(const Point& point)
 
 ElementQueryInfo Element::GetElementAtPointHelper(const Point& point, bool hasDisabledAncestor)
 {
-  if (!GetIsVisible() || !GetConsumesInput())
+  if (!GetIsVisible() || (!GetConsumesInput() && 0 == GetChildrenCount()))
   {
     return ElementQueryInfo();
   }
@@ -1083,12 +1086,77 @@ ElementQueryInfo Element::GetElementAtPointHelper(const Point& point, bool hasDi
         }
       }
     }
-    return ElementQueryInfo(this, hasDisabledAncestor);
+    if (GetConsumesInput())
+    {
+      return ElementQueryInfo(this, hasDisabledAncestor);
+    }
   }
-  else
+
+  // No matches here
+  return ElementQueryInfo();
+}
+
+bool Element::GetElementInRect(const Rect4& hitRect, FuzzyHitQuery& hitQuery)
+{
+  return GetElementInRectHelper(hitRect, hitQuery, false);
+}
+
+bool Element::GetElementInRectHelper(
+  const Rect4& hitRect, FuzzyHitQuery& hitQuery, bool hasDisabledAncestor)
+{
+  if (!GetIsVisible() || (!GetConsumesInput() && 0 == GetChildrenCount()))
   {
-    return ElementQueryInfo();
+    return false;
   }
+
+  // This algorithm relies on a fundamental expectation that each element's bounds is contained
+  // by all its ancestors' bounds
+  // Because of that, we don't have to check the child of any ancestor that falls outside of the search point
+
+  if (Intersects(hitRect))
+  {
+    if (_firstChild)
+    {
+      auto childrenHaveDisabledAncestor = hasDisabledAncestor || !GetIsEnabled();
+
+      VisitLastChildren(hitRect,
+      [&hitRect, &hitQuery, childrenHaveDisabledAncestor] (Element* child) {
+        child->GetElementInRectHelper(hitRect, hitQuery, childrenHaveDisabledAncestor);
+        // Stop visiting children if we have a 'trumping' match
+        return !hitQuery.FoundFiftyPercent();
+      });
+      if (hitQuery.FoundFiftyPercent())
+      {
+        // We already have a 'trumping' match, so stop looking
+        return true;
+      }
+    }
+
+    if (GetConsumesInput() && (_layer.get() != this))
+    {
+      // No children match, but we already know that this element intersects
+      Rect4 bounds = GetBounds();
+      Rect4 intersectionArea = hitRect;
+      intersectionArea.IntersectWith(bounds);
+
+      auto matchingPercent = intersectionArea.Area() / hitRect.Area();
+
+      // If this match is more complete than the previous one
+      // (or this is the first match), then replace the previous one as the
+      // max matching element
+      if (matchingPercent > hitQuery.MaxMatchingPercent ||
+          !hitQuery.MaxMatchingElement.FoundElement() )
+      {
+        hitQuery.MaxMatchingPercent = matchingPercent;
+        hitQuery.MaxMatchingElement = ElementQueryInfo(this, hasDisabledAncestor);
+      }
+    }
+
+    // This element does intersect
+    return true;
+  }
+
+  return false;
 }
 
 void Element::VisitAncestors(const std::function<void(Element*)>& action)
@@ -1162,31 +1230,57 @@ void Element::VisitOverlappingElements(const std::function<void(Element*)>& acti
   }
 }
 
-void Element::VisitChildren(const Rect4& region, const std::function<void(Element*)>& action)
+void Element::VisitChildren(const Rect4& region, const std::function<bool(Element*)>& action)
 {
-  // This is a plain old brute force algorithm to search all the children
+  // This default is a plain old brute force algorithm to search all the children
   if (_firstChild)
   {
     for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
     {
       if (e->Intersects(region))
       {
-        action(e.get());
+        if (!action(e.get()))
+        {
+          // The action returned false, so stop
+          return;
+        }
       }
     }
   }
 }
 
-void Element::VisitChildrenWithTotalBounds(const Rect4& region, const std::function<void(Element*)>& action)
+void Element::VisitLastChildren(const Rect4& region, const std::function<bool(Element*)>& action)
 {
-  // This is a plain old brute force algorithm to search all the children
+  // This default is a plain old brute force algorithm to search all the children
+  if (_firstChild)
+  {
+    for (auto e = _lastChild; e != nullptr; e = e->_prevsibling)
+    {
+      if (e->Intersects(region))
+      {
+        if (!action(e.get()))
+        {
+          // The action returned false, so stop
+          return;
+        }
+      }
+    }
+  }
+}
+
+void Element::VisitChildrenWithTotalBounds(const Rect4& region, const std::function<bool(Element*)>& action)
+{
+  // This default is a plain old brute force algorithm to search all the children
   if (_firstChild)
   {
     for (auto e = _firstChild; e != nullptr; e = e->_nextsibling)
     {
       if (e->TotalBoundsIntersects(region))
       {
-        action(e.get());
+        if (!action(e.get()))
+        {
+          return;
+        }
       }
     }
   }
@@ -1199,6 +1293,7 @@ void Element::VisitThisAndDescendents(const std::function<bool(Element*)>& preCh
   {
     VisitChildren([&preChildrenAction, &postChildrenAction](Element* child) {
       child->VisitThisAndDescendents(preChildrenAction, postChildrenAction);
+      return true;
     });
 
     postChildrenAction(this);
@@ -1214,6 +1309,7 @@ void Element::VisitThisAndDescendents(const Rect4& region,
     VisitChildren(region,
                   [&preChildrenAction, &postChildrenAction](Element* child) {
                     child->VisitThisAndDescendents(preChildrenAction, postChildrenAction);
+                    return true;
                   });
 
     postChildrenAction(this);
@@ -1224,6 +1320,7 @@ void Element::VisitThisAndDescendents(const std::function<void(Element*)>& actio
 {
   VisitChildren([&action](Element* child) {
     child->VisitThisAndDescendents(action);
+    return true;
   });
 
   action(this);
@@ -1345,6 +1442,16 @@ ElementQueryInfo::ElementQueryInfo()
 bool ElementQueryInfo::FoundElement()
 {
   return bool(ElementAtPoint);
+}
+
+FuzzyHitQuery::FuzzyHitQuery()
+  : MaxMatchingPercent(0.0)
+{
+}
+
+bool FuzzyHitQuery::FoundFiftyPercent() const
+{
+  return MaxMatchingPercent >= 0.5;
 }
 
 bool Element::ThisOrAncestors(const std::function<bool(Element*)>& predicate)

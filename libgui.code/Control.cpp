@@ -8,11 +8,13 @@ namespace libgui
 Control::Control(Element::Dependencies elementDependencies)
   : Element(elementDependencies)
 {
+  SetConsumesInput(true);
 }
 
 Control::Control(Element::Dependencies elementDependencies, const std::string& typeName)
   : Element(elementDependencies, typeName)
 {
+  SetConsumesInput(true);
 }
 
 Control::~Control()

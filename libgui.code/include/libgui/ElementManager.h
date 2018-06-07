@@ -111,9 +111,7 @@ public:
   // elements can be updated one at a time to reflect new positions, sizes or display
   // data.  If the elements move or change size during an update, then all children are
   // automatically re-arranged.  If the element has arrange dependents then those are
-  // also updated.  Between the two methods of arranging and drawing, update should be
-  // preferred unless in situations where a brute force arrangement would actually be
-  // more efficient.  This would need to be decided on a case by case basis.
+  // also updated.
 
   void UpdateEverything();
 

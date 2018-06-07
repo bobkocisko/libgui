@@ -13,14 +13,19 @@ libgui::LayerDependencies::LayerDependencies(ElementManager* elementManager)
 }
 
 Layer::Layer(LayerDependencies dependencies)
-  : Element(dependencies, "Layer")
+  : Element(dependencies, "Layer"),
+    _capturesAllIntersectingTouchInput(false)
 {
+  // By default, layers do consume input
+  SetConsumesInput(true);
 }
 
 Layer::Layer(LayerDependencies dependencies, const std::string& typeName)
-  : Element(dependencies, typeName)
+  : Element(dependencies, typeName),
+    _capturesAllIntersectingTouchInput(false)
 {
-
+  // By default, layers do consume input
+  SetConsumesInput(true);
 }
 
 void Layer::PostConstructInternal()
@@ -36,6 +41,16 @@ void Layer::SetOpaqueArea(const boost::optional<Rect4>& opaqueArea)
 const boost::optional<Rect4>& Layer::GetOpaqueArea()
 {
   return _opaqueArea;
+}
+
+void Layer::SetCapturesAllIntersectingTouchInput(bool capture)
+{
+  _capturesAllIntersectingTouchInput = capture;
+}
+
+bool Layer::GetCapturesAllIntersectingTouchInput() const
+{
+  return _capturesAllIntersectingTouchInput;
 }
 
 void Layer::VisitLowerLayersIf(const std::function<bool(Layer* currentLayer)>& continueDownPredicate,

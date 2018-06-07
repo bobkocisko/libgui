@@ -42,6 +42,16 @@ struct ElementQueryInfo
   bool HasDisabledAncestor;
 };
 
+struct FuzzyHitQuery
+{
+  FuzzyHitQuery();
+
+  bool FoundFiftyPercent() const;
+
+  ElementQueryInfo MaxMatchingElement;
+  double MaxMatchingPercent;
+};
+
 class Element: public std::enable_shared_from_this<Element>
 {
   friend class ElementManager;
@@ -267,6 +277,9 @@ public:
 
   ElementQueryInfo GetElementAtPoint(const Point& point);
 
+  // Returns whether there is any intersection at all with the current element
+  bool GetElementInRect(const Rect4& hitRect, FuzzyHitQuery& hitQuery);
+
   // -----------------------------------------------------------------
   // Queries
 
@@ -314,13 +327,19 @@ public:
   // in order to increase efficiency of inter-layer element updates, assuming that the
   // container class has a more optimized mechanism for locating its children than this
   // default brute force search
-  virtual void VisitChildren(const Rect4& region, const std::function<void(Element*)>& action);
+  virtual void VisitChildren(const Rect4& region, const std::function<bool(Element*)>& action);
+
+  // It is strongly recommended that this method be overridden in each container class
+  // in order to increase efficiency of inter-layer element updates, assuming that the
+  // container class has a more optimized mechanism for locating its children than this
+  // default brute force search
+  virtual void VisitLastChildren(const Rect4& region, const std::function<bool(Element*)>& action);
 
   // It is strongly recommended that this method be overridden in each container class
   // in order to increase efficiency of hit testing, assuming that the container class
   // has a more optimized mechanism for locating its children than this
   // default brute force search
-  virtual void VisitChildrenWithTotalBounds(const Rect4& region, const std::function<void(Element*)>& action);
+  virtual void VisitChildrenWithTotalBounds(const Rect4& region, const std::function<bool(Element*)>& action);
 
   // -----------------------------------------------------------------
   // Debugging
@@ -452,7 +471,7 @@ private:
   bool _clipToBounds   = false;
   bool _isVisible      = true;
   bool _isEnabled      = true;
-  bool _consumesInput  = true;
+  bool _consumesInput  = false;
   bool _isDetached     = false;
 
   // -----------------------------------------------------------------
@@ -490,6 +509,8 @@ private:
   // Hit Testing
 
   ElementQueryInfo GetElementAtPointHelper(const Point& point, bool hasDisabledAncestor);
+  bool GetElementInRectHelper(const Rect4& hitRect, FuzzyHitQuery& hitQuery,
+                              bool hasDisabledAncestor);
 
   // -----------------------------------------------------------------
   // Helper methods
