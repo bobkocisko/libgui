@@ -19,6 +19,8 @@ class Layer;
 class ElementManager: public std::enable_shared_from_this<ElementManager>
 {
 public:
+  ElementManager();
+
   // -------------------------------------------------------------------------------------
   // Size
   // -----
@@ -127,6 +129,9 @@ public:
   void NotifyDown(InputId inputId);
   void NotifyUp(InputId inputId);
 
+  // Set the fuzzy touch size (defaults to 30x30 pixels)
+  void SetFuzzyTouchSize(const Size& size);
+
   // Return the last point notification for the specified InputId, or (-1, -1) if
   // no point has been notified for that input yet.
   const Point& GetCurrentPoint(InputId inputId);
@@ -223,6 +228,7 @@ private:
   boost::optional<Rect4>            _redrawnRegion;
   std::deque<Element*>              _updatedElements;
   Size                              _size;
+  Size                              _fuzzyTouchSize;
 
 private:
   void AddLayerAbove(std::shared_ptr<Layer> existing,

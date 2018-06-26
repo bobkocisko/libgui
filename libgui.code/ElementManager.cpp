@@ -5,6 +5,11 @@
 namespace libgui
 {
 
+ElementManager::ElementManager()
+ : _fuzzyTouchSize(Size(30, 30)) // default fuzzy touch size
+{
+}
+
 void ElementManager::AddLayerAbove(std::shared_ptr<Layer> existing, std::shared_ptr<Layer> adding)
 {
   LayerList::iterator existingIter = _layers.end();
@@ -224,10 +229,11 @@ void ElementManager::NotifyNewPoint(InputId inputId, Point point)
   {
     // This is a touch input: we need to use a fuzzy zone for hit testing
 
-    double halfDimension = 20; // 40 pixels total width and height
+    Size halfSize = Size(_fuzzyTouchSize.width / 2,
+                         _fuzzyTouchSize.height / 2);
     FuzzyHitQuery query;
-    Rect4 hitRect(point.X - halfDimension, point.Y - halfDimension,
-                  point.X + halfDimension, point.Y + halfDimension);
+    Rect4 hitRect(point.X - halfSize.width, point.Y - halfSize.height,
+                  point.X + halfSize.width, point.Y + halfSize.height);
 
     auto input = GetInput(inputId);
 
@@ -297,6 +303,11 @@ void ElementManager::NotifyUp(InputId inputId)
 {
   auto input = GetInput(inputId);
   input->NotifyUp();
+}
+
+void ElementManager::SetFuzzyTouchSize(const Size& size)
+{
+  _fuzzyTouchSize = size;
 }
 
 const Point& ElementManager::GetCurrentPoint(InputId inputId)
