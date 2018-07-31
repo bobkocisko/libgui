@@ -61,9 +61,9 @@ public:
     std::weak_ptr<Track>     _track;
     std::weak_ptr<Scrollbar> _scrollbar;
     double                   _anchorOffset;
-    Point                    _pointer;
+    Point                    _inputPoint;
 
-    void NotifyPointerMove(Point point);
+    void NotifyMove(Point point);
   };
 private:
   std::shared_ptr<Thumb>          _thumb;

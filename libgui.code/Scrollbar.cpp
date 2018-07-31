@@ -208,13 +208,7 @@ void Scrollbar::Thumb::Arrange()
 
 void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Point point)
 {
-  if (InputType::Touch == inputType)
-  {
-    // Biased judgement: Scrollbars shouldn't even be visible in touch mode, so ignore touch inputs
-    return;
-  }
-
-  _pointer = point;
+  _inputPoint = point;
 
   auto stateMachine = (SmScrollbar::StateMachine*) _stateMachine;
 
@@ -228,7 +222,7 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
       stateMachine->process_event(SmScrollbar::Enter());
       break;
     case InputAction::Move:
-      NotifyPointerMove(point);
+      NotifyMove(point);
       break;
     case InputAction::Push:
       stateMachine->process_event(SmScrollbar::Push());
@@ -241,11 +235,11 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
       break;
     case InputAction::EngagedEscape:
       stateMachine->process_event(SmScrollbar::EngagedEscape());
-      NotifyPointerMove(point);
+      NotifyMove(point);
       break;
     case InputAction::EngagedReturn:
       stateMachine->process_event(SmScrollbar::EngagedReturn());
-      NotifyPointerMove(point);
+      NotifyMove(point);
       break;
   }
 
@@ -258,10 +252,10 @@ void Scrollbar::Thumb::NotifyInput(InputType inputType, InputAction inputAction,
 
 void Scrollbar::Thumb::RecordAnchor()
 {
-  _anchorOffset = _pointer.Y - GetTop();
+  _anchorOffset = _inputPoint.Y - GetTop();
 }
 
-void Scrollbar::Thumb::NotifyPointerMove(Point point)
+void Scrollbar::Thumb::NotifyMove(Point point)
 {
   auto state = GetState();
   if (State::Engaged == state ||

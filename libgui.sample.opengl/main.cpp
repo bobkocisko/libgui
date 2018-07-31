@@ -70,8 +70,12 @@ using libgui::Scrollbar;
 using libgui::Slider;
 using libgui::Button;
 using libgui::PointerInputId;
+using libgui::FirstTouchId;
 using libgui::Size;
 using libgui::Point;
+
+// Uncomment this if you want to simulate touch input using the mouse pointer
+// #define SIMULATE_TOUCH
 
 typedef struct
 {
@@ -583,7 +587,11 @@ void InitElements()
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
+  #ifdef SIMULATE_TOUCH
+  elementManager->NotifyNewPoint(FirstTouchId, Point{xpos, ypos});
+  #else
   elementManager->NotifyNewPoint(PointerInputId, Point{xpos, ypos});
+  #endif
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -592,11 +600,19 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
   {
     if (action == GLFW_PRESS)
     {
+      #ifdef SIMULATE_TOUCH
+      elementManager->NotifyDown(FirstTouchId);
+      #else
       elementManager->NotifyDown(PointerInputId);
+      #endif
     }
     else if (action == GLFW_RELEASE)
     {
+      #ifdef SIMULATE_TOUCH
+      elementManager->NotifyUp(FirstTouchId);
+      #else
       elementManager->NotifyUp(PointerInputId);
+      #endif
     }
   }
 }
