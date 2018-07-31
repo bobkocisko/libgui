@@ -45,6 +45,7 @@
 #include "libgui/Slider.h"
 #include "libgui/IntersectionStack.h"
 #include "libgui/Button.h"
+#include "libgui/ScopeExit.h"
 
 #include "freetype-gl.h"
 #include "vertex-buffer.h"
@@ -66,6 +67,7 @@ using libgui::ElementManager;
 using libgui::Rect4;
 using libgui::Element;
 using libgui::Grid;
+using libgui::ScopeExit;
 using libgui::Scrollbar;
 using libgui::Slider;
 using libgui::Button;
@@ -211,6 +213,7 @@ void InitElements()
 
 
   // Build the screen elements
+  std::shared_ptr<Button> overlapButton, overlap2Button;
   auto header = root->CreateChild<Element>("Header");
   {
     header->SetArrangeCallback(
@@ -350,7 +353,7 @@ void InitElements()
         });
     }
 
-    auto overlapButton = header->CreateChild<Button>();
+    overlapButton = header->CreateChild<Button>();
     {
       overlapButton->SetArrangeCallback(
         [](std::shared_ptr<Element> e) {
@@ -363,11 +366,11 @@ void InitElements()
       overlapButton->SetDrawCallback(
         [](Element* e, const boost::optional<Rect4>& redrawRegion) {
           DrawButton(e);
-          DrawText(e->GetCenterX(), e->GetCenterY(), "Overlapper");
+          DrawText(e->GetCenterX(), e->GetCenterY(), "Add Items (overlap)");
         });
 
     }
-    auto overlap2Button = header->CreateChild<Button>();
+    overlap2Button = header->CreateChild<Button>();
     {
       overlap2Button->SetArrangeCallback(
         [](std::shared_ptr<Element> e) {
@@ -380,7 +383,7 @@ void InitElements()
       overlap2Button->SetDrawCallback(
         [](Element* e, const boost::optional<Rect4>& redrawRegion) {
           DrawButton(e);
-          DrawText(e->GetCenterX(), e->GetCenterY(), "Overlap 2");
+          DrawText(e->GetCenterX(), e->GetCenterY(), "Rmv Items (overlap)");
         });
 
       launchButton->RegisterOverlappingElement(overlap2Button);
@@ -477,18 +480,12 @@ void InitElements()
         auto p          = e->GetParent();
         auto can_scroll = std::dynamic_pointer_cast<Grid>(grid)->CanScroll();
 
-        if (can_scroll)
-        {
-          e->SetIsVisible(true);
-          e->SetWidth(gridScrollWidth);
-          e->SetRight(p->GetRight());
-          e->SetTop(header->GetBottom());
-          e->SetBottom(footer->GetTop());
-        }
-        else
-        {
-          e->SetIsVisible(false);
-        }
+        e->SetWidth(gridScrollWidth);
+        e->SetRight(p->GetRight());
+        e->SetTop(header->GetBottom());
+        e->SetBottom(footer->GetTop());
+
+        e->SetIsVisible(can_scroll);
       });
 
     grid_scroll->SetDrawCallback(
@@ -514,6 +511,44 @@ void InitElements()
       });
 
   }
+
+  overlapButton->SetEventCallback(
+    [itemsVm, grid, grid_scroll](std::shared_ptr<Button> b, Button::OutputEvent event) {
+      if (Button::OutputEvent::Clicked == event)
+      {
+        itemsVm->AddOtherItems();
+
+        // In the transition between having a scrollbar and not, the grid
+        // and its scrollbar will overlap
+        grid->RegisterOverlappingElement(grid_scroll);
+        {
+          ScopeExit scopeExit([grid, grid_scroll] {
+            grid->UnregisterOverlappingElement(grid_scroll);
+          });
+          grid->UpdateAfterModify();
+          grid_scroll->UpdateAfterModify();
+        }
+      }
+    });
+
+  overlap2Button->SetEventCallback(
+    [itemsVm, grid, grid_scroll](std::shared_ptr<Button> b, Button::OutputEvent event) {
+      if (Button::OutputEvent::Clicked == event)
+      {
+        itemsVm->RemoveOtherItems();
+
+        // In the transition between having a scrollbar and not, the grid
+        // and its scrollbar will overlap
+        grid->RegisterOverlappingElement(grid_scroll);
+        {
+          ScopeExit scopeExit([grid, grid_scroll] {
+            grid->UnregisterOverlappingElement(grid_scroll);
+          });
+          grid->UpdateAfterModify();
+          grid_scroll->UpdateAfterModify();
+        }
+      }
+    });
 
   std::shared_ptr<Slider::Thumb> slider_thumb;
 
@@ -566,7 +601,10 @@ void InitElements()
         std::string valueString = std::to_string(slider->GetValue());
         DrawText(e->GetCenterX(), e->GetCenterY(), valueString);
       });
-    slider_thumb->RegisterArrangeDependent(sliderValueText);
+
+    slider->SetValueChangedByInputCallback([sliderValueText](std::shared_ptr<Slider>) {
+      sliderValueText->UpdateAfterModify();
+    });
   }
 
   timerText = footer->CreateChild<Element>("Timer Text");

@@ -112,8 +112,7 @@ public:
   // when the parent window itself is resized.  The other type is an update.  Individual
   // elements can be updated one at a time to reflect new positions, sizes or display
   // data.  If the elements move or change size during an update, then all children are
-  // automatically re-arranged.  If the element has arrange dependents then those are
-  // also updated.
+  // automatically re-arranged.
 
   void UpdateEverything();
 
@@ -201,18 +200,26 @@ public:
   // -------------------------------------------------------------------------------------
   // Update tracking
   // ---------------
-  // During the update cycle it is possible to have circular references between elements
-  // which list each other as arrange dependents.  To avoid a stack overflow exception
-  // due to endless circular references, it is necessary to track which elements have
-  // been updated so far.
+  // The update algorithm does not permit multiple update requests
+  // to be processed at the same time, so if a request comes in while another
+  // is already processing in the same cycle, it gets added as a pending request
+  // and is handled as soon as the current one is complete.
 
-  // Internal use only.  Clears the list of updated elements at the beginning of an update pass
-  void ClearUpdateTracking();
+  // Internal use only.  Performs the update cycle appropriately.
+  void UpdateOrAddPending(std::shared_ptr<Element> element,
+                          Element::UpdateType type);
 
-  // Internal use only.  Checks and returns whether the specified element has been updated since the
-  // last call to ClearUpdateTracking, and if it hasn't, adds the element to the tracking list
-  bool TryBeginUpdate(Element* element);
 
+private:
+  struct PendingUpdate
+  {
+    PendingUpdate(std::shared_ptr<Element> element, Element::UpdateType type)
+      : element(element), type(type)
+    {}
+
+    std::shared_ptr<Element> element;
+    Element::UpdateType type;
+  };
 
 private:
   typedef std::list<std::shared_ptr<Layer>> LayerList;
@@ -226,7 +233,8 @@ private:
   std::function<void(const Rect4&)> _pushClipCallback;
   std::function<void()>             _popClipCallback;
   boost::optional<Rect4>            _redrawnRegion;
-  std::deque<Element*>              _updatedElements;
+  bool                              _inUpdateCycle;
+  std::deque<PendingUpdate>         _pendingUpdates;
   Size                              _size;
   Size                              _fuzzyTouchSize;
 

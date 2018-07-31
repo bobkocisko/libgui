@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <functional>
+
 namespace libgui
 {
 class ScrollDelegate
@@ -12,6 +14,8 @@ public:
   virtual double GetCurrentOffsetPercent() = 0;
   virtual double GetThumbSizePercent() = 0;
 
+  virtual void WhenThumbSizePercentChanges(const std::function<void()>& handler) = 0;
+
   virtual void MoveToOffsetPercent(double offset_percent) = 0;
 
   void LimitToBounds(double& offsetPercent)
@@ -19,6 +23,7 @@ public:
     offsetPercent = std::max(0.0, offsetPercent);
     offsetPercent = std::min(1.0 - GetThumbSizePercent(), offsetPercent);
   }
+
 };
 }
 

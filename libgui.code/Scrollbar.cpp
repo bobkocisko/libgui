@@ -33,14 +33,12 @@ void Scrollbar::PostConstruct()
   _track = this->CreateChild<Track>();
   _thumb = _track->CreateChild<Thumb>();
 
-  // Add bidirectional arrange dependencies between this element and its scroll delegate,
-  // if the scroll delegate is also an element
-  auto delegateElement = std::dynamic_pointer_cast<Element>(_scrollDelegate);
-  if (delegateElement)
-  {
-    delegateElement->RegisterArrangeDependent(_thumb);
-    _thumb->RegisterArrangeDependent(delegateElement);
-  }
+  std::weak_ptr<Thumb> weakThumb(std::static_pointer_cast<Thumb>(_thumb));
+  _scrollDelegate->WhenThumbSizePercentChanges([this, weakThumb] {
+    auto thumb = weakThumb.lock();
+    if (!thumb) return;
+    thumb->UpdateAfterModify();
+  });
 }
 
 std::shared_ptr<Scrollbar::Thumb> Scrollbar::GetThumb() const
@@ -271,6 +269,10 @@ void Scrollbar::Thumb::NotifyMove(Point point)
       if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
       {
         scrollDelegate->MoveToOffsetPercent(offsetPercent);
+        if (auto e = std::dynamic_pointer_cast<Element>(scrollDelegate))
+        {
+          e->UpdateAfterModify();
+        }
         UpdateAfterModify();
       }
     }

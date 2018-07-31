@@ -15,6 +15,10 @@ public:
 
   double GetCurrentOffsetPercent() override;
   double GetThumbSizePercent() override;
+
+  void WhenThumbSizePercentChanges(
+    const std::function<void()>& handler) override;
+
   void MoveToOffsetPercent(double offsetPercent) override;
 
   bool CanScroll();
@@ -51,17 +55,19 @@ private:
   };
 
 private:
-  int    _columns                      = 3;
+  int    _columns                         = 3;
   double _cellHeight;
   double _cellWidth;
-  double _offsetPercent                = 0.0;
+  double _offsetPercent                   = 0.0;
   int    _baseItemIndex;
   double _rowOffset;
-  double _lastHeightUsedForScrollCheck = 0.0;
-  double _topPadding                   = 0.0;
-  double _bottomPadding                = 0.0;
+  double _lastHeightUsedForScrollCheck    = 0.0;
+  int    _lastItemCountUsedForScrollCheck = 0;
+  double _topPadding                      = 0.0;
+  double _bottomPadding                   = 0.0;
 
   std::shared_ptr<ItemsProvider>                _itemsProvider;
+  std::function<void()>                         _thumbSizePercentChangeCallback;
   std::function<void(std::shared_ptr<Element>)> _cellCreateCallback;
 
 protected:

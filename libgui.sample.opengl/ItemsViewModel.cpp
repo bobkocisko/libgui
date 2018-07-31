@@ -14,6 +14,26 @@ ItemsViewModel::ItemsViewModel()
     make_shared<ItemViewModel>("A-3", "type a", "123"),
     make_shared<ItemViewModel>("B-3", "type a", "456"),
     make_shared<ItemViewModel>("C-3", "type a", "789"),
+  };
+}
+
+int ItemsViewModel::GetTotalItems()
+{
+  return _items.size();
+}
+
+std::shared_ptr<libgui::ViewModelBase> ItemsViewModel::GetItem(int index)
+{
+  if (index >= _items.size())
+  {
+    return nullptr;
+  }
+  return _items[index];
+}
+
+void ItemsViewModel::AddOtherItems()
+{
+  std::vector<std::shared_ptr<ItemViewModel>> newItems = {
     make_shared<ItemViewModel>("A-4", "b is the type", "123"),
     make_shared<ItemViewModel>("B-4", "b is the type", "456"),
     make_shared<ItemViewModel>("C-4", "b is the type", "789"),
@@ -60,20 +80,11 @@ ItemsViewModel::ItemsViewModel()
     make_shared<ItemViewModel>("B-17", "b is the type", "456"),
     make_shared<ItemViewModel>("C-17", "b is the type", "789"),
   };
+
+  _items.insert(_items.end(), newItems.begin(), newItems.end());
 }
 
-int ItemsViewModel::GetTotalItems()
+void ItemsViewModel::RemoveOtherItems()
 {
-  return _items.size();
+  _items.resize(9);
 }
-
-std::shared_ptr<libgui::ViewModelBase> ItemsViewModel::GetItem(int index)
-{
-  if (index >= _items.size())
-  {
-    return nullptr;
-  }
-  return _items[index];
-}
-
-

@@ -1,12 +1,14 @@
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
 #include "libgui/Layer.h"
+#include "libgui/ScopeExit.h"
 
 namespace libgui
 {
 
 ElementManager::ElementManager()
- : _fuzzyTouchSize(Size(30, 30)) // default fuzzy touch size
+ : _inUpdateCycle(false),
+   _fuzzyTouchSize(Size(30, 30)) // default fuzzy touch size
 {
 }
 
@@ -442,23 +444,32 @@ const boost::optional<Rect4>& ElementManager::GetRedrawnRegion()
   return _redrawnRegion;
 }
 
-void ElementManager::ClearUpdateTracking()
+void ElementManager::UpdateOrAddPending(std::shared_ptr<Element> element,
+                                        Element::UpdateType type)
 {
-  _updatedElements.clear();
-}
-
-bool ElementManager::TryBeginUpdate(Element* element)
-{
-  for (auto e: _updatedElements)
+  if (_inUpdateCycle)
   {
-    if (e == element)
-    {
-      return false;
-    }
+    _pendingUpdates.emplace_back(element, type);
+    return;
   }
 
-  _updatedElements.push_back(element);
-  return true;
+  // Beginning a new update cycle and end it when we're done
+  _inUpdateCycle = true;
+  ScopeExit scopeExit ([this]{ _inUpdateCycle = false; });
+
+  element->UpdateHelper(type);
+
+  // Before we finish the cycle, process and pop all remaining pending updates
+  // (each update here might also add more pending updates which will also
+  //  get processed)
+  while (!_pendingUpdates.empty())
+  {
+    auto& update = _pendingUpdates.front();
+
+    update.element->UpdateHelper(update.type);
+
+    _pendingUpdates.pop_front();
+  }
 }
 
 const Size& ElementManager::GetSize() const

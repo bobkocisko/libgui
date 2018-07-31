@@ -24,14 +24,24 @@ void Grid::Arrange()
     return;
   }
 
-  if (_lastHeightUsedForScrollCheck != GetHeight())
+  auto totalCount = _itemsProvider->GetTotalItems();
+
+  if (_lastHeightUsedForScrollCheck != GetHeight() ||
+      _lastItemCountUsedForScrollCheck != totalCount)
   {
     // Do another scroll height check since the height of the element has changed
     LimitToBounds(_offsetPercent);
+
+    // Notify that the thumb size should be recalculated
+    if (_thumbSizePercentChangeCallback)
+    {
+      _thumbSizePercentChangeCallback();
+    }
+
     _lastHeightUsedForScrollCheck = GetHeight();
+    _lastItemCountUsedForScrollCheck = totalCount;
   }
 
-  auto totalCount      = _itemsProvider->GetTotalItems();
   auto childrenCount   = GetChildrenCount();
   int  visibleRows     = int(std::ceil(GetHeight() / _cellHeight)) + 1; // Need an extra for partial rows
   auto visibleItems    = visibleRows * _columns;
@@ -69,6 +79,11 @@ double Grid::GetThumbSizePercent()
   auto totalRows          = std::ceil(double(_itemsProvider->GetTotalItems()) / _columns);
   auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
   return std::min(1.0, GetHeight() / totalContentHeight);
+}
+
+void Grid::WhenThumbSizePercentChanges(const std::function<void()>& handler)
+{
+  _thumbSizePercentChangeCallback = handler;
 }
 
 void Grid::MoveToOffsetPercent(double offsetPercent)

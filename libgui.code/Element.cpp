@@ -311,16 +311,6 @@ void Element::SetArrangeCallback(const std::function<void(std::shared_ptr<Elemen
   _arrangeCallback = arrangeCallback;
 }
 
-void Element::RegisterArrangeDependent(std::shared_ptr<Element> dependent)
-{
-  if (dependent->GetLayer() != GetLayer())
-  {
-    throw std::runtime_error("Dependent elements must be on the same layer");
-  }
-
-  _arrangeDependents.push_back(dependent);
-}
-
 bool Element::ThisIsEarlierSiblingOf(Element* other)
 {
   Element* nextSibling = _nextsibling.get();
@@ -362,7 +352,7 @@ void Element::RegisterOverlappingElement(std::shared_ptr<Element> other)
     // Note that the preconditions checked for above help simplify this algorithm
 
     // Since there are already one or more overlapping elements, find the appropriate
-    // place to insert into the list so that the elements maintain their natural order.
+    // place to insert into the list so that the elements maintain their drawing order.
     auto currentSibling = _nextsibling;
     auto insertPos      = _overlappedBy.begin();
 
@@ -395,6 +385,86 @@ void Element::RegisterOverlappingElement(std::shared_ptr<Element> other)
 
     // Now do the insert
     _overlappedBy.insert(insertPos, other);
+  }
+
+  // Register the other way as well
+  other->RegisterOverlappedElement(shared_from_this());
+}
+
+void Element::RegisterOverlappedElement(std::shared_ptr<Element> other)
+{
+  if (_overlaps.empty())
+  {
+    _overlaps.push_back(other);
+  }
+  else
+  {
+    // Note that the preconditions checked for above help simplify this algorithm
+
+    // Since there are already one or more overlapping elements, find the appropriate
+    // place to insert into the list so that the elements maintain their drawing order.
+    auto currentSibling = _prevsibling;
+    auto insertPos      = _overlaps.rbegin();
+
+    // Avoid adding the same element multiple times
+    if ((*insertPos).lock() == other)
+    {
+      return;
+    }
+
+    while (currentSibling != other)
+    {
+      // Move to the prev insert position whenever we pass the current insert position
+      if (currentSibling == (*insertPos).lock())
+      {
+        ++insertPos;
+        if (insertPos == _overlaps.rend())
+        {
+          break;
+        }
+
+        // Avoid adding the same element multiple times
+        if ((*insertPos).lock() == other)
+        {
+          return;
+        }
+      }
+
+      currentSibling = currentSibling->_prevsibling;
+    }
+
+    // Now do the insert
+    --insertPos; // reverse iterator + insert means you have to go back
+    _overlaps.insert(insertPos.base(), other);
+  }
+}
+
+void Element::UnregisterOverlappingElement(std::shared_ptr<Element> other)
+{
+  auto findIter = std::find_if(_overlappedBy.begin(), _overlappedBy.end(),
+  [other] (std::weak_ptr<Element> existing) {
+    return (existing.lock() == other);
+  });
+
+  if (findIter != _overlappedBy.end())
+  {
+    _overlappedBy.erase(findIter);
+  }
+
+  // And do the same in the opposite direction
+  other->UnregisterOverlappedElement(shared_from_this());
+}
+
+void Element::UnregisterOverlappedElement(std::shared_ptr<Element> other)
+{
+  auto findIter = std::find_if(_overlaps.begin(), _overlaps.end(),
+  [other] (std::weak_ptr<Element> existing) {
+    return (existing.lock() == other);
+  });
+
+  if (findIter != _overlaps.end())
+  {
+    _overlaps.erase(findIter);
   }
 }
 
@@ -504,17 +574,7 @@ void Element::Update(UpdateType updateType)
     return;
   }
 
-  // Special case: if we are updating the whole element tree at once then
-  // most of the special update logic isn't necessary and would actually
-  // be a performance loss
-  if (UpdateType::Everything == updateType)
-  {
-    ArrangeAndDrawHelper();
-    _elementManager->AddToRedrawnRegion(GetTotalBounds());
-    VisitThisAndDescendents([](Element* e) { e->_initialUpdate = true; });
-    return;
-  }
-  else if (!_initialUpdate)
+  if (UpdateType::Everything != updateType && !_initialUpdate)
   {
     if (UpdateType::Adding == updateType)
     {
@@ -553,19 +613,23 @@ void Element::Update(UpdateType updateType)
   fflush(stdout);
   #endif
 
-  // Since we are beginning an update pass, clear the tracking of which elements have been updated
-  _elementManager->ClearUpdateTracking();
-
-  UpdateHelper(updateType);
+  // Do the update now or as soon as possible
+  _elementManager->UpdateOrAddPending(shared_from_this(), updateType);
 }
 
 void Element::UpdateHelper(UpdateType updateType)
 {
-  // Check that this element hasn't already been updated in this update pass
-  if (!_elementManager->TryBeginUpdate(this))
+  // Special case: if we are updating the whole element tree at once then
+  // most of the special update logic isn't necessary and would actually
+  // be a performance loss
+  if (UpdateType::Everything == updateType)
   {
+    ArrangeAndDrawHelper();
+    _elementManager->AddToRedrawnRegion(GetTotalBounds());
+    VisitThisAndDescendents([](Element* e) { e->_initialUpdate = true; });
     return;
   }
+
 
   #ifdef DBG
   printf("\nUpdating %s\n", GetTypeName().c_str());
@@ -642,6 +706,10 @@ void Element::UpdateHelper(UpdateType updateType)
           }
         });
 
+      // Make sure overlapped elements and their children are drawn next
+      VisitOverlappedElements([&redrawRegion](Element* e) {
+        e->RedrawThisAndDescendents(redrawRegion);
+      });
     }
 
     // Now draw this element and its children unless it's invisible
@@ -663,6 +731,10 @@ void Element::UpdateHelper(UpdateType updateType)
 
       if (UpdateType::Adding == updateType ||
           arrangeEffects.ElementWasMovedOrResized() ||
+          arrangeEffects.ElementBecameVisible() || // because if this is the
+                                                   // first time it's visible
+                                                   // its children will never
+                                                   // have been arranged
           arrangeEffects.ChildrenRequestedArrange() ||
           GetUpdateRearrangesDescendants())
       {
@@ -695,8 +767,8 @@ void Element::UpdateHelper(UpdateType updateType)
     if (UpdateType::Modifying == updateType)
     {
       // Make sure overlapping elements and their children are drawn on top
-      VisitOverlappingElements([](Element* e) {
-        e->RedrawThisAndDescendents(boost::none);
+      VisitOverlappingElements([&redrawRegion](Element* e) {
+        e->RedrawThisAndDescendents(redrawRegion);
       });
     }
 
@@ -721,20 +793,6 @@ void Element::UpdateHelper(UpdateType updateType)
   _elementManager->PopClip();
 
   _elementManager->AddToRedrawnRegion(redrawRegion);
-
-  if (UpdateType::Modifying == updateType && arrangeEffects.ElementWasMovedOrResized())
-  {
-    // update any dependent elements in this same layer
-    VisitArrangeDependents(
-      [updateType](Element* e) {
-        #ifdef DBG
-        printf("Discovered arrange dependent %s\n", e->GetTypeName().c_str());
-        fflush(stdout);
-        #endif
-
-        e->UpdateHelper(updateType);
-      });
-  }
 }
 
 void Element::RedrawThisAndDescendents(const boost::optional<Rect4>& redrawRegion)
@@ -1188,27 +1246,6 @@ void Element::VisitChildren(const std::function<void(Element*)>& action)
   }
 }
 
-void Element::VisitArrangeDependents(const std::function<void(Element*)>& action)
-{
-  auto iter = _arrangeDependents.begin();
-  while (iter != _arrangeDependents.end())
-  {
-    auto& dependentWeakPtr = *iter;
-    if (auto dependent = dependentWeakPtr.lock())
-    {
-      action(dependent.get());
-      ++iter;
-    }
-    else
-    {
-      // The dependent has disappeared so we will remove it from our list
-      auto eraseIter = iter;
-      ++iter;
-      _arrangeDependents.erase(eraseIter);
-    }
-  }
-}
-
 void Element::VisitOverlappingElements(const std::function<void(Element*)>& action)
 {
   auto iter = _overlappedBy.begin();
@@ -1226,6 +1263,27 @@ void Element::VisitOverlappingElements(const std::function<void(Element*)>& acti
       auto eraseIter = iter;
       ++iter;
       _overlappedBy.erase(eraseIter);
+    }
+  }
+}
+
+void Element::VisitOverlappedElements(const std::function<void(Element*)>& action)
+{
+  auto iter = _overlaps.begin();
+  while (iter != _overlaps.end())
+  {
+    auto& dependentWeakPtr = *iter;
+    if (auto dependent = dependentWeakPtr.lock())
+    {
+      action(dependent.get());
+      ++iter;
+    }
+    else
+    {
+      // The dependent has disappeared so we will remove it from our list
+      auto eraseIter = iter;
+      ++iter;
+      _overlaps.erase(eraseIter);
     }
   }
 }
@@ -1558,11 +1616,13 @@ Element::ArrangeEffects Element::MonitorArrangeEffects::Finish(bool currentlyVis
     // If this is the first arrange ever, then ignore the previous state
     result.wasInvisibleBeforeAndAfter = !currentlyVisible;
     result.elementWasMovedOrResized = true;
+    result.elementBecameVisible = true;
     result.unionedTotalBounds = currentTotalBounds;
   }
   else
   {
     result.wasInvisibleBeforeAndAfter = !originallyVisible && !currentlyVisible;
+    result.elementBecameVisible       = !originallyVisible &&  currentlyVisible;
 
     result.elementWasMovedOrResized =
       (currentBounds.left != originalBounds.left ||
@@ -1609,6 +1669,11 @@ bool Element::ArrangeEffects::WasInvisibleBeforeAndAfter() const
 bool Element::ArrangeEffects::ElementWasMovedOrResized() const
 {
   return elementWasMovedOrResized;
+}
+
+bool Element::ArrangeEffects::ElementBecameVisible() const
+{
+  return elementBecameVisible;
 }
 
 const Rect4& Element::ArrangeEffects::GetUnionedTotalBounds() const

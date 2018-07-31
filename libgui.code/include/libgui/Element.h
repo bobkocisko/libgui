@@ -148,8 +148,7 @@ public:
   // The arrangement determines the location, size and custom logic of elements, while
   // drawing is just drawing.  Individual elements can be updated to reflect new positions,
   // sizes or display data.  If the elements move or change size during an update, then all
-  // children are automatically re-arranged.  If the element has arrange dependents then
-  // those are also updated.
+  // children are automatically re-arranged.
   // Regarding updating of descendants, the default update logic is that
   // an updated element's descendents will be rearranged only if the
   // element is moved or resized, otherwise its descendants will be redrawn
@@ -191,15 +190,13 @@ public:
   // Descendents of an updated element are always redrawn regardless of this setting.
   bool GetUpdateRearrangesDescendants();
 
-  // Register an element which will be updated whenever this element is arranged
-  // in such a way that its position or size is modified
-  void RegisterArrangeDependent(std::shared_ptr<Element> dependent);
-
   // Register a later sibling that overlaps this one. Note that this
   // registration does not change the drawing order.  It simply ensures
   // that when this element is being updated, overlapping elements get
-  // drawn as well.
+  // re-drawn as well.
   void RegisterOverlappingElement(std::shared_ptr<Element> other);
+
+  void UnregisterOverlappingElement(std::shared_ptr<Element> other);
 
 
   // -----------------------------------------------------------------
@@ -311,8 +308,8 @@ public:
   // Visit ancestors of this element, oldest ancestor first
   void VisitAncestors(const std::function<void(Element*)>& action);
 
-  void VisitArrangeDependents(const std::function<void(Element*)>& action);
   void VisitOverlappingElements(const std::function<void(Element*)>& action);
+  void VisitOverlappedElements(const std::function<void(Element*)>& action);
 
   void VisitThisAndDescendents(const std::function<bool(Element*)>& preChildrenAction,
                                const std::function<void(Element*)>& postChildrenAction);
@@ -404,11 +401,13 @@ private:
   {
     bool WasInvisibleBeforeAndAfter() const;
     bool ElementWasMovedOrResized() const;
+    bool ElementBecameVisible() const;
     const Rect4& GetUnionedTotalBounds() const;
     bool ChildrenRequestedArrange() const;
 
     bool  wasInvisibleBeforeAndAfter;
     bool  elementWasMovedOrResized;
+    bool  elementBecameVisible;
     Rect4 unionedTotalBounds;
     bool  childrenRequestedArrange;
   };
@@ -436,8 +435,8 @@ private:
 
   boost::optional<MonitorArrangeEffects&> _monitoringArrangeEffects;
 
-  std::deque<std::weak_ptr<Element>> _arrangeDependents;
   std::deque<std::weak_ptr<Element>> _overlappedBy;
+  std::deque<std::weak_ptr<Element>> _overlaps;
 
   bool _updateRearrangesDescendents       = false;
 
@@ -558,6 +557,10 @@ private:
   void ArrangeAndDrawHelper();
 
   void SetIsDetached(bool isDetached);
+
+  void RegisterOverlappedElement(std::shared_ptr<Element> other);
+
+  void UnregisterOverlappedElement(std::shared_ptr<Element> other);
 
 protected:
   // For use by the Layer class only
