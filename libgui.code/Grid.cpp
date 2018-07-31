@@ -78,6 +78,8 @@ void Grid::MoveToOffsetPercent(double offsetPercent)
 
 bool Grid::CanScroll()
 {
+  if (!_itemsProvider) return false; // No content
+
   auto totalRows          = std::ceil(double(_itemsProvider->GetTotalItems()) / _columns);
   auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
   return totalContentHeight > GetHeight();
