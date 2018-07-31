@@ -59,6 +59,10 @@ target_link_libraries(libgui.sample.opengl libgui libfreetypegl ${GLFW_LIBRARIES
     ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLEW_LIBRARIES}
     ${FREETYPE_LIBRARIES})
 
+if (libgui_debug_logging)
+    target_compile_definitions(libgui.sample.opengl PRIVATE DBG)
+endif()
+
 macro(deploy_freetype_gl_shader SHADER_FILE)
     set(SRC_FILE ${FREETYPE_GL_SHADER_PATH}/${SHADER_FILE})
     set(DEST_FILE $<TARGET_FILE_DIR:libgui.sample.opengl>/shaders/${SHADER_FILE})

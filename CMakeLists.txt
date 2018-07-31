@@ -6,6 +6,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 # CMake modules used
 include(ExternalProject)
 
+option(libgui_debug_logging "Log low-level arrange logic." OFF)
 option(libgui_build_samples "Build all of libgui's own samples." ON)
 option(libgui_build_tests "Build all of libgui's own tests." ON)
 

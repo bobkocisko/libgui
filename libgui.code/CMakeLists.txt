@@ -50,3 +50,7 @@ set(SOURCE_FILES
     include/libgui/CallPostConstructIfPresent.h)
 
 add_library(libgui ${SOURCE_FILES})
+
+if (libgui_debug_logging)
+    target_compile_definitions(libgui PRIVATE DBG)
+endif()

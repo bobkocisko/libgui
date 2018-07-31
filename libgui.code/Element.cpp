@@ -671,6 +671,23 @@ void Element::UpdateHelper(UpdateType updateType)
 
     if (UpdateType::Adding != updateType || currentLayer->AnyLayersAbove())
     {
+      // Before we do any drawing we need to make sure that we have all the
+      // ancestor clips pushed.  This duplicates the clipping that is done
+      // later by ancestors' DoDrawTasksIfVisible but I don't want to
+      // change that and I don't think it makes any real performance impact.
+      // Also, the amount of explicit clipping tends to be minimal in most
+      // applications so I think this is reasonable.  Finally if we are using
+      // IntersectionStack to manage this stack then it will not even forward
+      // the new clip on if it is the same as the previous.
+      VisitAncestors(
+        [&redrawRegion, &thisAndAncestorClips](Element* ancestor) {
+          if (ancestor->GetIsVisible() && ancestor->ClipToBoundsIfNeeded())
+          {
+            ++thisAndAncestorClips;
+          }
+        });
+
+
       currentLayer->VisitLowerLayersIf(
         [this, &redrawRegion, currentLayer, updateType](Layer* currentLayer2) {
           // Special case: if we are removing this layer then always
@@ -699,8 +716,8 @@ void Element::UpdateHelper(UpdateType updateType)
           fflush(stdout);
           #endif
 
-          ancestor->DoDrawTasksIfVisible(redrawRegion);
-          if (ancestor->GetClipToBounds())
+          bool visible = ancestor->DoDrawTasksIfVisible(redrawRegion);
+          if (visible && ancestor->GetClipToBounds())
           {
             ++thisAndAncestorClips;
           }

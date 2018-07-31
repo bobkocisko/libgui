@@ -166,6 +166,10 @@ void InitElements()
         auto height = bottom - int(std::round(region.top));
         GLERR(glScissor(left, windowHeight - bottom, width, height));
 
+        #ifdef DBG
+        printf("Scissor region %d, %d, %d, %d\n", left, int(region.top), int(region.right), bottom); fflush(stdout);
+        #endif
+
         // Enable the scissor test if not already enabled
         if (!isClipping)
         {
@@ -178,6 +182,10 @@ void InitElements()
         // Disable the scissor test if not already disabled
         if (isClipping)
         {
+          #ifdef DBG
+          printf("Scissor region --\n"); fflush(stdout);
+          #endif
+
           GLERR(glDisable(GL_SCISSOR_TEST));
           isClipping = false;
         }
