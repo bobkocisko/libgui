@@ -13,6 +13,7 @@ public:
 
   virtual int GetTotalItems()    = 0;
   virtual std::shared_ptr<ViewModelBase> GetItem(int index) = 0;
+  virtual int GetItemIndex(std::shared_ptr<ViewModelBase> item) = 0;
 };
 }
 

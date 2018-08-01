@@ -16,7 +16,7 @@ public:
 
   virtual void WhenThumbDataChanges(const std::function<void()>& handler) = 0;
 
-  virtual void MoveToOffsetPercent(double offset_percent, bool notify_thumb = true) = 0;
+  virtual void MoveToOffsetPercent(double offset_percent, bool notify_thumb) = 0;
 
   void LimitToBounds(double& offsetPercent)
   {

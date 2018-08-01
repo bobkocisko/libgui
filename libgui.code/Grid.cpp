@@ -99,6 +99,35 @@ void Grid::MoveToOffsetPercent(double offsetPercent, bool notify_thumb)
   }
 }
 
+void Grid::ScrollToTop()
+{
+  MoveToOffsetPercent(0.0, true);
+}
+
+void Grid::ScrollTo(std::shared_ptr<ViewModelBase> item)
+{
+  if (!CanScroll()) return; // All items are visible
+
+  auto index = _itemsProvider->GetItemIndex(item);
+  if (-1 == index) return;
+
+  // Figure out what row this item is in
+  int row = index / _columns;
+
+  auto totalRows          = std::ceil(double(_itemsProvider->GetTotalItems()) / _columns);
+  auto totalContentHeight = (totalRows * _cellHeight) + _topPadding + _bottomPadding;
+
+  auto rowTop = (row * _cellHeight) + _topPadding;
+
+  // Move so that the top of the row is at the top of the viewport
+  double offsetPercent = (rowTop / totalContentHeight);
+
+  // But make sure that we don't go beyond the scroll bounds
+  LimitToBounds(offsetPercent);
+
+  MoveToOffsetPercent(offsetPercent, true);
+}
+
 bool Grid::CanScroll()
 {
   if (!_itemsProvider) return false; // No content

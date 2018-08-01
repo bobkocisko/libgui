@@ -120,7 +120,7 @@ void CheckOpenGLError(const char* expression)
   }
 }
 
-auto initialWindowWidth = 640;
+auto initialWindowWidth = 700;
 
 auto initialWindowHeight = 480;
 
@@ -221,7 +221,8 @@ void InitElements()
 
 
   // Build the screen elements
-  std::shared_ptr<Button> overlapButton, overlap2Button, scrollButton;
+  std::shared_ptr<Button> overlapButton, overlap2Button;
+  std::shared_ptr<Button> scrollTopButton, scrollToButton;
   auto header = root->CreateChild<Element>("Header");
   {
     header->SetArrangeCallback(
@@ -399,9 +400,9 @@ void InitElements()
       overlapButton->RegisterOverlappingElement(overlap2Button);
     }
 
-    scrollButton = header->CreateChild<Button>("Scroll button");
+    scrollTopButton = header->CreateChild<Button>("Scroll to top button");
     {
-      scrollButton->SetArrangeCallback(
+      scrollTopButton->SetArrangeCallback(
         [](std::shared_ptr<Element> e) {
           auto p = e->GetParent();
           e->SetRight(p->GetRight() - 5.0);
@@ -409,10 +410,27 @@ void InitElements()
           e->SetWidth(50);
           e->SetHeight(30);
         });
-      scrollButton->SetDrawCallback(
+      scrollTopButton->SetDrawCallback(
         [](Element* e, const boost::optional<Rect4>& redrawRegion) {
           DrawButton(e);
           DrawText(e->GetCenterX(), e->GetCenterY(), "Scroll\nto top");
+        });
+    }
+
+    scrollToButton = header->CreateChild<Button>("Scroll to button");
+    {
+      scrollToButton->SetArrangeCallback(
+        [scrollTopButton](std::shared_ptr<Element> e) {
+          auto p = e->GetParent();
+          e->SetRight(scrollTopButton->GetLeft() - 5.0);
+          e->SetCenterY(p->GetCenterY());
+          e->SetWidth(50);
+          e->SetHeight(30);
+        });
+      scrollToButton->SetDrawCallback(
+        [](Element* e, const boost::optional<Rect4>& redrawRegion) {
+          DrawButton(e);
+          DrawText(e->GetCenterX(), e->GetCenterY(), "Scroll\nto B-6");
         });
     }
   }
@@ -575,12 +593,27 @@ void InitElements()
       }
     });
 
-    scrollButton->SetEventCallback(
+  scrollTopButton->SetEventCallback(
     [grid](std::shared_ptr<Button> b, Button::OutputEvent event) {
       if (Button::OutputEvent::Clicked == event)
       {
-        grid->MoveToOffsetPercent(0.0);
+        grid->ScrollToTop();
         grid->UpdateAfterModify();
+      }
+    });
+
+  scrollToButton->SetEventCallback(
+    [grid](std::shared_ptr<Button> b, Button::OutputEvent event) {
+      if (Button::OutputEvent::Clicked == event)
+      {
+
+        auto sixthRowItem = grid->GetItemsProvider()->GetItem(16);
+        if (sixthRowItem)
+        {
+          printf("Scrolling to %s\n", std::dynamic_pointer_cast<ItemViewModel>(sixthRowItem)->GetName().c_str()); fflush(stdout);
+          grid->ScrollTo(sixthRowItem);
+          grid->UpdateAfterModify();
+        }
       }
     });
 

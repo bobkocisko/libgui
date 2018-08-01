@@ -14,6 +14,8 @@ public:
   int GetTotalItems() override;
   std::shared_ptr<libgui::ViewModelBase> GetItem(int index) override;
 
+  int GetItemIndex(std::shared_ptr<ViewModelBase> item) override;
+
   void AddOtherItems();
 
   void RemoveOtherItems();

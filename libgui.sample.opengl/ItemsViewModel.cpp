@@ -31,6 +31,20 @@ std::shared_ptr<libgui::ViewModelBase> ItemsViewModel::GetItem(int index)
   return _items[index];
 }
 
+int ItemsViewModel::GetItemIndex(std::shared_ptr<libgui::ViewModelBase> item)
+{
+  for (int i = 0; i < _items.size(); ++i)
+  {
+    if (_items[i] == item)
+    {
+      return i;
+    }
+  }
+
+  // Not found
+  return -1;
+}
+
 void ItemsViewModel::AddOtherItems()
 {
   std::vector<std::shared_ptr<ItemViewModel>> newItems = {

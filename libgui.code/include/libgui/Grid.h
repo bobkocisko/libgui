@@ -19,7 +19,11 @@ public:
   void WhenThumbDataChanges(
     const std::function<void()>& handler) override;
 
-  void MoveToOffsetPercent(double offsetPercent, bool notify_thumb = true) override;
+  void MoveToOffsetPercent(double offsetPercent, bool notify_thumb) override;
+
+  void ScrollToTop();
+
+  void ScrollTo(std::shared_ptr<ViewModelBase> item);
 
   bool CanScroll();
 
