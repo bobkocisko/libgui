@@ -33,9 +33,9 @@ void Grid::Arrange()
     LimitToBounds(_offsetPercent);
 
     // Notify that the thumb size should be recalculated
-    if (_thumbSizePercentChangeCallback)
+    if (_thumbDataChangeCallback)
     {
-      _thumbSizePercentChangeCallback();
+      _thumbDataChangeCallback();
     }
 
     _lastHeightUsedForScrollCheck = GetHeight();
@@ -81,14 +81,22 @@ double Grid::GetThumbSizePercent()
   return std::min(1.0, GetHeight() / totalContentHeight);
 }
 
-void Grid::WhenThumbSizePercentChanges(const std::function<void()>& handler)
+void Grid::WhenThumbDataChanges(const std::function<void()>& handler)
 {
-  _thumbSizePercentChangeCallback = handler;
+  _thumbDataChangeCallback = handler;
 }
 
-void Grid::MoveToOffsetPercent(double offsetPercent)
+void Grid::MoveToOffsetPercent(double offsetPercent, bool notify_thumb)
 {
   _offsetPercent = offsetPercent;
+
+  if (notify_thumb)
+  {
+    if (_thumbDataChangeCallback)
+    {
+      _thumbDataChangeCallback();
+    }
+  }
 }
 
 bool Grid::CanScroll()

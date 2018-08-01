@@ -221,7 +221,7 @@ void InitElements()
 
 
   // Build the screen elements
-  std::shared_ptr<Button> overlapButton, overlap2Button;
+  std::shared_ptr<Button> overlapButton, overlap2Button, scrollButton;
   auto header = root->CreateChild<Element>("Header");
   {
     header->SetArrangeCallback(
@@ -398,6 +398,23 @@ void InitElements()
       launchButton->RegisterOverlappingElement(overlapButton); // Registering in non-natural order works fine
       overlapButton->RegisterOverlappingElement(overlap2Button);
     }
+
+    scrollButton = header->CreateChild<Button>("Scroll button");
+    {
+      scrollButton->SetArrangeCallback(
+        [](std::shared_ptr<Element> e) {
+          auto p = e->GetParent();
+          e->SetRight(p->GetRight() - 5.0);
+          e->SetCenterY(p->GetCenterY());
+          e->SetWidth(50);
+          e->SetHeight(30);
+        });
+      scrollButton->SetDrawCallback(
+        [](Element* e, const boost::optional<Rect4>& redrawRegion) {
+          DrawButton(e);
+          DrawText(e->GetCenterX(), e->GetCenterY(), "Scroll\nto top");
+        });
+    }
   }
 
   auto footer = root->CreateChild<Element>("Footer");
@@ -555,6 +572,15 @@ void InitElements()
           grid->UpdateAfterModify();
           grid_scroll->UpdateAfterModify();
         }
+      }
+    });
+
+    scrollButton->SetEventCallback(
+    [grid](std::shared_ptr<Button> b, Button::OutputEvent event) {
+      if (Button::OutputEvent::Clicked == event)
+      {
+        grid->MoveToOffsetPercent(0.0);
+        grid->UpdateAfterModify();
       }
     });
 

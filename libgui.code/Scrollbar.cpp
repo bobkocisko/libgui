@@ -34,7 +34,7 @@ void Scrollbar::PostConstruct()
   _thumb = _track->CreateChild<Thumb>();
 
   std::weak_ptr<Thumb> weakThumb(std::static_pointer_cast<Thumb>(_thumb));
-  _scrollDelegate->WhenThumbSizePercentChanges([this, weakThumb] {
+  _scrollDelegate->WhenThumbDataChanges([this, weakThumb] {
     auto thumb = weakThumb.lock();
     if (!thumb) return;
     thumb->UpdateAfterModify();
@@ -268,7 +268,7 @@ void Scrollbar::Thumb::NotifyMove(Point point)
       scrollDelegate->LimitToBounds(offsetPercent);
       if (scrollDelegate->GetCurrentOffsetPercent() != offsetPercent)
       {
-        scrollDelegate->MoveToOffsetPercent(offsetPercent);
+        scrollDelegate->MoveToOffsetPercent(offsetPercent, false); // Don't notify the thumb; that would be duplicate work
         if (auto e = std::dynamic_pointer_cast<Element>(scrollDelegate))
         {
           e->UpdateAfterModify();
