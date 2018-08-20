@@ -39,6 +39,7 @@
 
 #include "libgui/Element.h"
 #include "libgui/ElementManager.h"
+#include "libgui/Knob.h"
 #include "libgui/Layer.h"
 #include "libgui/Grid.h"
 #include "libgui/Scrollbar.h"
@@ -67,6 +68,7 @@ using libgui::ElementManager;
 using libgui::Rect4;
 using libgui::Element;
 using libgui::Grid;
+using libgui::Knob;
 using libgui::ScopeExit;
 using libgui::Scrollbar;
 using libgui::Slider;
@@ -672,6 +674,26 @@ void InitElements()
     slider->SetValueChangedByInputCallback([sliderValueText](std::shared_ptr<Slider>) {
       sliderValueText->UpdateAfterModify();
     });
+  }
+
+  // Yeah this Knob control visual presentation isn't pretty or intuitive at
+  // all.  But it does allow us to test the behavior which is what matters most.
+  auto knob = footer->CreateChild<Knob>();
+  {
+    knob->SetArrangeCallback([](std::shared_ptr<Element> e) {
+      auto p = e->GetParent();
+      e->SetCenterX(p->GetCenterX());
+      e->SetTop(p->GetTop());
+      e->SetHeight(p->GetHeight());
+      e->SetWidth(75);
+    });
+    knob->SetDrawCallback(
+      [](Element* e, const boost::optional<Rect4>& redrawRegion) {
+        OutlineRectangle(e->GetLeft(), e->GetTop(), e->GetRight(), e->GetBottom(),
+                         0, 0, 0, 1.0);
+        auto knob = static_cast<Knob*>(e);
+        DrawText(e->GetCenterX(), e->GetCenterY(), std::to_string(knob->GetValue()));
+      });
   }
 
   timerText = footer->CreateChild<Element>("Timer Text");

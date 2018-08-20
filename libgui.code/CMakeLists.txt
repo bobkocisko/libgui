@@ -47,7 +47,7 @@ set(SOURCE_FILES
     Layer.cpp
     include/libgui/IntersectionStack.h
     IntersectionStack.cpp
-    include/libgui/CallPostConstructIfPresent.h)
+    include/libgui/CallPostConstructIfPresent.h Knob.cpp)
 
 add_library(libgui ${SOURCE_FILES})
 

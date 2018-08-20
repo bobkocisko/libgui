@@ -1,0 +1,17 @@
+@startuml
+[*] --> Idle
+
+Idle --> Pending: Enter
+
+Pending --> Idle: Leave
+Pending -left-> Engaged: Push / RecordAnchor
+
+Engaged --> Pending: Release
+Engaged --> EngagedRemotely: EngagedEscape
+Engaged --> Idle: Leave
+
+EngagedRemotely --> Engaged: EngagedReturn
+EngagedRemotely -> Idle: Release || Leave
+
+
+@enduml
