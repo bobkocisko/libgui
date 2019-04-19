@@ -624,6 +624,7 @@ void InitElements()
   auto slider = root->CreateChild<Slider>();
   {
     slider->SetThumbHeight(50);
+    // slider->SetFinenessMultiplier(1.5);
     slider->SetArrangeCallback(
       [gridScrollWidth, header, footer](std::shared_ptr<Element> e) {
         auto p = e->GetParent();

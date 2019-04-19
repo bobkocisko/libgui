@@ -64,6 +64,16 @@ void Slider::SetThumbHeight(double thumbHeight)
   _thumbHeight = thumbHeight;
 }
 
+double Slider::GetFinenessMultiplier() const
+{
+  return _finenessMultiplier;
+}
+
+void Slider::SetFinenessMultiplier(double finenessMultiplier)
+{
+  _finenessMultiplier = finenessMultiplier;
+}
+
 void Slider::SetValueChangedByInputCallback(
   const std::function<void(std::shared_ptr<Slider>)>& valueChangedByInputCallback)
 {
@@ -270,7 +280,11 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
 
 void Slider::Thumb::RecordAnchor()
 {
-  _anchorOffset = _inputPoint.Y - GetTop();
+  auto slider = _slider.lock();
+  if (!slider) return;
+
+  _anchorOffset = _inputPoint.Y;
+  _valueAtAnchor = slider->GetValue();
 }
 
 void Slider::Thumb::NotifyMove(Point point)
@@ -283,18 +297,24 @@ void Slider::Thumb::NotifyMove(Point point)
     auto track  = _track.lock();
     if (slider && track)
     {
-      auto offsetPercent = ((point.Y - _anchorOffset) - track->GetTop()) /
-                           (track->GetHeight() - slider->GetThumbHeight());
-      offsetPercent = std::max(0.0, offsetPercent);
-      offsetPercent = std::min(1.0, offsetPercent);
-      if (slider->GetRawFromValue() != offsetPercent)
+      auto virtualTrackHeight = (track->GetHeight() - slider->GetThumbHeight());
+      virtualTrackHeight *= slider->GetFinenessMultiplier();
+      auto offsetPercent = (_anchorOffset - point.Y) / virtualTrackHeight;
+      if (0.0 != offsetPercent)
       {
+        auto newValue = _valueAtAnchor + offsetPercent;
+        newValue = std::max(0.0, newValue);
+        newValue = std::min(1.0, newValue);
+        if (slider->GetValue() != newValue)
         {
-          slider->_valueIsChangingByInput = true;
-          ScopeExit onScopeExit([slider]() { slider->_valueIsChangingByInput = false; });
-          slider->SetValueFromRaw(offsetPercent);
+          {
+            slider->_valueIsChangingByInput = true;
+            ScopeExit onScopeExit([slider]() {
+              slider->_valueIsChangingByInput = false; });
+            slider->SetValue(newValue);
+          }
+          UpdateAfterModify();
         }
-        UpdateAfterModify();
       }
     }
   }
@@ -316,11 +336,6 @@ void Slider::OnValueChangedByInput()
 double Slider::GetRawFromValue()
 {
   return 1.0 - GetValue();
-}
-
-void Slider::SetValueFromRaw(double raw)
-{
-  SetValue(1.0 - raw);
 }
 
 Slider::Thumb::State Slider::Thumb::GetState() const
