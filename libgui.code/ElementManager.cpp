@@ -102,10 +102,6 @@ void ElementManager::AddLayerBelow(std::shared_ptr<Layer> existing, std::shared_
   if (_layers.end() == existingIter)
   {
     // No matching lower layer specified, so add to the end
-    if (!_layers.empty())
-    {
-      higher = _layers.front();
-    }
   }
   else
   {
@@ -119,6 +115,13 @@ void ElementManager::AddLayerBelow(std::shared_ptr<Layer> existing, std::shared_
   if (higher)
   {
     lower = higher->_layerBelow.lock();
+  }
+  else
+  {
+    if (!_layers.empty())
+    {
+      lower = _layers.back();
+    }
   }
 
   adding->_layerBelow     = lower;
