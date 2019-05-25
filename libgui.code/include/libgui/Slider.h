@@ -81,6 +81,7 @@ public:
 
 protected:
   virtual void OnValueChangedByInput();
+  virtual void OnThumbStateChangedByInput();
 
   // Support transformations of the value from the raw 0.0-1.0 scale meaning a
   // linear top to bottom value.  The default transformation that makes 0.0 values

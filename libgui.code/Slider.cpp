@@ -241,6 +241,8 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
 
   auto stateMachine = (SmSlider::StateMachine*) _stateMachine;
 
+  auto stateBefore = GetState();
+
   switch (inputAction)
   {
     case InputAction::EnterReleased:
@@ -269,6 +271,14 @@ void Slider::Thumb::NotifyInput(InputType inputType, InputAction inputAction, Po
       stateMachine->process_event(SmSlider::EngagedReturn());
       NotifyMove(point);
       break;
+  }
+
+  if (stateBefore != GetState())
+  {
+    if (auto slider = _slider.lock())
+    {
+      slider->OnThumbStateChangedByInput();
+    }
   }
 
   if (InputAction::Move != inputAction)
@@ -331,6 +341,10 @@ void Slider::OnValueChangedByInput()
   {
     _valueChangedByInputCallback(std::dynamic_pointer_cast<Slider>(shared_from_this()));
   }
+}
+
+void Slider::OnThumbStateChangedByInput()
+{
 }
 
 double Slider::GetRawFromValue()

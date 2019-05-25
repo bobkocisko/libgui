@@ -182,11 +182,17 @@ void Knob::OnValueChangedByInput()
   }
 }
 
+void Knob::OnStateChangedByInput()
+{
+}
+
 void Knob::NotifyInput(InputType inputType, InputAction inputAction, Point point)
 {
   _inputPoint = point;
 
   auto stateMachine = (SmKnob::StateMachine*) _stateMachine;
+
+  auto stateBefore = GetState();
 
   switch (inputAction)
   {
@@ -216,6 +222,11 @@ void Knob::NotifyInput(InputType inputType, InputAction inputAction, Point point
       stateMachine->process_event(SmKnob::EngagedReturn());
       NotifyMove(point);
       break;
+  }
+
+  if (stateBefore != GetState())
+  {
+    OnStateChangedByInput();
   }
 
   if (InputAction::Move != inputAction)

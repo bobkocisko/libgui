@@ -50,6 +50,7 @@ public:
 
 protected:
   virtual void OnValueChangedByInput();
+  virtual void OnStateChangedByInput();
 
 private:
   void* _stateMachine;
