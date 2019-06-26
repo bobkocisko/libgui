@@ -7,7 +7,8 @@ namespace libgui
 {
 
 ElementManager::ElementManager()
- : _inUpdateCycle(false),
+ : _isDebugLoggingEnabled(false),
+   _inUpdateCycle(false),
    _fuzzyTouchSize(Size(30, 30)) // default fuzzy touch size
 {
 }
