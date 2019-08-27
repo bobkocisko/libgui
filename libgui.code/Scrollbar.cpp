@@ -82,6 +82,8 @@ class StateMachineFrontEnd: public state_machine_def<StateMachineFrontEnd>
 {
 
 public:
+  typedef int no_exception_thrown;
+
   StateMachineFrontEnd(Scrollbar::Thumb* parent)
     : _parent(parent)
   {

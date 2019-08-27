@@ -81,6 +81,23 @@ void on_exit(Event const& evt, Fsm& fsm) \
 
 
 public:
+
+  // Tell msm not to catch exceptions, let them propagate out.  This is a
+  // sticky subject and not very clear:
+  // https://lists.boost.org/boost-users/2012/03/73904.php
+  // So I took to the msm source code and as best as I can tell the only
+  // potential problem with doing this is ending up with inconsistent current
+  // states for orthogonal regions (if used--we don't) if the second region has
+  // an exception and thereby fails to transition.  If the first region throws
+  // then neither region will transition and there's a guarantee by UML that
+  // the regions handle the event in the order specified by the initial_state
+  // type:
+  // https://www.boost.org/doc/libs/1_55_0/libs/msm/doc/HTML/ch03s02.html
+  //  "Orthogonal regions, terminate state, event deferring"
+  // So basically as long as no action or entry state for the second region
+  // is allowed to throw an error then everything should be consistent.
+  typedef int no_exception_thrown;
+
   StateMachineFrontEnd(Input* parent)
     : _parent(parent)
   {
@@ -156,6 +173,8 @@ public:
   };
   struct HasTarget_: public state_machine_def<HasTarget_>
   {
+    typedef int no_exception_thrown;
+
     void SetParent(Input* parent)
     {
       _parent = parent;
@@ -184,6 +203,8 @@ public:
     };
     struct HasActive_: public state_machine_def<HasActive_>
     {
+      typedef int no_exception_thrown;
+
       void SetParent(Input* parent)
       {
         _parent = parent;
@@ -199,6 +220,8 @@ public:
 
       struct HasAvailable_: public state_machine_def<HasAvailable_>
       {
+        typedef int no_exception_thrown;
+
         void SetParent(Input* parent)
         {
           _parent = parent;
