@@ -1101,6 +1101,16 @@ Rect4 Element::GetBounds()
   return Rect4(GetLeft(), GetTop(), GetRight(), GetBottom());
 }
 
+void Element::SetTouchMargin(const Rect4& margin)
+{
+  _touchMargin = margin;
+}
+
+const Rect4& Element::GetTouchMargin() const
+{
+  return _touchMargin;
+}
+
 // Drawing
 void Element::Draw(const boost::optional<Rect4>& updateArea)
 {
@@ -1188,7 +1198,7 @@ bool Element::GetElementInRectHelper(
   // by all its ancestors' bounds
   // Because of that, we don't have to check the child of any ancestor that falls outside of the search point
 
-  if (Intersects(hitRect))
+  if (TouchIntersects(hitRect))
   {
     if (_firstChild)
     {
@@ -1408,6 +1418,19 @@ bool Element::Intersects(const Rect4& region)
   // and also flipping the comparisons for top and bottom since we're using top-down coordinates
   return (region.left <= GetRight() && region.right >= GetLeft() &&
           region.top <= GetBottom() && region.bottom >= GetTop());
+}
+
+bool Element::TouchIntersects(const Rect4& region)
+{
+  auto left   = GetLeft()   + _touchMargin.left;
+  auto top    = GetTop()    + _touchMargin.top;
+  auto right  = GetRight()  - _touchMargin.right;
+  auto bottom = GetBottom() - _touchMargin.bottom;
+  // Thanks to http://stackoverflow.com/a/306332/4307047 for the rectangle intersection logic
+  // but including equality with each operator so that identical rectangles would succeed,
+  // and also flipping the comparisons for top and bottom since we're using top-down coordinates
+  return (region.left <= right && region.right >= left &&
+          region.top <= bottom && region.bottom >= top);
 }
 
 bool Element::Intersects(const Point& point)

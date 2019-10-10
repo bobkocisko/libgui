@@ -214,6 +214,12 @@ public:
   // Gets the bounds of this element used for arrangement and hit testing
   Rect4 GetBounds();
 
+  // Sets or gets the touch margin.  This is an unusual use of Rect4: each of
+  // left, top, right and bottom are simply positive values that indicate the
+  // margin away from the element bounds where touch is considered effective.
+  void SetTouchMargin(const Rect4& margin);
+  const Rect4& GetTouchMargin() const;
+
   // -----------------------------------------------------------------
   // State tracking
 
@@ -292,6 +298,10 @@ public:
 
   // Returns whether this element intersects with the specified region
   bool Intersects(const Rect4& region);
+
+  // Returns whether the touch region of this element intersects with the
+  // specified region (by including the touch margin)
+  bool TouchIntersects(const Rect4& region);
 
   // Returns whether the TotalBounds of this element intersects with the specified region
   bool TotalBoundsIntersects(const Rect4& region);
@@ -462,6 +472,7 @@ private:
   // Bounds
 
   boost::optional<Rect4> _visualBounds;
+  Rect4 _touchMargin;
 
   // -----------------------------------------------------------------
   // State tracking
