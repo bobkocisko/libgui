@@ -44,8 +44,6 @@ public:
   // occurring on this button.
   void SetEventCallback(std::function<void(std::shared_ptr<Button>, OutputEvent)>);
 
-  virtual std::string GetTypeName() override;
-
 protected:
 
   // Cleanup

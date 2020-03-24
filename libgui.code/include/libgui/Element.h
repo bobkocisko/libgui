@@ -350,7 +350,7 @@ public:
 
   // -----------------------------------------------------------------
   // Debugging
-  virtual std::string GetTypeName();
+  const std::string& GetTypeName() const;
   void SetTypeName(const std::string& name);
 
   // -----------------------------------------------------------------

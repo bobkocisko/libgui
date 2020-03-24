@@ -226,16 +226,6 @@ Button::VisibleState Button::GetVisibleState()
   return (VisibleState) stateMachine->current_state()[0];
 }
 
-std::string Button::GetTypeName()
-{
-  auto typeName = Control::GetTypeName();
-  if (typeName.empty())
-  {
-    return "Button";
-  }
-  return typeName;
-}
-
 void Button::OnElementIsBeingRemoved()
 {
   // Clean up the callback so it doesn't hold lambda captures

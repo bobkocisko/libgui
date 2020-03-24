@@ -1606,7 +1606,7 @@ bool Element::CoveredByLayerAbove(const Rect4& region)
   return false;
 }
 
-std::string Element::GetTypeName()
+const std::string& Element::GetTypeName() const
 {
   return _typeName;
 }
