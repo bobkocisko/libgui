@@ -22,7 +22,12 @@ namespace libgui
 {
 
 Slider::Slider(Element::Dependencies elementDependencies)
-  : Element(elementDependencies, "Slider")
+  : Slider(elementDependencies, "Slider")
+{
+}
+
+Slider::Slider(Element::Dependencies elementDependencies, const std::string& typeName)
+  : Element(elementDependencies, typeName)
 {
 }
 

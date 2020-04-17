@@ -128,7 +128,11 @@ typedef state_machine<StateMachineFrontEnd> StateMachine;
 }
 
 Knob::Knob(Element::Dependencies elementDependencies)
-  : Control(elementDependencies, "Knob"),
+  : Knob(elementDependencies, "Knob")
+{}
+
+Knob::Knob(Element::Dependencies elementDependencies, const std::string& typeName)
+  : Control(elementDependencies, typeName),
     _value(0.0),
     _valueAtAnchor(0.0)
 {
