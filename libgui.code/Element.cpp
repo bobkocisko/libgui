@@ -21,7 +21,7 @@ Element::Element(Dependencies dependencies)
 {
 }
 
-Element::Element(Dependencies dependencies, const std::string& typeName)
+Element::Element(Dependencies dependencies, std::string_view typeName)
   : _elementManager(dependencies.parent->_elementManager),
     _layer(dependencies.parent->_layer),
     _parent(dependencies.parent),
@@ -30,7 +30,7 @@ Element::Element(Dependencies dependencies, const std::string& typeName)
 }
 
 // For the Layer class only
-Element::Element(const LayerDependencies& layerDependencies, const std::string& typeName)
+Element::Element(const LayerDependencies& layerDependencies, std::string_view typeName)
   : _elementManager(layerDependencies.elementManager),
     _parent(nullptr),
     _typeName(typeName)
@@ -1606,12 +1606,12 @@ bool Element::CoveredByLayerAbove(const Rect4& region)
   return false;
 }
 
-const std::string& Element::GetTypeName() const
+std::string_view Element::GetTypeName() const
 {
   return _typeName;
 }
 
-void Element::SetTypeName(const std::string& name)
+void Element::SetTypeName(std::string_view name)
 {
   _typeName = name;
 }

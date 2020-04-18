@@ -13,7 +13,7 @@ class Knob: public Control
 {
 public:
   explicit Knob(Element::Dependencies elementDependencies);
-  explicit Knob(Element::Dependencies elementDependencies, const std::string& typeName);
+  explicit Knob(Element::Dependencies elementDependencies, std::string_view typeName);
   virtual ~Knob();
 
   /**

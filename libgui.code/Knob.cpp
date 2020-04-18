@@ -131,7 +131,7 @@ Knob::Knob(Element::Dependencies elementDependencies)
   : Knob(elementDependencies, "Knob")
 {}
 
-Knob::Knob(Element::Dependencies elementDependencies, const std::string& typeName)
+Knob::Knob(Element::Dependencies elementDependencies, std::string_view typeName)
   : Control(elementDependencies, typeName),
     _value(0.0),
     _valueAtAnchor(0.0)

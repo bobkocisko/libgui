@@ -12,7 +12,7 @@ class Slider: public libgui::Element
   friend class Thumb;
 public:
   explicit Slider(Element::Dependencies elementDependencies);
-  explicit Slider(Element::Dependencies elementDependencies, const std::string& typeName);
+  explicit Slider(Element::Dependencies elementDependencies, std::string_view typeName);
   void PostConstruct();
 
   double GetValue() const;

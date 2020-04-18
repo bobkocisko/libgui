@@ -10,7 +10,7 @@ option(libgui_debug_logging "Log low-level arrange logic." OFF)
 option(libgui_build_samples "Build all of libgui's own samples." ON)
 option(libgui_build_tests "Build all of libgui's own tests." ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 # Make the include files from the library available to all targets
 include_directories(libgui.code/include)

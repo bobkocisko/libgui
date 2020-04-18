@@ -144,7 +144,7 @@ Button::Button(Element::Dependencies elementDependencies)
 {
 }
 
-Button::Button(Element::Dependencies elementDependencies, const std::string& typeName)
+Button::Button(Element::Dependencies elementDependencies, std::string_view typeName)
   : Control(elementDependencies, typeName)
 {
   // Create and store state machine

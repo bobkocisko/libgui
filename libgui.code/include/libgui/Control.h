@@ -14,7 +14,7 @@ class Control: public Element
 {
 public:
   Control(Element::Dependencies elementDependencies);
-  Control(Element::Dependencies elementDependencies, const std::string& typeName);
+  Control(Element::Dependencies elementDependencies, std::string_view typeName);
 
   virtual ~Control();
 

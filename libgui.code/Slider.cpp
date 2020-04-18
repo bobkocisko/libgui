@@ -26,7 +26,7 @@ Slider::Slider(Element::Dependencies elementDependencies)
 {
 }
 
-Slider::Slider(Element::Dependencies elementDependencies, const std::string& typeName)
+Slider::Slider(Element::Dependencies elementDependencies, std::string_view typeName)
   : Element(elementDependencies, typeName)
 {
 }

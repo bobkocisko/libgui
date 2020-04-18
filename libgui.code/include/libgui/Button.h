@@ -10,7 +10,7 @@ class Button: public Control
 {
 public:
   Button(Element::Dependencies elementDependencies);
-  Button(Element::Dependencies elementDependencies, const std::string& typeName);
+  Button(Element::Dependencies elementDependencies, std::string_view typeName);
 
   virtual ~Button();
 

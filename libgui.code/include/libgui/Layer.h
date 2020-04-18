@@ -28,7 +28,7 @@ class Layer: public Element
 public:
   // Can only be constructed by a class with the ability to create the Dependencies class
   Layer(LayerDependencies dependencies);
-  Layer(LayerDependencies dependencies, const std::string& typeName);
+  Layer(LayerDependencies dependencies, std::string_view typeName);
 
 private:
   // Can only be called by ElementManager

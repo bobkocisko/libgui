@@ -11,7 +11,7 @@ Control::Control(Element::Dependencies elementDependencies)
   SetConsumesInput(true);
 }
 
-Control::Control(Element::Dependencies elementDependencies, const std::string& typeName)
+Control::Control(Element::Dependencies elementDependencies, std::string_view typeName)
   : Element(elementDependencies, typeName)
 {
   SetConsumesInput(true);

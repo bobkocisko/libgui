@@ -10,6 +10,7 @@
 #include <boost/optional.hpp>
 #include <deque>
 #include <memory>
+#include <string_view>
 #include <type_traits>
 
 namespace libgui
@@ -72,8 +73,8 @@ public:
   // Constructors
   //
   Element(Dependencies dependencies);
-  Element(Dependencies dependencies, const std::string& typeName);
-  Element(const LayerDependencies& layerDependencies, const std::string& typeName);
+  Element(Dependencies dependencies, std::string_view typeName);
+  Element(const LayerDependencies& layerDependencies, std::string_view typeName);
 
 public:
   // -----------------------------------------------------------------
@@ -350,8 +351,8 @@ public:
 
   // -----------------------------------------------------------------
   // Debugging
-  const std::string& GetTypeName() const;
-  void SetTypeName(const std::string& name);
+  std::string_view GetTypeName() const;
+  void SetTypeName(std::string_view name);
 
   // -----------------------------------------------------------------
   // Destructor
@@ -507,7 +508,7 @@ private:
 
   // -----------------------------------------------------------------
   // Debugging
-  std::string _typeName;
+  std::string_view _typeName;
 
   // -----------------------------------------------------------------
   // Drawing

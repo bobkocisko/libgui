@@ -20,7 +20,7 @@ Layer::Layer(LayerDependencies dependencies)
   SetConsumesInput(true);
 }
 
-Layer::Layer(LayerDependencies dependencies, const std::string& typeName)
+Layer::Layer(LayerDependencies dependencies, std::string_view typeName)
   : Element(dependencies, typeName),
     _capturesAllIntersectingTouchInput(false)
 {
