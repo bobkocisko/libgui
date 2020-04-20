@@ -197,6 +197,11 @@ void ElementManager::RemoveLayer(std::shared_ptr<Layer> layer)
   }
 }
 
+const ElementManager::LayerList& ElementManager::GetLayers() const
+{
+  return _layers;
+}
+
 void ElementManager::UpdateEverything()
 {
   for (auto& layer: _layers)

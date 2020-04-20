@@ -19,6 +19,8 @@ class Layer;
 class ElementManager: public std::enable_shared_from_this<ElementManager>
 {
 public:
+  typedef std::list<std::shared_ptr<Layer>> LayerList;
+
   ElementManager();
 
   // -------------------------------------------------------------------------------------
@@ -100,6 +102,13 @@ public:
   // -----------
   // Removes the specified layer, automatically performing an update during the removal
   void RemoveLayer(std::shared_ptr<Layer> layer);
+
+  // GetLayers
+  // ---------
+  // Return all the layers from bottom to top
+  const LayerList&
+  GetLayers() const;
+
 
   // -------------------------------------------------------------------------------------
   // Arranging and drawing
@@ -222,8 +231,6 @@ private:
   };
 
 private:
-  typedef std::list<std::shared_ptr<Layer>> LayerList;
-
   std::vector<Input*>               _activeInputs;
   LayerList                         _layers;
   std::function<void(bool)>         _systemCaptureCallback;
