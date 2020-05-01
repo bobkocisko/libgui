@@ -260,9 +260,12 @@ void Knob::NotifyMove(Point point)
       auto newValue = _valueAtAnchor + offsetPercent;
       newValue = std::max(0.0, newValue);
       newValue = std::min(1.0, newValue);
-      SetValue(newValue);
-      OnValueChangedByInput();
-      UpdateAfterModify();
+      if (GetValue() != newValue)
+      {
+        SetValue(newValue);
+        OnValueChangedByInput();
+        UpdateAfterModify();
+      }
     }
   }
 }
