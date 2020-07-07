@@ -195,6 +195,8 @@ void ElementManager::RemoveLayer(std::shared_ptr<Layer> layer)
       break;
     }
   }
+
+  ReApplyActiveInputs();
 }
 
 const ElementManager::LayerList& ElementManager::GetLayers() const
@@ -213,6 +215,18 @@ void ElementManager::UpdateEverything()
 void ElementManager::SetSystemCaptureCallback(const std::function<void(bool)>& systemCaptureCallback)
 {
   _systemCaptureCallback = systemCaptureCallback;
+}
+
+void ElementManager::ReApplyActiveInputs()
+{
+  for (int i = PointerInputId; i < _activeInputs.size(); ++i)
+  {
+    auto input = _activeInputs[i];
+    if (input)
+    {
+      NotifyNewPoint(i, input->GetPoint());
+    }
+  }
 }
 
 void ElementManager::NotifyNewPoint(InputId inputId, Point point)

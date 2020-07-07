@@ -75,6 +75,8 @@ public:
   // Returns whether the opaque area of this layer (if any) contains the specified region
   bool OpaqueAreaContains(const Rect4& region);
 
+  void UpdateAfterAdd() override;
+
 private:
   boost::optional<Rect4> _opaqueArea;
   bool                   _capturesAllIntersectingTouchInput;

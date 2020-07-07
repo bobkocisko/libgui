@@ -168,8 +168,11 @@ public:
    * 2 Register callbacks on all elements
    * 3 Call this method on the element or root element you created and it will
    *   update that element and all its descendants in one pass
+   *
+   * NOTE: This method is made virtual to permit internal overriding within
+   * the libgui library.  It is not intended to be overridden otherwise.
    */
-  void UpdateAfterAdd();
+  virtual void UpdateAfterAdd();
 
   /**
    * Request that this element and its descendants be updated after the position,

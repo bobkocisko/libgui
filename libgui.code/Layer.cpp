@@ -4,6 +4,8 @@
 
 #include "libgui/Layer.h"
 
+#include "libgui/ElementManager.h"
+
 namespace libgui
 {
 
@@ -137,6 +139,13 @@ bool Layer::OpaqueAreaContains(const Rect4& region)
   }
 
   return false;
+}
+
+void Layer::UpdateAfterAdd()
+{
+  Element::UpdateAfterAdd();
+
+  GetElementManager()->ReApplyActiveInputs();
 }
 
 }

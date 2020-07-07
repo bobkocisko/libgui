@@ -146,6 +146,15 @@ public:
 
   void SetSystemCaptureCallback(const std::function<void(bool)>& systemCaptureCallback);
 
+  // Recalculate the current state of all active inputs when
+  // controls have moved.  This is automatically invoked when layers
+  // are updated for the first time and when they are removed.
+  // This is particularly important for Pointer inputs when clicking a button
+  // which creates a layer: the input state needs to be recalculated afterwards
+  // in order to show that the button is no longer active.
+  void ReApplyActiveInputs();
+
+
   // -------------------------------------------------------------------------------------
   // Clipping support
   // ----------------
