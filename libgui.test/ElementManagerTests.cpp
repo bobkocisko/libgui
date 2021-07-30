@@ -1,11 +1,23 @@
-#include <gtest/gtest.h>
-#include "include/Common.h"
+
 #include "libgui/ElementManager.h"
 #include "libgui/Location.h"
 #include "libgui/Layer.h"
 
-using namespace std;
+#include <algorithm>
+#include <functional>
+#include <vector>
+
+#include <gtest/gtest.h>
+
 using namespace libgui;
+
+struct InputEntry
+{
+  InputType inputType;
+  InputAction inputAction;
+  Point point;
+};
+
 
 class StubControl: public Control
 {
@@ -23,84 +35,130 @@ public:
     }
   }
 
-  void SetDesctructorCallback(const function<void()>& callback)
+  void SetDesctructorCallback(const std::function<void()>& callback)
   {
     _destructorCallback = callback;
   }
 
   bool GetNotifyPointerPushCalled() const
   {
-    return _notifyPointerPushCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Pointer &&
+      entry.inputAction == InputAction::Push;});
   }
 
   bool GetNotifyPointerReleaseCalled() const
   {
-    return _notifyPointerReleaseCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Pointer &&
+      entry.inputAction == InputAction::Release;});
   }
 
   bool GetNotifyPointerMoveCalled() const
   {
-    return _notifyPointerMoveCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Pointer &&
+      entry.inputAction == InputAction::Move;});
   }
 
   bool GetNotifyPointerEscapeCalled() const
   {
-    return _notifyPointerEscapeCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Pointer &&
+      entry.inputAction == InputAction::EngagedEscape;});
   }
 
   bool GetNotifyPointerReturnCalled() const
   {
-    return _notifyPointerReturnCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Pointer &&
+      entry.inputAction == InputAction::EngagedReturn;});
   }
 
   bool GetNotifyPointerLeaveCalled() const
   {
-    return _notifyPointerLeaveCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Pointer &&
+      entry.inputAction == InputAction::Leave;});
   }
 
   bool GetNotifyPointerEnterCalled() const
   {
-    return _notifyPointerEnterCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Pointer &&
+      (entry.inputAction == InputAction::EnterReleased ||
+       entry.inputAction == InputAction::EnterPushed);});
   }
 
   bool GetNotifyTouchPushCalled() const
   {
-    return _notifyTouchPushCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Touch &&
+      entry.inputAction == InputAction::Push;});
   }
 
   bool GetNotifyTouchReleaseCalled() const
   {
-    return _notifyTouchReleaseCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Touch &&
+      entry.inputAction == InputAction::Release;});
   }
 
   bool GetNotifyTouchMoveCalled() const
   {
-    return _notifyTouchMoveCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Touch &&
+      entry.inputAction == InputAction::Move;});
   }
 
   bool GetNotifyTouchEnterPushedCalled() const
   {
-    return _notifyTouchEnterPushedCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Touch &&
+      entry.inputAction == InputAction::EnterPushed;});
   }
 
   bool GetNotifyTouchEnterReleasedCalled() const
   {
-    return _notifyTouchEnterReleasedCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Touch &&
+      entry.inputAction == InputAction::EnterReleased;});
   }
 
   bool GetNotifyTouchLeaveCalled() const
   {
-    return _notifyTouchLeaveCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Touch &&
+      entry.inputAction == InputAction::Leave;});
   }
 
   bool GetNotifyTouchEscapeCalled() const
   {
-    return _notifyTouchEscapeCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Touch &&
+      entry.inputAction == InputAction::EngagedEscape;});
   }
 
   bool GetNotifyTouchReturnCalled() const
   {
-    return _notifyTouchReturnCalled;
+    return AnyInputsMatch([](InputEntry entry) {
+      return
+      entry.inputType == InputType::Touch &&
+      entry.inputAction == InputAction::EngagedReturn;});
   }
 
   void NotifyInput(InputType inputType,
@@ -108,112 +166,34 @@ public:
                    Point point) override
   {
     Control::NotifyInput(inputType, inputAction, point);
-    if (InputType::Pointer == inputType)
-    {
-      switch (inputAction)
-      {
-        case InputAction::EnterReleased:
-          _notifyPointerEnterCalled = true;
-          break;
-        case InputAction::EnterPushed:
-          _notifyPointerEnterCalled = true;
-          break;
-        case InputAction::Move:
-          _notifyPointerMoveCalled = true;
-          break;
-        case InputAction::Push:
-          _notifyPointerPushCalled = true;
-          break;
-        case InputAction::Release:
-          _notifyPointerReleaseCalled = true;
-          break;
-        case InputAction::Leave:
-          _notifyPointerLeaveCalled = true;
-          break;
-        case InputAction::EngagedEscape:
-          _notifyPointerEscapeCalled = true;
-          break;
-        case InputAction::EngagedReturn:
-          _notifyPointerReturnCalled = true;
-          break;
-      }
-    }
-    else // touch
-    {
-      switch (inputAction)
-      {
-        case InputAction::EnterReleased:
-          _notifyTouchEnterReleasedCalled = true;
-          break;
-        case InputAction::EnterPushed:
-          _notifyTouchEnterPushedCalled = true;
-          break;
-        case InputAction::Move:
-          _notifyTouchMoveCalled = true;
-          break;
-        case InputAction::Push:
-          _notifyTouchPushCalled = true;
-          break;
-        case InputAction::Release:
-          _notifyTouchReleaseCalled = true;
-          break;
-        case InputAction::Leave:
-          _notifyTouchLeaveCalled = true;
-          break;
-        case InputAction::EngagedEscape:
-          _notifyTouchEscapeCalled = true;
-          break;
-        case InputAction::EngagedReturn:
-          _notifyTouchReturnCalled = true;
-          break;
-      }
-    }
+
+    _capturedInputs.emplace_back(InputEntry{
+      inputType,
+      inputAction,
+      point
+    });
   }
 
   void ResetNotifications()
   {
-    _notifyPointerPushCalled    = false;
-    _notifyPointerMoveCalled    = false;
-    _notifyPointerReleaseCalled = false;
-    _notifyPointerEscapeCalled  = false;
-    _notifyPointerReturnCalled  = false;
-    _notifyPointerLeaveCalled   = false;
-    _notifyPointerEnterCalled   = false;
-
-    _notifyTouchEnterPushedCalled   = false;
-    _notifyTouchEnterReleasedCalled = false;
-    _notifyTouchReleaseCalled       = false;
-    _notifyTouchPushCalled          = false;
-    _notifyTouchMoveCalled          = false;
-    _notifyTouchLeaveCalled         = false;
-    _notifyTouchEscapeCalled        = false;
-    _notifyTouchReturnCalled        = false;
+    _capturedInputs.clear();
   }
 
 private:
-  function<void()> _destructorCallback;
+  std::function<void()> _destructorCallback;
 
-  bool _notifyPointerPushCalled    = false;
-  bool _notifyPointerMoveCalled    = false;
-  bool _notifyPointerReleaseCalled = false;
-  bool _notifyPointerEscapeCalled  = false;
-  bool _notifyPointerReturnCalled  = false;
-  bool _notifyPointerEnterCalled   = false;
+  std::vector<InputEntry> _capturedInputs;
 
-  bool _notifyPointerLeaveCalled       = false;
-  bool _notifyTouchPushCalled          = false;
-  bool _notifyTouchReleaseCalled       = false;
-  bool _notifyTouchMoveCalled          = false;
-  bool _notifyTouchEnterPushedCalled   = false;
-  bool _notifyTouchEnterReleasedCalled = false;
-  bool _notifyTouchLeaveCalled         = false;
-  bool _notifyTouchEscapeCalled        = false;
-  bool _notifyTouchReturnCalled        = false;
+  bool AnyInputsMatch(const std::function<bool(InputEntry)>& criteria) const
+  {
+    return std::any_of(_capturedInputs.begin(), _capturedInputs.end(),
+      criteria);
+  }
 };
 
 TEST(ElementManagerTests, WhenControlIsCaptured_ItReceivesNotifyUp)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
@@ -237,7 +217,7 @@ TEST(ElementManagerTests, WhenControlIsCaptured_ItReceivesNotifyUp)
 
 TEST(ElementManagerTests, WhenControlIsHidden_ItDoesNotReceiveNotifications)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
@@ -275,7 +255,7 @@ TEST(ElementManagerTests, WhenControlIsHidden_ItDoesNotReceiveNotifications)
 
 TEST(ElementManagerTests, WhenControlIsDisabled_ItDoesNotReceiveNotifications)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
@@ -313,7 +293,7 @@ TEST(ElementManagerTests, WhenControlIsDisabled_ItDoesNotReceiveNotifications)
 
 TEST(ElementManagerTests, WhenActiveControlBecomesDisabled_ItReceivesLeaveNotification)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
@@ -353,7 +333,7 @@ TEST(ElementManagerTests, WhenActiveControlBecomesDisabled_ItReceivesLeaveNotifi
 
 TEST(ElementManagerTests, WhenActiveControlParentBecomesDisabled_ItReceivesLeaveOnMove)
 {
-  auto em   = make_shared<ElementManager>();
+  auto em   = std::make_shared<ElementManager>();
   auto root = em->CreateLayerAbove(nullptr);
   root->SetLeft(0);
   root->SetRight(10);
@@ -403,7 +383,7 @@ TEST(ElementManagerTests, WhenActiveControlParentBecomesDisabled_ItReceivesLeave
 
 TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
@@ -429,7 +409,7 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownAndUp_ItReceivesNotifications)
 
 TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesEscapedReturn)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
@@ -454,7 +434,7 @@ TEST(ElementManagerTests, WhenControlIsTouchedDownLeavesAndReturns_ItReceivesEsc
 
 TEST(ElementManagerTests, WhenControlIsDownAndUpMultipleTimes_ItReceivesNotifications)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
@@ -487,7 +467,7 @@ TEST(ElementManagerTests, WhenControlIsDownAndUpMultipleTimes_ItReceivesNotifica
 
 TEST(ElementManagerTests, WhenDownEscapeRelease_NotificationsAreSent)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
@@ -516,7 +496,7 @@ TEST(ElementManagerTests, WhenDownEscapeRelease_NotificationsAreSent)
 
 TEST(ElementManagerTests, WhenControlIsTouchDragged_ItReceivesNotifications)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
@@ -552,7 +532,7 @@ TEST(ElementManagerTests, WhenControlIsTouchDragged_ItReceivesNotifications)
 
 TEST(ElementManagerTests, WhenControlIsTouchEngagedRemotelyThenDisabled_ItStopsReceivingNotifications)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   auto sc    = layer->CreateChild<StubControl>();
   layer->SetLeft(0);
@@ -592,7 +572,7 @@ TEST(ElementManagerTests, WhenControlIsTouchEngagedRemotelyThenDisabled_ItStopsR
 
 TEST(ElementManagerTests, AfterControlIsDestroyed_ItIsNotSentNotifications)
 {
-  auto em    = make_shared<ElementManager>();
+  auto em    = std::make_shared<ElementManager>();
   auto layer = em->CreateLayerAbove(nullptr);
   layer->SetLeft(0);
   layer->SetRight(10);
