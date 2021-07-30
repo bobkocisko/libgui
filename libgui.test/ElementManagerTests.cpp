@@ -161,6 +161,11 @@ public:
       entry.inputAction == InputAction::EngagedReturn;});
   }
 
+  bool AnyNotifications() const
+  {
+    return !_capturedInputs.empty();
+  }
+
   void NotifyInput(InputType inputType,
                    InputAction inputAction,
                    Point point) override
@@ -606,5 +611,27 @@ TEST(ElementManagerTests, AfterControlIsDestroyed_ItIsNotSentNotifications)
 
   // If any attempt is made to send notifications to the control, this test will SEGFAULT
   em->NotifyNewPoint(pointerInput, Point{1.5, 1.5});
+}
+
+
+TEST(ElementManagerTests, WhenIdleTouchMovesOverControl_ControlIsNotSentNotifications)
+{
+  auto em    = std::make_shared<ElementManager>();
+  auto layer = em->CreateLayerAbove(nullptr);
+  auto sc    = layer->CreateChild<StubControl>();
+  layer->SetLeft(0);
+  layer->SetRight(10);
+  layer->SetTop(0);
+  layer->SetBottom(10);
+
+  sc->SetLeft(1);
+  sc->SetRight(2);
+  sc->SetTop(1);
+  sc->SetBottom(2);
+
+  auto touchInput = InputId(FirstTouchId);
+  em->NotifyNewPoint(touchInput, Point{1, 1});
+  ASSERT_EQ(false, sc->AnyNotifications());
+
 }
 

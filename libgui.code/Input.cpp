@@ -152,24 +152,43 @@ public:
   };
 
   // states
-  struct Idle: public state<>
+  struct Startup: public state<>
+  { DBG_ENTER_EXIT("Startup")
+  };
+  struct IdlePointer: public state<>
   {
     template<class Event, class Fsm>
     void on_entry(Event const& evt, Fsm& fsm)
     {
-      DBG_PRINT("Enter Idle")
+      DBG_PRINT("Enter IdlePointer")
       fsm._parent->SetIsActive(false);
     }
 
     template<class Event, class Fsm>
     void on_exit(Event const& evt, Fsm& fsm)
     {
-      DBG_PRINT("Exit Idle");
+      DBG_PRINT("Exit IdlePointer");
       fsm._parent->SetIsActive(true);
     }
   };
-  struct Retarget: public state<>
-  { DBG_ENTER_EXIT("Retarget")
+  struct IdleTouch: public state<>
+  {
+    template<class Event, class Fsm>
+    void on_entry(Event const& evt, Fsm& fsm)
+    {
+      DBG_PRINT("Enter IdleTouch")
+      fsm._parent->SetIsActive(false);
+    }
+
+    template<class Event, class Fsm>
+    void on_exit(Event const& evt, Fsm& fsm)
+    {
+      DBG_PRINT("Exit IdleTouch");
+      fsm._parent->SetIsActive(true);
+    }
+  };
+  struct RetargetPointer: public state<>
+  { DBG_ENTER_EXIT("RetargetPointer")
   };
   struct HasTarget_: public state_machine_def<HasTarget_>
   {
@@ -444,26 +463,35 @@ public:
   }
 
   // Set up the starting state of the state machine
-  typedef Idle initial_state;
+  typedef Startup initial_state;
 
 
   // Transition table for state machine
   // @formatter:off
 
 
-    // NOTE: Idle must be the first state listed in this table
+    // NOTE: Startup must be the first state listed in this table
     struct transition_table : boost::mpl::vector<
-    //    Start           Event          Next State     Action   Guard
-    //  +---------------+--------------+--------------+--------+------------------------------------+
-    Row < Idle          , boost::any   , HasTarget    , none   , And_<Not_<EventTypeIsAnonymous>,
-                                                                      IsAtopControl>                >,
-    //  +---------------+--------------+--------------+--------+------------------------------------+
-    Row < HasTarget     , boost::any   , Retarget     , none   , And_<Not_<EventTypeIsAnonymous>,
-                                                                      Not_<IsAtopTarget>>           >,
-    //  +---------------+--------------+--------------+--------+------------------------------------+
-    Row < Retarget      , none         , Idle         , none   , Not_<IsAtopControl>                >,
-    Row < Retarget      , none         , HasTarget    , none   , IsAtopControl                      >
-    //  +---------------+--------------+--------------+--------+------------------------------------+
+    //    Start             Event          Next State         Action   Guard
+    //  +-----------------+--------------+------------------+--------+------------------------------------+
+    Row < Startup         , boost::any   , IdlePointer      , none   , IsPointer                          >,
+    Row < Startup         , boost::any   , IdleTouch        , none   , IsTouch                            >,
+    //  +-----------------+--------------+------------------+--------+------------------------------------+
+    Row < IdlePointer     , boost::any   , HasTarget        , none   , And_<Not_<EventTypeIsAnonymous>,
+                                                                            IsAtopControl>                >,
+    //  +-----------------+--------------+------------------+--------+------------------------------------+
+    Row < IdleTouch       , Down         , HasTarget        , none   , IsAtopControl                      >,
+    //  +-----------------+--------------+------------------+--------+------------------------------------+
+    Row < HasTarget       , boost::any   , RetargetPointer  , none   , And_<IsPointer,
+                                                                        And_<Not_<EventTypeIsAnonymous>,
+                                                                             Not_<IsAtopTarget>>>         >,
+    //  +-----------------+--------------+------------------+--------+------------------------------------+
+    Row < HasTarget       , boost::any   , IdleTouch        , none   , And_<IsTouch,
+                                                                            Not_<EventTypeIsAnonymous>>   >,
+    //  +-----------------+--------------+------------------+--------+------------------------------------+
+    Row < RetargetPointer , none         , IdlePointer      , none   , Not_<IsAtopControl>                >,
+    Row < RetargetPointer , none         , HasTarget        , none   , IsAtopControl                      >
+    //  +-----------------+--------------+------------------+--------+------------------------------------+
     > {};
 
     // @formatter:on
@@ -556,13 +584,6 @@ void Input::NotifyDown()
 void Input::NotifyUp()
 {
   _isDown = false;
-
-  if (IsTouch())
-  {
-    // If we release a touch point then that input is no longer atop anything
-    _atopElementInfo = {};
-    _atopControl     = nullptr;
-  }
 
   CheckTargetActiveStatus();
 
