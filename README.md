@@ -1,7 +1,7 @@
-#libgui
+# libgui
 Flexible and performant C++ user interface library
 
-#Features
+# Features
 
 * High performance.  Suitable for embedded applications with sufficient memory.
 * Presentation flexibility.  All drawing is done in callbacks.  No dependencies on specific drawing technologies. 
@@ -11,17 +11,17 @@ Flexible and performant C++ user interface library
 * Multitouch (independent touches) support.
 * Simple extension points to further improve performance if needed.
 
-#Limitations
+# Limitations
 
 * Single threaded.  All access to the library from multiple threads must be manually synchronized.
 * This library is a work in progress.  Priority of improvements depends on the needs that drive the current projects that use this library.  Currently, for example, there has not been a need to implement a TextBox control and so that is missing.  Also, no text input logic processing, such as a space bar or the enter key has yet been taken into consideration because it hasn't been needed.  Eventually it is expected that these limitations will be overcome, and certainly in the meantime any contributions, recommendations or votes would be appreciated.
 
-#Dependencies
+# Dependencies
 * C++ compiler supporting C++ 11, 14, 17 or greater.
 * Boost.MSM.  This excellent header-only state machine library is used extensively to simplify logic processing for inputs and controls.
 * Boost.Optional.  Header-only library that provides a simple solution to convey optional values as value types.
 
-#Optional dependencies
+# Optional dependencies
 * gtest and gmock.  Needed to run the test suite.
 * GLFW.  Needed to run the demo application.
 * Freetype-gl.  Needed to run the demo application.
@@ -121,7 +121,7 @@ Each Element has a creation phase and a separate Initialization phase, and somet
 ## Adding elements to the layer
 TODO
 
-#Acknowledgements
+# Acknowledgements
 * First, to give credit where it's due, I want to thank my Creator for providing the inspiration and ability both to begin and continue developing this library.
 * Some of the ideas for element management and arrangement as well as the MVVM support are borrowed from Microsoft's Windows Presentation Foundation, which I used extensively for a number of years in various projects.
 * Some of the ideas of element arrangement are borrowed from observations of the Qt Quick QML syntax.
